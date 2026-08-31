@@ -59,7 +59,7 @@ export default function DestinationDetail() {
     }
   };
 
-  if (!destination) return <div className="mx-auto max-w-3xl px-4 py-8">...</div>;
+  if (!destination) return <div className="mx-auto max-w-3xl px-4 py-8 text-stone-500">...</div>;
 
   const purchaseStatus = searchParams.get("purchase");
   const needsTravelDate = TRAVEL_DATE_REQUIRED.has(destination.mechanism_type);
@@ -67,30 +67,34 @@ export default function DestinationDetail() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       {purchaseStatus === "success" && !destination.is_owned && (
-        <div className="mb-4 rounded bg-yellow-100 p-3 text-sm text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
+        <div className="mb-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
           Payment received - refresh in a few seconds once the webhook processes.
         </div>
       )}
 
-      <span className="text-xs uppercase tracking-wide text-slate-500">{t(`category.${destination.category}`)}</span>
-      <h1 className="text-2xl font-bold">{destination.name}</h1>
-      <p className="text-slate-500">{destination.country}</p>
+      <span className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
+        {t(`category.${destination.category}`)}
+      </span>
+      <h1 className="mt-1 text-3xl font-extrabold text-stone-900 dark:text-stone-50">{destination.name}</h1>
+      <p className="text-stone-500 dark:text-stone-400">{destination.country}</p>
 
-      {destination.description && <p className="mt-4">{destination.description}</p>}
+      {destination.description && <p className="mt-4 text-stone-700 dark:text-stone-300">{destination.description}</p>}
 
-      <section className="mt-6">
-        <h2 className="text-lg font-semibold">{t("destination.how_it_works")}</h2>
-        <p className="mt-1 text-sm text-slate-500">{t(`mechanism_type.${destination.mechanism_type}`)}</p>
-        <p className="mt-2">{destination.mechanism_explanation}</p>
+      <section className="mt-8 rounded-2xl border border-stone-200 bg-stone-50 p-5 dark:border-stone-800 dark:bg-stone-900/50">
+        <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t("destination.how_it_works")}</h2>
+        <p className="mt-1 text-sm font-medium text-amber-700 dark:text-amber-400">
+          {t(`mechanism_type.${destination.mechanism_type}`)}
+        </p>
+        <p className="mt-2 text-stone-700 dark:text-stone-300">{destination.mechanism_explanation}</p>
         {destination.is_owned && destination.mechanism_config && (
-          <pre className="mt-3 overflow-x-auto rounded bg-slate-100 p-3 text-xs dark:bg-slate-800">
+          <pre className="mt-3 overflow-x-auto rounded-lg bg-stone-900 p-3 text-xs text-stone-100 dark:bg-black">
             {JSON.stringify(destination.mechanism_config, null, 2)}
           </pre>
         )}
       </section>
 
       <section className="mt-6">
-        <h2 className="text-lg font-semibold">{t("destination.checklist")}</h2>
+        <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t("destination.checklist")}</h2>
         {checklist?.is_owned ? (
           <>
             <PrepSection
@@ -105,22 +109,22 @@ export default function DestinationDetail() {
             />
           </>
         ) : (
-          <div className="relative mt-2 rounded border border-dashed border-slate-300 p-6 dark:border-slate-700">
-            <div className="select-none space-y-2 blur-sm">
+          <div className="relative mt-2 rounded-2xl border-2 border-dashed border-stone-300 p-6 dark:border-stone-700">
+            <div className="select-none space-y-2 text-stone-400 blur-sm">
               <p>████████ ████ ████████</p>
               <p>████ ████████████</p>
               <p>████████ ████</p>
             </div>
-            <p className="mt-4 text-sm text-slate-500">{t("destination.checklist_locked")}</p>
+            <p className="mt-4 text-sm text-stone-500 dark:text-stone-400">{t("destination.checklist_locked")}</p>
           </div>
         )}
       </section>
 
-      <section className="mt-6 text-sm text-slate-500">
+      <section className="mt-6 text-sm text-stone-500 dark:text-stone-400">
         {destination.source_url && (
           <p>
             {t("destination.source")}:{" "}
-            <a href={destination.source_url} target="_blank" rel="noreferrer" className="underline">
+            <a href={destination.source_url} target="_blank" rel="noreferrer" className="text-amber-700 underline dark:text-amber-400">
               {destination.source_url}
             </a>
           </p>
@@ -131,48 +135,51 @@ export default function DestinationDetail() {
         </p>
       </section>
 
-      <section className="mt-8 rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+      <section className="mt-8 rounded-2xl border border-stone-200 p-5 dark:border-stone-800">
         {destination.is_owned ? (
           <>
-            <p className="font-medium text-green-600 dark:text-green-400">{t("destination.already_owned")}</p>
+            <p className="font-semibold text-emerald-600 dark:text-emerald-400">✓ {t("destination.already_owned")}</p>
             <form onSubmit={handleSubscribe} className="mt-4 space-y-3">
-              <h3 className="font-semibold">{t("alert.title")}</h3>
-              <label className="block text-sm">
+              <h3 className="font-semibold text-stone-900 dark:text-stone-100">{t("alert.title")}</h3>
+              <label className="block text-sm text-stone-700 dark:text-stone-300">
                 {t("alert.lead_time")}
                 <input
                   type="number"
                   min={0}
                   value={subscription.lead_time_days}
                   onChange={(e) => setSubscription((s) => ({ ...s, lead_time_days: e.target.value }))}
-                  className="mt-1 block w-full rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
+                  className="mt-1 block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
                 />
               </label>
               {needsTravelDate && (
-                <label className="block text-sm">
+                <label className="block text-sm text-stone-700 dark:text-stone-300">
                   {t("alert.travel_date")}
                   <input
                     type="date"
                     required
                     value={subscription.travel_date}
                     onChange={(e) => setSubscription((s) => ({ ...s, travel_date: e.target.value }))}
-                    className="mt-1 block w-full rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
+                    className="mt-1 block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
                   />
-                  <span className="text-xs text-slate-500">{t("alert.travel_date_help")}</span>
+                  <span className="text-xs text-stone-500 dark:text-stone-400">{t("alert.travel_date_help")}</span>
                 </label>
               )}
-              <button type="submit" className="rounded bg-slate-900 px-4 py-2 text-sm text-white dark:bg-slate-100 dark:text-slate-900">
+              <button
+                type="submit"
+                className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+              >
                 {t("alert.submit")}
               </button>
-              {alertMessage && <p className="text-sm">{alertMessage}</p>}
+              {alertMessage && <p className="text-sm text-stone-700 dark:text-stone-300">{alertMessage}</p>}
             </form>
           </>
         ) : (
           <>
-            {!user && <p className="mb-3 text-sm text-slate-500">Log in to unlock this destination.</p>}
+            {!user && <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">Log in to unlock this destination.</p>}
             <button
               onClick={handleUnlock}
               disabled={!user}
-              className="rounded bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+              className="rounded-full bg-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 disabled:opacity-50"
             >
               {t("destination.unlock_cta", { price: destination.price_usd })}
             </button>
@@ -188,7 +195,7 @@ function PrepSection({ title, items, t }) {
   if (items.length === 0) return null;
   return (
     <div className="mt-3">
-      <h3 className="text-sm font-semibold text-slate-500">{title}</h3>
+      <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400">{title}</h3>
       <ul className="mt-1 space-y-2">
         {items.map((item) => (
           <PrepItem key={item.id} item={item} t={t} />
@@ -200,11 +207,11 @@ function PrepSection({ title, items, t }) {
 
 function PrepItem({ item, t }) {
   return (
-    <li className="flex items-start gap-2 text-sm">
-      <span className="mt-0.5 text-slate-400">•</span>
+    <li className="flex items-start gap-2 text-sm text-stone-700 dark:text-stone-300">
+      <span className="mt-0.5 text-amber-600 dark:text-amber-400">•</span>
       <span>
         {item.text}{" "}
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-stone-400">
           ({item.is_required ? t("destination.required") : t("destination.optional")})
         </span>
       </span>

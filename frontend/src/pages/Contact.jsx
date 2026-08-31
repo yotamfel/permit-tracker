@@ -30,8 +30,8 @@ export default function Contact() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
-      <h1 className="text-2xl font-bold">Contact us</h1>
-      <p className="mt-1 text-slate-500">
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Contact us</h1>
+      <p className="mt-1 text-stone-500">
         Questions, requests, or something not working right? Send us a message.
       </p>
 
@@ -46,7 +46,7 @@ export default function Contact() {
             placeholder="Your name"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1.5 dark:border-slate-700"
+            className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
           />
           <input
             required
@@ -54,7 +54,7 @@ export default function Contact() {
             placeholder="Your email"
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1.5 dark:border-slate-700"
+            className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
           />
           <textarea
             required
@@ -62,12 +62,12 @@ export default function Contact() {
             placeholder="Your message"
             value={form.message}
             onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-            className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1.5 dark:border-slate-700"
+            className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
           />
           <button
             type="submit"
             disabled={status === "sending"}
-            className="rounded bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+            className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
           >
             {status === "sending" ? "Sending..." : "Send message"}
           </button>
