@@ -21,6 +21,7 @@ export default function AdminDestinationEdit() {
   const navigate = useNavigate();
   const [form, setForm] = useState(null);
   const [checklistItems, setChecklistItems] = useState([]);
+  const [sources, setSources] = useState([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -29,6 +30,7 @@ export default function AdminDestinationEdit() {
       setForm({ ...res.data, mechanism_config: JSON.stringify(res.data.mechanism_config, null, 2) })
     );
     api.get("/admin/api/checklist-items", { params: { destination_id: id } }).then((res) => setChecklistItems(res.data));
+    api.get("/admin/api/sources", { params: { destination_id: id } }).then((res) => setSources(res.data));
   }, [id]);
 
   useEffect(() => {
@@ -114,6 +116,22 @@ export default function AdminDestinationEdit() {
     load();
   };
 
+  const updateSource = async (sourceId, patch) => {
+    const source = sources.find((s) => s.id === sourceId);
+    await api.put(`/admin/api/sources/${sourceId}`, { ...source, ...patch, destination_id: id });
+    load();
+  };
+
+  const deleteSource = async (sourceId) => {
+    await api.delete(`/admin/api/sources/${sourceId}`);
+    load();
+  };
+
+  const addSource = async () => {
+    await api.post("/admin/api/sources", { destination_id: id, order_index: sources.length, url: "", note: "" });
+    load();
+  };
+
   if (!form) return <div className="mx-auto max-w-3xl px-4 py-8 text-stone-500">...</div>;
 
   return (
@@ -157,15 +175,36 @@ export default function AdminDestinationEdit() {
           </p>
         )}
         <label className="mt-3 block font-semibold text-stone-500 dark:text-stone-400">
-          All sources consulted (admin-only, one per line)
+          All sources consulted (admin-only)
         </label>
-        <textarea
-          rows={4}
-          value={form.research_notes ?? ""}
-          onChange={(e) => set("research_notes", e.target.value)}
-          placeholder={"https://...\nhttps://...\nnotes on anything else consulted"}
-          className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 font-mono dark:border-stone-700 dark:bg-stone-900"
-        />
+        <ul className="mt-1 space-y-2">
+          {sources.map((s, i) => (
+            <li key={s.id} className="rounded border border-stone-300 bg-white p-2 dark:border-stone-700 dark:bg-stone-900">
+              <div className="flex items-center gap-2">
+                <span className="text-stone-400">{i + 1}.</span>
+                <input
+                  value={s.url ?? ""}
+                  onChange={(e) => updateSource(s.id, { url: e.target.value })}
+                  placeholder="https://... (optional - not every source is a URL)"
+                  className="flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 dark:border-stone-800"
+                />
+                <button onClick={() => deleteSource(s.id)} className="shrink-0 text-red-600 underline">
+                  remove
+                </button>
+              </div>
+              <textarea
+                rows={2}
+                value={s.note ?? ""}
+                onChange={(e) => updateSource(s.id, { note: e.target.value })}
+                placeholder="What this source told us / why it's relevant"
+                className="mt-1 block w-full rounded border border-stone-200 bg-transparent px-2 py-1 dark:border-stone-800"
+              />
+            </li>
+          ))}
+        </ul>
+        <button onClick={addSource} className="mt-2 rounded bg-stone-700 px-3 py-1 text-white">
+          + add source
+        </button>
       </div>
 
       <div className="flex gap-2">

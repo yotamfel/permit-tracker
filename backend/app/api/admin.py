@@ -9,6 +9,7 @@ from app.models.admin_follow_up import AdminFollowUp
 from app.models.checklist_item import ChecklistItem
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
+from app.models.destination_source import DestinationSource
 from app.models.enums import Category, ContactMessageStatus, PurchaseStatus, ReviewStatus
 from app.models.general_requirement import DestinationRequirement, GeneralRequirement
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
@@ -28,6 +29,8 @@ from app.schemas.admin import (
     AdminGeneralRequirementIn,
     AdminGeneralRequirementOut,
     AdminMonitoringDiffOut,
+    AdminSourceIn,
+    AdminSourceOut,
     AdminTranslationIn,
     AdminTranslationOut,
     DestinationFeedbackStatsOut,
@@ -94,7 +97,7 @@ def _destinations_out(db: Session, destinations: list[Destination]) -> list[Admi
 
 _DESTINATION_MODEL_FIELDS = {
     "country", "category", "name", "mechanism_type", "mechanism_config", "issuing_authority",
-    "competitiveness_level", "source_url", "research_notes", "application_url", "price_usd", "is_published",
+    "competitiveness_level", "source_url", "application_url", "price_usd", "is_published",
 }
 
 
@@ -193,6 +196,50 @@ def delete_checklist_item(item_id: uuid.UUID, db: Session = Depends(get_db)) -> 
     if item is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Checklist item not found")
     db.delete(item)
+    db.commit()
+
+
+# --- Sources (admin-only, never shown to end users) -------------------------
+# Every source consulted while researching a destination, as a proper list
+# instead of one free-text blob - replaces the old research_notes column.
+
+
+@router.get("/sources", response_model=list[AdminSourceOut])
+def list_sources(destination_id: uuid.UUID | None = None, db: Session = Depends(get_db)) -> list[AdminSourceOut]:
+    query = db.query(DestinationSource)
+    if destination_id:
+        query = query.filter(DestinationSource.destination_id == destination_id)
+    return [AdminSourceOut.model_validate(s) for s in query.order_by(DestinationSource.order_index).all()]
+
+
+@router.post("/sources", response_model=AdminSourceOut)
+def create_source(body: AdminSourceIn, db: Session = Depends(get_db)) -> AdminSourceOut:
+    source = DestinationSource(**body.model_dump())
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+    return AdminSourceOut.model_validate(source)
+
+
+@router.put("/sources/{source_id}", response_model=AdminSourceOut)
+def update_source(source_id: uuid.UUID, body: AdminSourceIn, db: Session = Depends(get_db)) -> AdminSourceOut:
+    source = db.get(DestinationSource, source_id)
+    if source is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Source not found")
+    for field, value in body.model_dump().items():
+        setattr(source, field, value)
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+    return AdminSourceOut.model_validate(source)
+
+
+@router.delete("/sources/{source_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_source(source_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
+    source = db.get(DestinationSource, source_id)
+    if source is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Source not found")
+    db.delete(source)
     db.commit()
 
 
@@ -599,10 +646,15 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
         .all()
     }
 
+    sources_by_destination: dict[uuid.UUID, list[str]] = {}
+    for s in db.query(DestinationSource).filter(DestinationSource.destination_id.in_([d.id for d in pending])).all():
+        sources_by_destination.setdefault(s.destination_id, []).append(s.note or s.url or "")
+
     items = []
     for d in pending:
         description = notes.get(d.id)
-        source_note = d.research_notes or d.source_url or description
+        source_texts = sources_by_destination.get(d.id)
+        source_note = " | ".join(source_texts) if source_texts else (d.source_url or description)
         items.append(
             ReviewQueueItemOut(
                 id=d.id,
@@ -614,7 +666,6 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
                 issuing_authority=d.issuing_authority,
                 competitiveness_level=d.competitiveness_level,
                 source_url=d.source_url,
-                research_notes=d.research_notes,
                 application_url=d.application_url,
                 price_usd=float(d.price_usd),
                 description=description,

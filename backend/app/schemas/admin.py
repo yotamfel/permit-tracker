@@ -57,15 +57,15 @@ class ReviewQueueItemOut(BaseModel):
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
     source_url: str | None
-    research_notes: str | None
     application_url: str | None
     price_usd: float
     description: str | None = None
     mechanism_explanation: str | None = None
     # Best-available research context for this draft, so the admin can see
-    # where the data came from before approving it - research_notes if set,
-    # else source_url, else whatever description text (often the original
-    # scraped/imported research note) exists for it in any locale.
+    # where the data came from before approving it - source_url if set, else
+    # whatever description text (often the original scraped/imported research
+    # note) exists for it in any locale. Full source list lives in the
+    # separate destination_sources table (see AdminSourceOut).
     source_note: str | None
 
     model_config = {"from_attributes": True}
@@ -84,9 +84,6 @@ class AdminDestinationIn(BaseModel):
     # is the single canonical URL the weekly monitoring job re-fetches to
     # detect changes - keep it to one URL, not a list.
     source_url: str | None = None
-    # Every source consulted during research (one per line) - broader than
-    # source_url, which stays a single URL for the monitoring job to fetch.
-    research_notes: str | None = None
     # Shown to users as "Apply here" once they've unlocked the destination.
     application_url: str | None = None
     price_usd: float = 4.99
@@ -108,7 +105,6 @@ class AdminDestinationOut(BaseModel):
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
     source_url: str | None
-    research_notes: str | None
     application_url: str | None
     price_usd: float
     is_published: bool
@@ -145,6 +141,19 @@ class AdminChecklistItemIn(BaseModel):
 
 
 class AdminChecklistItemOut(AdminChecklistItemIn):
+    id: uuid.UUID
+
+    model_config = {"from_attributes": True}
+
+
+class AdminSourceIn(BaseModel):
+    destination_id: uuid.UUID
+    order_index: int = 0
+    url: str | None = None
+    note: str | None = None
+
+
+class AdminSourceOut(AdminSourceIn):
     id: uuid.UUID
 
     model_config = {"from_attributes": True}

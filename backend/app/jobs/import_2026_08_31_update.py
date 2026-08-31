@@ -18,6 +18,7 @@ import openpyxl
 
 from app.db import SessionLocal
 from app.models.destination import Destination
+from app.models.destination_source import DestinationSource
 
 XLSX_PATH = "../docs/permits_worldwide_database.xlsx"
 SHEET_NAME = "היתרים ומכסות"
@@ -83,11 +84,12 @@ def run() -> None:
                 issuing_authority=issuer,
                 competitiveness_level=competitiveness,
                 source_url=None,
-                research_notes=research_notes,
                 is_published=False,
                 price_usd=4.99,
             )
             db.add(d)
+            db.flush()
+            db.add(DestinationSource(destination_id=d.id, order_index=0, note=research_notes))
             created += 1
 
         db.commit()
