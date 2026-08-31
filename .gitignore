@@ -9,6 +9,7 @@ backend/*.db
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+frontend/.env.local
 
 # OS / editor
 .DS_Store
