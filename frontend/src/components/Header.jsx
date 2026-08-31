@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../lib/AuthContext";
 import { useTheme } from "../lib/ThemeContext";
+import { useOnboarding } from "../lib/OnboardingContext";
 
 // Language switcher is hidden for now - English-only launch, i18n plumbing stays
 // in place (locales/, i18n.js, translations table) for when content translation
@@ -10,6 +11,7 @@ export default function Header() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { openGuide } = useOnboarding();
 
   return (
     <header className="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-950/80">
@@ -30,6 +32,11 @@ export default function Header() {
             <Link to="/account" className="hover:text-amber-700 dark:hover:text-amber-400">
               {t("nav.account")}
             </Link>
+          )}
+          {user && (
+            <button onClick={openGuide} className="hover:text-amber-700 dark:hover:text-amber-400">
+              How it works
+            </button>
           )}
           {user?.is_admin && (
             <Link to="/admin" className="hover:text-amber-700 dark:hover:text-amber-400">

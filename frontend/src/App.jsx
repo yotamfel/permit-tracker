@@ -11,11 +11,13 @@ import Account from "./pages/Account";
 import Admin from "./pages/Admin";
 import AdminDestinationEdit from "./pages/AdminDestinationEdit";
 import Contact from "./pages/Contact";
+import OnboardingGuide from "./components/OnboardingGuide";
 
 export default function App() {
   return (
     <div className="min-h-screen bg-white dark:bg-stone-950">
       <Header />
+      <OnboardingGuide />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/catalog" element={<Browse />} />

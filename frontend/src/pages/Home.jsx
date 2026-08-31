@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
+import { useOnboarding } from "../lib/OnboardingContext";
 import DestinationCard from "../components/DestinationCard";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [featured, setFeatured] = useState([]);
   const { user, loading } = useAuth();
+  const { openIfFirstVisit } = useOnboarding();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +21,13 @@ export default function Home() {
       navigate("/login", { replace: true });
     }
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      openIfFirstVisit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   useEffect(() => {
     api
