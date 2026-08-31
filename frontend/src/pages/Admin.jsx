@@ -99,8 +99,12 @@ function DestinationsTab() {
 
 function MonitoringTab({ t }) {
   const [diffs, setDiffs] = useState([]);
+  const [fetchFailures, setFetchFailures] = useState([]);
 
-  const load = () => api.get("/admin/api/monitoring/diffs").then((res) => setDiffs(res.data));
+  const load = () => {
+    api.get("/admin/api/monitoring/diffs").then((res) => setDiffs(res.data));
+    api.get("/admin/api/monitoring/fetch-failures").then((res) => setFetchFailures(res.data));
+  };
 
   useEffect(() => {
     load();
@@ -113,6 +117,30 @@ function MonitoringTab({ t }) {
 
   return (
     <div className="mt-6 space-y-4">
+      {fetchFailures.length > 0 && (
+        <div className="rounded border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
+          <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+            Needs manual check ({fetchFailures.length})
+          </h3>
+          <p className="mt-1 text-xs text-amber-800 dark:text-amber-300">
+            Automated monitoring can't reach these sources (blocked, broken, or moved) - you were emailed when
+            each one first failed. Worth checking these by hand periodically.
+          </p>
+          <ul className="mt-2 space-y-2">
+            {fetchFailures.map((f) => (
+              <li key={f.destination_id} className="text-xs">
+                <Link to={`/admin/destinations/${f.destination_id}`} className="font-medium text-amber-900 underline dark:text-amber-100">
+                  {f.destination_name}
+                </Link>
+                <span className="text-amber-700 dark:text-amber-400">
+                  {" "}
+                  - failing since {f.failing_since ? new Date(f.failing_since).toLocaleDateString() : "?"} ({f.error})
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {diffs.length === 0 && <p className="text-sm text-slate-500">No diffs yet.</p>}
       {diffs.map((d) => (
         <div key={d.id} className="rounded border border-slate-200 p-3 text-sm dark:border-slate-800">

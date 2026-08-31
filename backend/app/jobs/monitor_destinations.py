@@ -17,8 +17,10 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.db import SessionLocal
+from app.models.admin_user import AdminUser
 from app.models.destination import Destination
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
+from app.services.email_service import send_source_fetch_failure_email
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,8 @@ def extract_visible_text(html: str) -> str:
     return " ".join(text.split())
 
 
-def fetch_text(url: str) -> str | None:
+def fetch_text(url: str) -> tuple[str | None, str | None]:
+    """Returns (text, error) - exactly one of which is None."""
     try:
         resp = httpx.get(
             url,
@@ -43,20 +46,47 @@ def fetch_text(url: str) -> str | None:
             headers={"User-Agent": "Mozilla/5.0 (compatible; PermitTrackerBot/1.0)"},
         )
         resp.raise_for_status()
-        return extract_visible_text(resp.text)
+        return extract_visible_text(resp.text), None
     except httpx.HTTPError as exc:
         logger.warning("Failed to fetch %s: %s", url, exc)
-        return None
+        return None, str(exc)
 
 
 def run() -> None:
     db = SessionLocal()
     try:
         destinations = db.query(Destination).filter(Destination.is_published.is_(True)).all()
+        admin_emails = None  # lazily loaded only if a failure notification is actually needed
+
         for d in destinations:
-            text = fetch_text(d.source_url)
+            text, error = fetch_text(d.source_url)
             if text is None:
+                # Only notify on the transition into a failing state, not on every
+                # weekly re-check, so a persistently-broken source doesn't spam.
+                if not d.source_fetch_failing:
+                    d.source_fetch_failing = True
+                    d.source_fetch_failing_since = datetime.now(timezone.utc)
+                    d.source_fetch_error = error
+                    db.add(d)
+                    db.commit()
+                    if admin_emails is None:
+                        admin_emails = [a.email for a in db.query(AdminUser).all()]
+                    try:
+                        send_source_fetch_failure_email(admin_emails, d.name, d.source_url, error)
+                    except Exception:
+                        logger.exception("Failed to send source-fetch-failure email for %s", d.id)
+                else:
+                    d.source_fetch_error = error
+                    db.add(d)
+                    db.commit()
                 continue
+
+            if d.source_fetch_failing:
+                d.source_fetch_failing = False
+                d.source_fetch_failing_since = None
+                d.source_fetch_error = None
+                db.add(d)
+                db.commit()
 
             excerpt = text[:MAX_EXCERPT_CHARS]
             content_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()

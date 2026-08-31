@@ -32,6 +32,7 @@ from app.schemas.admin import (
     FeedbackStatsOut,
     PurchaseStatsOut,
     ReviewQueueItemOut,
+    SourceFetchFailureOut,
 )
 from app.schemas.contact import AdminContactMessageOut, AdminContactMessageReplyIn, AdminContactMessageStatusUpdate
 from app.schemas.mechanism_config import validate_mechanism_config
@@ -323,6 +324,29 @@ def delete_translation(translation_id: uuid.UUID, db: Session = Depends(get_db))
 
 
 # --- Monitoring diffs review queue ------------------------------------------
+
+
+@router.get("/monitoring/fetch-failures", response_model=list[SourceFetchFailureOut])
+def list_source_fetch_failures(db: Session = Depends(get_db)) -> list[SourceFetchFailureOut]:
+    """Published destinations the weekly monitoring job can't fetch automatically
+    (e.g. the source blocks bots) - these need a human to check them by hand
+    periodically instead. See app/jobs/monitor_destinations.py."""
+    destinations = (
+        db.query(Destination)
+        .filter(Destination.source_fetch_failing.is_(True))
+        .order_by(Destination.source_fetch_failing_since)
+        .all()
+    )
+    return [
+        SourceFetchFailureOut(
+            destination_id=d.id,
+            destination_name=d.name,
+            source_url=d.source_url,
+            error=d.source_fetch_error,
+            failing_since=d.source_fetch_failing_since,
+        )
+        for d in destinations
+    ]
 
 
 @router.get("/monitoring/diffs", response_model=list[AdminMonitoringDiffOut])

@@ -117,6 +117,19 @@ class AdminDestinationOut(BaseModel):
     updated_at: datetime
     description: str | None = None
     mechanism_explanation: str | None = None
+    source_fetch_failing: bool = False
+    source_fetch_error: str | None = None
+    source_fetch_failing_since: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class SourceFetchFailureOut(BaseModel):
+    destination_id: uuid.UUID
+    destination_name: str
+    source_url: str | None
+    error: str | None
+    failing_since: datetime | None
 
     model_config = {"from_attributes": True}
 

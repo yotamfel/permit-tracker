@@ -69,6 +69,28 @@ def send_post_release_feedback_email(to_email: str, destination_name: str, respo
     )
 
 
+def send_source_fetch_failure_email(admin_emails: list[str], destination_name: str, source_url: str, error: str) -> None:
+    if not admin_emails:
+        return
+    body = (
+        f"<p>The weekly monitoring job couldn't fetch the source page for "
+        f"<strong>{destination_name}</strong> - it may be blocking automated requests, or the URL may have "
+        f"changed or broken.</p>"
+        f"<p><strong>Source:</strong> {source_url}<br/><strong>Error:</strong> {error}</p>"
+        f"<p>Automated change-detection won't work for this destination until this is resolved. It now shows "
+        f"under \"Needs manual check\" in the admin Monitoring diffs tab - worth checking it by hand "
+        f"periodically, or fixing/replacing the source URL if it's simply wrong.</p>"
+    )
+    resend.Emails.send(
+        {
+            "from": settings.email_from,
+            "to": admin_emails,
+            "subject": f"Permit Tracker: can't monitor {destination_name} automatically",
+            "html": body,
+        }
+    )
+
+
 def send_contact_reply(to_email: str, to_name: str, original_message: str, reply_message: str) -> None:
     body = (
         f"<p>Hi {to_name},</p>"

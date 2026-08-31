@@ -148,6 +148,14 @@ export default function AdminDestinationEdit() {
           placeholder="https://..."
           className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 dark:border-stone-700 dark:bg-stone-900"
         />
+        {form.source_fetch_failing && (
+          <p className="mt-2 rounded bg-amber-100 p-2 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+            ⚠ Automated monitoring has been unable to fetch this URL since{" "}
+            {form.source_fetch_failing_since ? new Date(form.source_fetch_failing_since).toLocaleDateString() : "?"}
+            {form.source_fetch_error ? ` (${form.source_fetch_error})` : ""}. Check it by hand periodically, or fix
+            the URL if it's simply wrong.
+          </p>
+        )}
         <label className="mt-3 block font-semibold text-stone-500 dark:text-stone-400">
           All sources consulted (admin-only, one per line)
         </label>

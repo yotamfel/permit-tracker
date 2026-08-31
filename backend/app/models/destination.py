@@ -44,6 +44,14 @@ class Destination(UUIDPKMixin, TimestampMixin, Base):
     last_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     price_usd: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=4.99)
+    # Set by the weekly monitoring job when it can't fetch source_url (e.g. the
+    # site blocks automated requests, like Aconcagua's official page returning
+    # 403) - flags that this destination needs a human to check it periodically
+    # instead of relying on the automated diff. Cleared automatically the next
+    # time the fetch succeeds.
+    source_fetch_failing: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    source_fetch_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_fetch_failing_since: Mapped[datetime | None] = mapped_column(nullable=True)
 
     checklist_items: Mapped[list["ChecklistItem"]] = relationship(
         back_populates="destination", cascade="all, delete-orphan", order_by="ChecklistItem.order_index"
