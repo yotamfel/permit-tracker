@@ -333,19 +333,6 @@ export default function AdminDestinationEdit() {
         />
       </section>
 
-      <section className="mt-6 flex items-center gap-4 text-sm">
-        <label className="flex items-center gap-2">
-          Price ($)
-          <input
-            type="number"
-            step="0.01"
-            value={form.price_usd}
-            onChange={(e) => set("price_usd", e.target.value)}
-            className="w-24 rounded-lg border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
-          />
-        </label>
-      </section>
-
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       <section className="mt-8 flex flex-wrap gap-2 rounded-2xl border border-stone-200 p-5 dark:border-stone-800">
