@@ -36,7 +36,7 @@ export default function Admin() {
         ))}
       </div>
 
-      {tab === "destinations" && <DestinationsTab t={t} />}
+      {tab === "destinations" && <DestinationsTab />}
       {tab === "review" && <ReviewQueueTab />}
       {tab === "monitoring" && <MonitoringTab t={t} />}
       {tab === "stats" && <StatsTab />}
@@ -53,7 +53,7 @@ const TABS = [
   { key: "inquiries", label: "Inquiries" },
 ];
 
-function DestinationsTab({ t }) {
+function DestinationsTab() {
   const [destinations, setDestinations] = useState([]);
 
   const load = () => api.get("/admin/api/destinations").then((res) => setDestinations(res.data));
@@ -67,16 +67,18 @@ function DestinationsTab({ t }) {
     load();
   };
 
+  const published = destinations.filter((d) => d.is_published);
+
   return (
     <div className="mt-6">
+      <p className="mb-4 text-sm text-slate-500">
+        Published destinations only - unpublished ones are in the Review Queue tab.
+      </p>
       <ul className="space-y-2">
-        {destinations.map((d) => (
+        {published.map((d) => (
           <li key={d.id} className="flex items-center justify-between rounded border border-slate-200 p-2 text-sm dark:border-slate-800">
             <Link to={`/admin/destinations/${d.id}`} className="flex-1">
-              <span className="font-medium">{d.name}</span>{" "}
-              <span className="text-slate-500">
-                ({d.country}) - {d.is_published ? t("admin.published") : t("admin.unpublished")}
-              </span>
+              <span className="font-medium">{d.name}</span> <span className="text-slate-500">({d.country})</span>
             </Link>
             <div className="flex gap-2">
               <Link to={`/admin/destinations/${d.id}`} className="underline">

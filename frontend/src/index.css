@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Without this, native controls (select dropdowns, checkboxes, date pickers,
+   scrollbars) render with the browser's light theme even while the rest of
+   the page is dark, since Tailwind's dark: classes don't reach into them. */
+html.dark {
+  color-scheme: dark;
+}
