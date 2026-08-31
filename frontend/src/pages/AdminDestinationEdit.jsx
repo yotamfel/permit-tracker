@@ -139,16 +139,26 @@ export default function AdminDestinationEdit() {
         </span>
       </div>
 
-      {/* Source - admin only, never shown on the public page */}
+      {/* Sources - admin only, never shown on the public page */}
       <div className="mb-4 rounded-xl bg-stone-100 p-3 text-xs dark:bg-stone-800">
         <label className="block font-semibold text-stone-500 dark:text-stone-400">
-          Source (admin-only, never shown to users)
+          Primary source URL (admin-only - the weekly monitoring job re-fetches this one URL to detect changes)
         </label>
         <input
           value={form.source_url ?? ""}
           onChange={(e) => set("source_url", e.target.value)}
           placeholder="https://..."
           className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 dark:border-stone-700 dark:bg-stone-900"
+        />
+        <label className="mt-3 block font-semibold text-stone-500 dark:text-stone-400">
+          All sources consulted (admin-only, one per line)
+        </label>
+        <textarea
+          rows={4}
+          value={form.research_notes ?? ""}
+          onChange={(e) => set("research_notes", e.target.value)}
+          placeholder={"https://...\nhttps://...\nnotes on anything else consulted"}
+          className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 font-mono dark:border-stone-700 dark:bg-stone-900"
         />
       </div>
 

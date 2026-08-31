@@ -39,14 +39,15 @@ class ReviewQueueItemOut(BaseModel):
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
     source_url: str | None
+    research_notes: str | None
     application_url: str | None
     price_usd: float
     description: str | None = None
     mechanism_explanation: str | None = None
     # Best-available research context for this draft, so the admin can see
-    # where the data came from before approving it - the source_url if set,
-    # else whatever description text (often the original scraped/imported
-    # research note) exists for it in any locale.
+    # where the data came from before approving it - research_notes if set,
+    # else source_url, else whatever description text (often the original
+    # scraped/imported research note) exists for it in any locale.
     source_note: str | None
 
     model_config = {"from_attributes": True}
@@ -61,8 +62,13 @@ class AdminDestinationIn(BaseModel):
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
     # Nullable to match the DB column - stub destinations (§10) may not have a
-    # verified source yet. Admins should fill this in before publishing.
+    # verified source yet. Admins should fill this in before publishing. This
+    # is the single canonical URL the weekly monitoring job re-fetches to
+    # detect changes - keep it to one URL, not a list.
     source_url: str | None = None
+    # Every source consulted during research (one per line) - broader than
+    # source_url, which stays a single URL for the monitoring job to fetch.
+    research_notes: str | None = None
     # Shown to users as "Apply here" once they've unlocked the destination.
     application_url: str | None = None
     price_usd: float = 4.99
@@ -84,6 +90,7 @@ class AdminDestinationOut(BaseModel):
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
     source_url: str | None
+    research_notes: str | None
     application_url: str | None
     price_usd: float
     is_published: bool

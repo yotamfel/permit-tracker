@@ -31,6 +31,11 @@ class Destination(UUIDPKMixin, TimestampMixin, Base):
     # Not shown to end users (admin/monitoring only) - see application_url below
     # for the public-facing "go apply here" link.
     source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Every source consulted while researching this destination (one per line -
+    # official pages, forums, news, anything used to fill in the fields above),
+    # not just the single canonical source_url used for monitoring. Admin-only,
+    # never shown to end users.
+    research_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     # The actual booking/application portal - shown to users who've unlocked
     # this destination as the "Apply here" call to action. Often the same URL
     # as source_url in practice, but conceptually distinct (where the research

@@ -87,7 +87,7 @@ def _destinations_out(db: Session, destinations: list[Destination]) -> list[Admi
 
 _DESTINATION_MODEL_FIELDS = {
     "country", "category", "name", "mechanism_type", "mechanism_config", "issuing_authority",
-    "competitiveness_level", "source_url", "application_url", "price_usd", "is_published",
+    "competitiveness_level", "source_url", "research_notes", "application_url", "price_usd", "is_published",
 }
 
 
@@ -453,7 +453,7 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
     items = []
     for d in pending:
         description = notes.get(d.id)
-        source_note = d.source_url or description
+        source_note = d.research_notes or d.source_url or description
         items.append(
             ReviewQueueItemOut(
                 id=d.id,
@@ -465,6 +465,7 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
                 issuing_authority=d.issuing_authority,
                 competitiveness_level=d.competitiveness_level,
                 source_url=d.source_url,
+                research_notes=d.research_notes,
                 application_url=d.application_url,
                 price_usd=float(d.price_usd),
                 description=description,
