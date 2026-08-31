@@ -3,6 +3,7 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
+import { formatMechanismConfig } from "../lib/mechanismConfig";
 
 const TRAVEL_DATE_REQUIRED = new Set([
   "guided_tour_only",
@@ -68,7 +69,7 @@ export default function DestinationDetail() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <Link
         to="/catalog"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-stone-500 hover:text-amber-700 dark:text-stone-400 dark:hover:text-amber-400"
+        className="mb-4 flex w-fit items-center gap-1 text-sm text-stone-500 hover:text-amber-700 dark:text-stone-400 dark:hover:text-amber-400"
       >
         ← Back to catalog
       </Link>
@@ -87,6 +88,8 @@ export default function DestinationDetail() {
 
       {destination.description && <p className="mt-4 text-stone-700 dark:text-stone-300">{destination.description}</p>}
 
+      <CompetitivenessNote level={destination.competitiveness_level} />
+
       <section className="mt-8 rounded-2xl border border-stone-200 bg-stone-50 p-5 dark:border-stone-800 dark:bg-stone-900/50">
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t("destination.how_it_works")}</h2>
         <p className="mt-1 text-sm font-medium text-amber-700 dark:text-amber-400">
@@ -94,9 +97,9 @@ export default function DestinationDetail() {
         </p>
         <p className="mt-2 text-stone-700 dark:text-stone-300">{destination.mechanism_explanation}</p>
         {destination.is_owned && destination.mechanism_config && (
-          <pre className="mt-3 overflow-x-auto rounded-lg bg-stone-900 p-3 text-xs text-stone-100 dark:bg-black">
-            {JSON.stringify(destination.mechanism_config, null, 2)}
-          </pre>
+          <p className="mt-3 rounded-lg bg-white p-3 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+            {formatMechanismConfig(destination.mechanism_type, destination.mechanism_config)}
+          </p>
         )}
       </section>
 
@@ -232,5 +235,39 @@ function PrepItem({ item, t }) {
         </span>
       </span>
     </li>
+  );
+}
+
+const COMPETITIVENESS_INFO = {
+  low: {
+    label: "Low competitiveness",
+    text: "Straightforward to get - rarely sells out.",
+    color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+  },
+  medium: {
+    label: "Medium competitiveness",
+    text: "Can sell out in peak season - don't wait too long.",
+    color: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  },
+  high: {
+    label: "High competitiveness",
+    text: "Expect real competition for a spot - plan ahead.",
+    color: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
+  },
+  very_high: {
+    label: "Very high competitiveness",
+    text: "Often sells out within hours or days of opening.",
+    color: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
+  },
+};
+
+function CompetitivenessNote({ level }) {
+  const info = COMPETITIVENESS_INFO[level];
+  if (!info) return null;
+  return (
+    <div className="mt-4 flex items-center gap-2 text-sm">
+      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${info.color}`}>{info.label}</span>
+      <span className="text-stone-600 dark:text-stone-400">{info.text}</span>
+    </div>
   );
 }
