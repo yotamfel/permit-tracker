@@ -141,6 +141,7 @@ class AdminChecklistItemIn(BaseModel):
     order_index: int = 0
     is_required: bool = True
     text_key: str
+    link_url: str | None = None
 
 
 class AdminChecklistItemOut(AdminChecklistItemIn):

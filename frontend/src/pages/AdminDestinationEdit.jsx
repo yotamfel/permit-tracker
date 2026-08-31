@@ -356,34 +356,42 @@ function ChecklistGroup({ title, items, onUpdate, onDelete, onAdd }) {
       <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">{title}</h3>
       <ul className="mt-2 space-y-2">
         {items.map((item) => (
-          <li key={item.id} className="flex items-center gap-2 text-sm">
-            <select
-              value={item.item_type}
-              onChange={(e) => onUpdate(item.id, { item_type: e.target.value })}
-              className="rounded border border-stone-300 bg-transparent px-1 py-0.5 text-xs dark:border-stone-700"
-            >
-              {ITEM_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-            <input
-              value={item.text_key}
-              onChange={(e) => onUpdate(item.id, { text_key: e.target.value })}
-              className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
-            />
-            <label className="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+          <li key={item.id} className="rounded border border-stone-200 p-2 dark:border-stone-700">
+            <div className="flex items-center gap-2 text-sm">
+              <select
+                value={item.item_type}
+                onChange={(e) => onUpdate(item.id, { item_type: e.target.value })}
+                className="rounded border border-stone-300 bg-transparent px-1 py-0.5 text-xs dark:border-stone-700"
+              >
+                {ITEM_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
               <input
-                type="checkbox"
-                checked={item.is_required}
-                onChange={(e) => onUpdate(item.id, { is_required: e.target.checked })}
+                value={item.text_key}
+                onChange={(e) => onUpdate(item.id, { text_key: e.target.value })}
+                className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
               />
-              required
-            </label>
-            <button onClick={() => onDelete(item.id)} className="text-xs text-red-600 underline">
-              remove
-            </button>
+              <label className="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+                <input
+                  type="checkbox"
+                  checked={item.is_required}
+                  onChange={(e) => onUpdate(item.id, { is_required: e.target.checked })}
+                />
+                required
+              </label>
+              <button onClick={() => onDelete(item.id)} className="text-xs text-red-600 underline">
+                remove
+              </button>
+            </div>
+            <input
+              value={item.link_url ?? ""}
+              onChange={(e) => onUpdate(item.id, { link_url: e.target.value })}
+              placeholder="Optional link shown under this item (e.g. a form, operator directory, insurance provider)"
+              className="mt-1.5 block w-full rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+            />
           </li>
         ))}
       </ul>

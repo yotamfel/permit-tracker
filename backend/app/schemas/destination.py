@@ -23,6 +23,10 @@ class PrepItemOut(BaseModel):
     is_required: bool
     text: str  # resolved via translations table for the active locale
     is_completed: bool = False
+    # Optional link shown under this item (e.g. a form, a directory of
+    # registered operators, an insurance provider) - only "specific"/
+    # "good_to_know" items can have one; "general" ones never do.
+    link_url: str | None = None
 
 
 class DestinationCardOut(BaseModel):

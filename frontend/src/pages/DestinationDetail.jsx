@@ -284,11 +284,23 @@ function PrepItem({ item, t, onToggle }) {
         onChange={() => onToggle(item.id)}
         className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
       />
-      <span className={item.is_completed ? "text-stone-400 line-through dark:text-stone-500" : "text-stone-700 dark:text-stone-300"}>
-        {item.text}{" "}
-        <span className="text-xs text-stone-400">
-          ({item.is_required ? t("destination.required") : t("destination.optional")})
+      <span>
+        <span className={item.is_completed ? "text-stone-400 line-through dark:text-stone-500" : "text-stone-700 dark:text-stone-300"}>
+          {item.text}{" "}
+          <span className="text-xs text-stone-400">
+            ({item.is_required ? t("destination.required") : t("destination.optional")})
+          </span>
         </span>
+        {item.link_url && (
+          <a
+            href={item.link_url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-0.5 block text-xs text-amber-700 hover:underline dark:text-amber-400"
+          >
+            {item.link_url} ↗
+          </a>
+        )}
       </span>
     </li>
   );

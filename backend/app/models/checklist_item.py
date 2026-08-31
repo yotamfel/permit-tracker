@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -31,5 +31,9 @@ class ChecklistItem(UUIDPKMixin, TimestampMixin, Base):
     order_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     text_key: Mapped[str] = mapped_column(String, nullable=False)
+    # Optional link shown under this item's text (e.g. a directory of
+    # registered operators, an insurance provider, an official form) - both
+    # admin-editable and shown to users on the public checklist.
+    link_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     destination: Mapped["Destination"] = relationship(back_populates="checklist_items")

@@ -200,6 +200,7 @@ def get_checklist(
                 is_required=item.is_required,
                 text=text,
                 is_completed=item.id in completed_ids,
+                link_url=item.link_url,
             )
         )
 
