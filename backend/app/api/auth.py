@@ -22,6 +22,7 @@ from app.schemas.auth import (
     TokenResponse,
 )
 from app.services.email_service import send_password_reset_email
+from app.services.ownership import is_admin
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 me_router = APIRouter(prefix="/api/me", tags=["me"])
@@ -116,8 +117,10 @@ def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)) ->
 
 
 @me_router.get("", response_model=MeOut)
-def get_me(user: User = Depends(get_current_user)) -> MeOut:
-    return MeOut.model_validate(user)
+def get_me(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> MeOut:
+    out = MeOut.model_validate(user)
+    out.is_admin = is_admin(db, user)
+    return out
 
 
 @me_router.patch("", response_model=MeOut)

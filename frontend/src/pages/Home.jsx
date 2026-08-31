@@ -67,8 +67,8 @@ export default function Home() {
           <div className="mt-6 grid grid-cols-1 gap-8 sm:grid-cols-3">
             <HowStep
               emoji="🔎"
-              title="Browse for free"
-              text="Explore every destination's mechanism, competitiveness, and next known release - no account needed."
+              title="Search destinations"
+              text="Find the trek, park, dive, or event you're after and see what it takes to get in, at a glance."
             />
             <HowStep
               emoji="🔓"

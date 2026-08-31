@@ -8,7 +8,7 @@ from app.models.purchase import Purchase
 from app.models.user import User
 
 
-def _is_admin(db: Session, user: User | None) -> bool:
+def is_admin(db: Session, user: User | None) -> bool:
     """Admins can see every destination fully unlocked, without purchasing -
     needed to review/QA content before publishing it for real users."""
     if user is None:
@@ -19,7 +19,7 @@ def _is_admin(db: Session, user: User | None) -> bool:
 def user_owns_destination(db: Session, user: User | None, destination_id: uuid.UUID) -> bool:
     if user is None:
         return False
-    if _is_admin(db, user):
+    if is_admin(db, user):
         return True
     return (
         db.query(Purchase)
@@ -40,7 +40,7 @@ def owned_destination_ids(db: Session, user: User | None, all_destination_ids: l
     as owned, so all_destination_ids is returned as-is."""
     if user is None:
         return set()
-    if _is_admin(db, user):
+    if is_admin(db, user):
         return set(all_destination_ids)
     rows = (
         db.query(Purchase.destination_id)

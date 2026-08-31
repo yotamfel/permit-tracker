@@ -120,6 +120,15 @@ export default function DestinationDetail() {
 
       <CompetitivenessNote level={destination.competitiveness_level} />
 
+      <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm dark:bg-amber-900/20">
+        <span className="font-semibold text-stone-900 dark:text-stone-100">{t("browse.next_release")}: </span>
+        <span className="text-stone-700 dark:text-stone-300">
+          {destination.next_known_release
+            ? new Date(destination.next_known_release).toLocaleString()
+            : t("browse.not_computable")}
+        </span>
+      </div>
+
       <section className="mt-8 rounded-2xl border border-stone-200 bg-stone-50 p-5 dark:border-stone-800 dark:bg-stone-900/50">
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t("destination.how_it_works")}</h2>
         <p className="mt-1 text-sm font-medium text-amber-700 dark:text-amber-400">

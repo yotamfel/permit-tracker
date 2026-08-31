@@ -38,6 +38,7 @@ class MeOut(BaseModel):
     email: str
     preferred_locale: str
     theme_preference: ThemePreference
+    is_admin: bool = False
 
     model_config = {"from_attributes": True}
 

@@ -31,9 +31,11 @@ export default function Header() {
               {t("nav.account")}
             </Link>
           )}
-          <Link to="/admin" className="hover:text-amber-700 dark:hover:text-amber-400">
-            {t("nav.admin")}
-          </Link>
+          {user?.is_admin && (
+            <Link to="/admin" className="hover:text-amber-700 dark:hover:text-amber-400">
+              {t("nav.admin")}
+            </Link>
+          )}
 
           <select
             aria-label="theme"
