@@ -58,8 +58,8 @@ export default function Home() {
             />
             <HowStep
               emoji="🔓"
-              title="Unlock what you need"
-              text="A one-time $4.99 unlocks the full prep checklist, documents, and exact dates for that destination."
+              title="Get your game plan"
+              text="One quick unlock gives you the exact steps, dates, and documents you need - so you're ready to act the moment applications open."
             />
             <HowStep
               emoji="🔔"

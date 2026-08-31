@@ -97,12 +97,12 @@ def get_destination(
         mechanism_explanation=explanation,
         issuing_authority=d.issuing_authority,
         competitiveness_level=d.competitiveness_level,
-        source_url=d.source_url,
         last_verified_at=d.last_verified_at,
         price_usd=float(d.price_usd),
         is_owned=is_owned,
         next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
         mechanism_config=d.mechanism_config if is_owned else None,
+        application_url=d.application_url if is_owned else None,
     )
 
 

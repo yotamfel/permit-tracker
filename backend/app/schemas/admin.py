@@ -37,6 +37,7 @@ class ReviewQueueItemOut(BaseModel):
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
     source_url: str | None
+    application_url: str | None
     price_usd: float
     # Best-available research context for this draft, so the admin can see
     # where the data came from before approving it - the source_url if set,
@@ -58,6 +59,8 @@ class AdminDestinationIn(BaseModel):
     # Nullable to match the DB column - stub destinations (§10) may not have a
     # verified source yet. Admins should fill this in before publishing.
     source_url: str | None = None
+    # Shown to users as "Apply here" once they've unlocked the destination.
+    application_url: str | None = None
     price_usd: float = 4.99
     is_published: bool = False
 

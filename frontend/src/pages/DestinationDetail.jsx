@@ -120,15 +120,20 @@ export default function DestinationDetail() {
         )}
       </section>
 
+      {destination.is_owned && destination.application_url && (
+        <section className="mt-6">
+          <a
+            href={destination.application_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+          >
+            Apply here →
+          </a>
+        </section>
+      )}
+
       <section className="mt-6 text-sm text-stone-500 dark:text-stone-400">
-        {destination.source_url && (
-          <p>
-            {t("destination.source")}:{" "}
-            <a href={destination.source_url} target="_blank" rel="noreferrer" className="text-amber-700 underline dark:text-amber-400">
-              {destination.source_url}
-            </a>
-          </p>
-        )}
         <p>
           {t("destination.last_verified")}:{" "}
           {destination.last_verified_at ? new Date(destination.last_verified_at).toLocaleDateString() : t("destination.not_yet_verified")}

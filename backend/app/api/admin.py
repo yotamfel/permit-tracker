@@ -396,6 +396,7 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
                 issuing_authority=d.issuing_authority,
                 competitiveness_level=d.competitiveness_level,
                 source_url=d.source_url,
+                application_url=d.application_url,
                 price_usd=float(d.price_usd),
                 source_note=source_note,
             )

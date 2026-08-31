@@ -46,13 +46,16 @@ class DestinationDetailOut(BaseModel):
     mechanism_explanation: str
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
-    source_url: str
     last_verified_at: datetime | None
     price_usd: float
     is_owned: bool
     next_known_release: datetime | None
-    # Only populated when is_owned is True - gated server-side, not just hidden in the UI.
+    # Only populated when is_owned is True - gated server-side, not just hidden in
+    # the UI. source_url is intentionally never exposed here - we don't want to
+    # send unlocked users elsewhere; application_url is the "apply here" action
+    # link, which is part of what unlocking pays for.
     mechanism_config: dict | None = None
+    application_url: str | None = None
 
 
 class DestinationChecklistOut(BaseModel):

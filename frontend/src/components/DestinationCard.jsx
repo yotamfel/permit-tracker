@@ -49,13 +49,11 @@ export default function DestinationCard({ d }) {
         {t("browse.next_release")}:{" "}
         {d.next_known_release ? new Date(d.next_known_release).toLocaleDateString() : t("browse.not_computable")}
       </p>
-      <div className="mt-2 text-sm font-semibold">
-        {d.is_owned ? (
-          <span className="text-emerald-600 dark:text-emerald-400">✓ {t("browse.owned")}</span>
-        ) : (
-          <span className="text-amber-700 dark:text-amber-400">{t("browse.unlock_for", { price: d.price_usd })}</span>
-        )}
-      </div>
+      {d.is_owned && (
+        <div className="mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+          ✓ {t("browse.owned")}
+        </div>
+      )}
     </Link>
   );
 }

@@ -12,6 +12,7 @@ const EMPTY_FORM = {
   issuing_authority: "government",
   competitiveness_level: "medium",
   source_url: "",
+  application_url: "",
   price_usd: 4.99,
   is_published: false,
 };
@@ -143,7 +144,7 @@ function DestinationsTab({ t }) {
 
       <form onSubmit={handleSubmit} className="space-y-2 text-sm">
         <h2 className="font-semibold">{editingId ? "Edit destination" : t("admin.create")}</h2>
-        {["country", "name", "source_url"].map((field) => (
+        {["country", "name", "source_url", "application_url"].map((field) => (
           <input
             key={field}
             placeholder={field}
@@ -326,7 +327,7 @@ function ReviewQueueTab() {
                     </div>
                   )}
                   <div className="space-y-2">
-                    {["country", "name", "source_url"].map((field) => (
+                    {["country", "name", "source_url", "application_url"].map((field) => (
                       <input
                         key={field}
                         placeholder={field}

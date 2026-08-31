@@ -28,7 +28,14 @@ class Destination(UUIDPKMixin, TimestampMixin, Base):
     )
     # Nullable to allow unpublished stub rows (§10) that don't have a verified
     # source yet; a destination must have a source_url before an admin publishes it.
+    # Not shown to end users (admin/monitoring only) - see application_url below
+    # for the public-facing "go apply here" link.
     source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # The actual booking/application portal - shown to users who've unlocked
+    # this destination as the "Apply here" call to action. Often the same URL
+    # as source_url in practice, but conceptually distinct (where the research
+    # came from vs. where the user takes action) and admin-editable separately.
+    application_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     price_usd: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=4.99)
