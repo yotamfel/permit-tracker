@@ -6,10 +6,12 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_admin, get_db
 from app.models.checklist_item import ChecklistItem
+from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
-from app.models.enums import ReviewStatus
+from app.models.enums import ContactMessageStatus, PurchaseStatus, ReviewStatus
 from app.models.general_requirement import DestinationRequirement, GeneralRequirement
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
+from app.models.purchase import Purchase
 from app.models.translation import Translation
 from app.models.user import User
 from app.schemas.admin import (
@@ -24,7 +26,11 @@ from app.schemas.admin import (
     AdminMonitoringDiffOut,
     AdminTranslationIn,
     AdminTranslationOut,
+    DestinationPurchaseStatsOut,
+    PurchaseStatsOut,
+    ReviewQueueItemOut,
 )
+from app.schemas.contact import AdminContactMessageOut, AdminContactMessageStatusUpdate
 from app.schemas.mechanism_config import validate_mechanism_config
 
 router = APIRouter(prefix="/admin/api", tags=["admin"], dependencies=[Depends(get_current_admin)])
@@ -314,3 +320,132 @@ def dismiss_diff(diff_id: uuid.UUID, db: Session = Depends(get_db)) -> AdminMoni
     db.commit()
     db.refresh(diff)
     return _resolve_diff(diff, db)
+
+
+# --- Purchase stats -----------------------------------------------------------
+
+
+@router.get("/stats/purchases", response_model=PurchaseStatsOut)
+def purchase_stats(db: Session = Depends(get_db)) -> PurchaseStatsOut:
+    completed = db.query(Purchase).filter(Purchase.status == PurchaseStatus.completed).all()
+
+    by_destination: dict[uuid.UUID, dict] = {}
+    for p in completed:
+        entry = by_destination.setdefault(p.destination_id, {"count": 0, "revenue": 0.0})
+        entry["count"] += 1
+        entry["revenue"] += float(p.amount_usd)
+
+    destinations = {d.id: d for d in db.query(Destination).filter(Destination.id.in_(by_destination.keys())).all()}
+
+    rows = [
+        DestinationPurchaseStatsOut(
+            destination_id=dest_id,
+            destination_name=destinations[dest_id].name if dest_id in destinations else "(deleted destination)",
+            purchase_count=data["count"],
+            revenue_usd=round(data["revenue"], 2),
+        )
+        for dest_id, data in by_destination.items()
+    ]
+    rows.sort(key=lambda r: r.purchase_count, reverse=True)
+
+    return PurchaseStatsOut(
+        total_purchases=len(completed),
+        total_revenue_usd=round(sum(float(p.amount_usd) for p in completed), 2),
+        by_destination=rows,
+    )
+
+
+# --- Review queue (spec-addendum-style human-verification gate) -------------
+# Every destination starts unpublished (is_published=False) whether it came
+# from the stub_import script, the monitoring job's research, or manual admin
+# entry. This surfaces all of them in one place with whatever source context
+# exists, so an admin can verify/edit before it ever appears on the public
+# site - nothing here is ever auto-published.
+
+
+@router.get("/review-queue", response_model=list[ReviewQueueItemOut])
+def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]:
+    pending = (
+        db.query(Destination)
+        .filter(Destination.is_published.is_(False))
+        .order_by(Destination.country, Destination.name)
+        .all()
+    )
+
+    notes = {
+        t.entity_id: t.value
+        for t in db.query(Translation)
+        .filter(
+            Translation.entity_type == "destination.description",
+            Translation.entity_id.in_([d.id for d in pending]),
+        )
+        .all()
+    }
+
+    items = []
+    for d in pending:
+        source_note = d.source_url or notes.get(d.id)
+        items.append(
+            ReviewQueueItemOut(
+                id=d.id,
+                country=d.country,
+                category=d.category,
+                name=d.name,
+                mechanism_type=d.mechanism_type,
+                mechanism_config=d.mechanism_config,
+                issuing_authority=d.issuing_authority,
+                competitiveness_level=d.competitiveness_level,
+                source_url=d.source_url,
+                price_usd=float(d.price_usd),
+                source_note=source_note,
+            )
+        )
+    return items
+
+
+@router.post("/review-queue/{destination_id}/approve", response_model=AdminDestinationOut)
+def approve_review_item(
+    destination_id: uuid.UUID, body: AdminDestinationIn, db: Session = Depends(get_db)
+) -> AdminDestinationOut:
+    """Save any edits made during review, then publish - one action, per the
+    "I go through, approve or change if needed, and then it goes live" flow."""
+    d = db.get(Destination, destination_id)
+    if d is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
+    _validate_config(body)
+    for field, value in body.model_dump().items():
+        setattr(d, field, value)
+    d.is_published = True
+    d.last_verified_at = datetime.now(timezone.utc)
+    db.add(d)
+    db.commit()
+    db.refresh(d)
+    return AdminDestinationOut.model_validate(d)
+
+
+# --- Contact messages ---------------------------------------------------------
+
+
+@router.get("/contact-messages", response_model=list[AdminContactMessageOut])
+def list_contact_messages(
+    status_filter: ContactMessageStatus | None = None, db: Session = Depends(get_db)
+) -> list[AdminContactMessageOut]:
+    query = db.query(ContactMessage)
+    if status_filter:
+        query = query.filter(ContactMessage.status == status_filter)
+    messages = query.order_by(ContactMessage.created_at.desc()).all()
+    return [AdminContactMessageOut.model_validate(m) for m in messages]
+
+
+@router.patch("/contact-messages/{message_id}", response_model=AdminContactMessageOut)
+def update_contact_message_status(
+    message_id: uuid.UUID, body: AdminContactMessageStatusUpdate, db: Session = Depends(get_db)
+) -> AdminContactMessageOut:
+    msg = db.get(ContactMessage, message_id)
+    if msg is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Message not found")
+    msg.status = body.status
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    return AdminContactMessageOut.model_validate(msg)

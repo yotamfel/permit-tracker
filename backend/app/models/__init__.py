@@ -1,6 +1,7 @@
 from app.models.admin_user import AdminUser
 from app.models.alert_subscription import AlertSubscription
 from app.models.checklist_item import ChecklistItem
+from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
 from app.models.general_requirement import DestinationRequirement, GeneralRequirement
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
@@ -13,6 +14,7 @@ __all__ = [
     "AdminUser",
     "AlertSubscription",
     "ChecklistItem",
+    "ContactMessage",
     "Destination",
     "DestinationRequirement",
     "GeneralRequirement",

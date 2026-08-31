@@ -14,6 +14,39 @@ from app.models.enums import (
 )
 
 
+class DestinationPurchaseStatsOut(BaseModel):
+    destination_id: uuid.UUID
+    destination_name: str
+    purchase_count: int
+    revenue_usd: float
+
+
+class PurchaseStatsOut(BaseModel):
+    total_purchases: int
+    total_revenue_usd: float
+    by_destination: list[DestinationPurchaseStatsOut]
+
+
+class ReviewQueueItemOut(BaseModel):
+    id: uuid.UUID
+    country: str
+    category: Category
+    name: str
+    mechanism_type: MechanismType
+    mechanism_config: dict
+    issuing_authority: IssuingAuthority
+    competitiveness_level: CompetitivenessLevel
+    source_url: str | None
+    price_usd: float
+    # Best-available research context for this draft, so the admin can see
+    # where the data came from before approving it - the source_url if set,
+    # else whatever description text (often the original scraped/imported
+    # research note) exists for it in any locale.
+    source_note: str | None
+
+    model_config = {"from_attributes": True}
+
+
 class AdminDestinationIn(BaseModel):
     country: str
     category: Category

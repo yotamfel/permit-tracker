@@ -74,6 +74,12 @@ class ThemePreference(str, enum.Enum):
     system = "system"
 
 
+class ContactMessageStatus(str, enum.Enum):
+    new = "new"
+    read = "read"
+    resolved = "resolved"
+
+
 class RequirementType(str, enum.Enum):
     passport_validity = "passport_validity"
     visa = "visa"

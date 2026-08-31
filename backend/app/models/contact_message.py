@@ -1,0 +1,27 @@
+import uuid
+
+from sqlalchemy import Enum, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db import Base
+from app.models.enums import ContactMessageStatus
+from app.models.mixins import TimestampMixin, UUIDPKMixin
+
+
+class ContactMessage(UUIDPKMixin, TimestampMixin, Base):
+    """A message submitted through the public contact form (no login required)."""
+
+    __tablename__ = "contact_messages"
+
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    email: Mapped[str] = mapped_column(String, nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    # Set when submitted by a logged-in user, so the admin can cross-reference
+    # their account/purchases - nullable since the form doesn't require login.
+    user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    status: Mapped[ContactMessageStatus] = mapped_column(
+        Enum(ContactMessageStatus, name="contact_message_status"),
+        nullable=False,
+        default=ContactMessageStatus.new,
+    )
