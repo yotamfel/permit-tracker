@@ -9,6 +9,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Account from "./pages/Account";
 import Admin from "./pages/Admin";
+import AdminDestinationEdit from "./pages/AdminDestinationEdit";
 import Contact from "./pages/Contact";
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/account" element={<Account />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/destinations/:id" element={<AdminDestinationEdit />} />
       </Routes>
     </div>
   );

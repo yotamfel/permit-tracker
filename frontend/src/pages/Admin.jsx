@@ -1,23 +1,8 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
-
-const EMPTY_FORM = {
-  country: "",
-  category: "trek",
-  name: "",
-  mechanism_type: "fixed_daily_quota",
-  mechanism_config: "{}",
-  issuing_authority: "government",
-  competitiveness_level: "medium",
-  source_url: "",
-  application_url: "",
-  description: "",
-  mechanism_explanation: "",
-  price_usd: 4.99,
-  is_published: false,
-};
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -70,9 +55,6 @@ const TABS = [
 
 function DestinationsTab({ t }) {
   const [destinations, setDestinations] = useState([]);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [editingId, setEditingId] = useState(null);
-  const [error, setError] = useState("");
 
   const load = () => api.get("/admin/api/destinations").then((res) => setDestinations(res.data));
 
@@ -80,129 +62,33 @@ function DestinationsTab({ t }) {
     load();
   }, []);
 
-  const startEdit = (d) => {
-    setEditingId(d.id);
-    setForm({ ...d, mechanism_config: JSON.stringify(d.mechanism_config, null, 2) });
-  };
-
-  const resetForm = () => {
-    setEditingId(null);
-    setForm(EMPTY_FORM);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    let parsedConfig;
-    try {
-      parsedConfig = JSON.parse(form.mechanism_config);
-    } catch {
-      setError("mechanism_config must be valid JSON");
-      return;
-    }
-    const payload = { ...form, mechanism_config: parsedConfig, price_usd: Number(form.price_usd) };
-    try {
-      if (editingId) {
-        await api.put(`/admin/api/destinations/${editingId}`, payload);
-      } else {
-        await api.post("/admin/api/destinations", payload);
-      }
-      resetForm();
-      load();
-    } catch (e) {
-      setError(JSON.stringify(e.response?.data?.detail || "Save failed"));
-    }
-  };
-
   const handleDelete = async (id) => {
     await api.delete(`/admin/api/destinations/${id}`);
     load();
   };
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
-      <div>
-        <ul className="space-y-2">
-          {destinations.map((d) => (
-            <li key={d.id} className="flex items-center justify-between rounded border border-slate-200 p-2 text-sm dark:border-slate-800">
-              <div>
-                <span className="font-medium">{d.name}</span>{" "}
-                <span className="text-slate-500">
-                  ({d.country}) - {d.is_published ? t("admin.published") : t("admin.unpublished")}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => startEdit(d)} className="underline">
-                  edit
-                </button>
-                <button onClick={() => handleDelete(d.id)} className="text-red-600 underline">
-                  delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-2 text-sm">
-        <h2 className="font-semibold">{editingId ? "Edit destination" : t("admin.create")}</h2>
-        {["country", "name", "source_url", "application_url"].map((field) => (
-          <input
-            key={field}
-            placeholder={field}
-            value={form[field] ?? ""}
-            onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-            className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-          />
+    <div className="mt-6">
+      <ul className="space-y-2">
+        {destinations.map((d) => (
+          <li key={d.id} className="flex items-center justify-between rounded border border-slate-200 p-2 text-sm dark:border-slate-800">
+            <Link to={`/admin/destinations/${d.id}`} className="flex-1">
+              <span className="font-medium">{d.name}</span>{" "}
+              <span className="text-slate-500">
+                ({d.country}) - {d.is_published ? t("admin.published") : t("admin.unpublished")}
+              </span>
+            </Link>
+            <div className="flex gap-2">
+              <Link to={`/admin/destinations/${d.id}`} className="underline">
+                edit
+              </Link>
+              <button onClick={() => handleDelete(d.id)} className="text-red-600 underline">
+                delete
+              </button>
+            </div>
+          </li>
         ))}
-        <input
-          type="number"
-          step="0.01"
-          placeholder="price_usd"
-          value={form.price_usd}
-          onChange={(e) => setForm((f) => ({ ...f, price_usd: e.target.value }))}
-          className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-        />
-        <textarea
-          rows={2}
-          placeholder="description (shown to everyone, before unlock)"
-          value={form.description}
-          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-          className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-xs dark:border-slate-700"
-        />
-        <textarea
-          rows={2}
-          placeholder="mechanism_explanation (the 'How it works' text)"
-          value={form.mechanism_explanation}
-          onChange={(e) => setForm((f) => ({ ...f, mechanism_explanation: e.target.value }))}
-          className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-xs dark:border-slate-700"
-        />
-        <textarea
-          rows={6}
-          value={form.mechanism_config}
-          onChange={(e) => setForm((f) => ({ ...f, mechanism_config: e.target.value }))}
-          className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 font-mono text-xs dark:border-slate-700"
-        />
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={form.is_published}
-            onChange={(e) => setForm((f) => ({ ...f, is_published: e.target.checked }))}
-          />
-          {t("admin.published")}
-        </label>
-        {error && <p className="text-red-600">{error}</p>}
-        <div className="flex gap-2">
-          <button type="submit" className="rounded bg-slate-900 px-3 py-1.5 text-white dark:bg-slate-100 dark:text-slate-900">
-            {t("admin.save")}
-          </button>
-          {editingId && (
-            <button type="button" onClick={resetForm} className="rounded border border-slate-300 px-3 py-1.5 dark:border-slate-700">
-              cancel
-            </button>
-          )}
-        </div>
-      </form>
+      </ul>
     </div>
   );
 }
@@ -251,9 +137,6 @@ function MonitoringTab({ t }) {
 
 function ReviewQueueTab() {
   const [items, setItems] = useState([]);
-  const [expandedId, setExpandedId] = useState(null);
-  const [forms, setForms] = useState({});
-  const [error, setError] = useState("");
 
   const load = () => api.get("/admin/api/review-queue").then((res) => setItems(res.data));
 
@@ -261,177 +144,25 @@ function ReviewQueueTab() {
     load();
   }, []);
 
-  const toggleExpand = (item) => {
-    if (expandedId === item.id) {
-      setExpandedId(null);
-      return;
-    }
-    setExpandedId(item.id);
-    setForms((f) => ({
-      ...f,
-      [item.id]: f[item.id] || { ...item, mechanism_config: JSON.stringify(item.mechanism_config, null, 2) },
-    }));
-  };
-
-  const updateField = (id, field, value) => {
-    setForms((f) => ({ ...f, [id]: { ...f[id], [field]: value } }));
-  };
-
-  const approve = async (id) => {
-    setError("");
-    const form = forms[id];
-    let parsedConfig;
-    try {
-      parsedConfig = JSON.parse(form.mechanism_config);
-    } catch {
-      setError("mechanism_config must be valid JSON");
-      return;
-    }
-    try {
-      await api.post(`/admin/api/review-queue/${id}/approve`, {
-        ...form,
-        mechanism_config: parsedConfig,
-        price_usd: Number(form.price_usd),
-      });
-      setExpandedId(null);
-      load();
-    } catch (e) {
-      setError(JSON.stringify(e.response?.data?.detail || "Approve failed"));
-    }
-  };
-
-  const discard = async (id) => {
-    await api.delete(`/admin/api/destinations/${id}`);
-    load();
-  };
-
   return (
     <div className="mt-6">
       <p className="mb-4 text-sm text-slate-500">
-        Everything here is unpublished and invisible on the live site. Review the source, edit anything
-        wrong, then Approve &amp; Publish to send it live, or discard it.
+        Everything here is unpublished and invisible on the live site. Click a destination to open it as it
+        will appear on the site, with every field editable, then Approve &amp; Publish to send it live, or
+        discard it.
       </p>
       {items.length === 0 && <p className="text-sm text-slate-500">Nothing pending review.</p>}
       <ul className="space-y-2">
-        {items.map((item) => {
-          const form = forms[item.id];
-          const expanded = expandedId === item.id;
-          return (
-            <li key={item.id} className="rounded border border-slate-200 dark:border-slate-800">
-              <button
-                onClick={() => toggleExpand(item)}
-                className="flex w-full items-center justify-between p-3 text-left text-sm"
-              >
-                <span className="font-medium">
-                  {item.name} <span className="font-normal text-slate-500">({item.country})</span>
-                </span>
-                <span className="text-xs text-slate-500">{expanded ? "collapse" : "review"}</span>
-              </button>
-
-              {expanded && form && (
-                <div className="border-t border-slate-200 p-3 text-sm dark:border-slate-800">
-                  {item.source_note && (
-                    <div className="mb-3 rounded bg-slate-100 p-2 text-xs dark:bg-slate-800">
-                      <span className="font-semibold">Source: </span>
-                      {item.source_url ? (
-                        <a href={item.source_url} target="_blank" rel="noreferrer" className="underline">
-                          {item.source_note}
-                        </a>
-                      ) : (
-                        item.source_note
-                      )}
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    {["country", "name", "source_url", "application_url"].map((field) => (
-                      <input
-                        key={field}
-                        placeholder={field}
-                        value={form[field] ?? ""}
-                        onChange={(e) => updateField(item.id, field, e.target.value)}
-                        className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-                      />
-                    ))}
-                    <div className="grid grid-cols-3 gap-2">
-                      <input
-                        placeholder="category"
-                        value={form.category ?? ""}
-                        onChange={(e) => updateField(item.id, "category", e.target.value)}
-                        className="rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-                      />
-                      <input
-                        placeholder="mechanism_type"
-                        value={form.mechanism_type ?? ""}
-                        onChange={(e) => updateField(item.id, "mechanism_type", e.target.value)}
-                        className="rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-                      />
-                      <input
-                        placeholder="issuing_authority"
-                        value={form.issuing_authority ?? ""}
-                        onChange={(e) => updateField(item.id, "issuing_authority", e.target.value)}
-                        className="rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        placeholder="competitiveness_level"
-                        value={form.competitiveness_level ?? ""}
-                        onChange={(e) => updateField(item.id, "competitiveness_level", e.target.value)}
-                        className="rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-                      />
-                      <input
-                        type="number"
-                        step="0.01"
-                        placeholder="price_usd"
-                        value={form.price_usd ?? ""}
-                        onChange={(e) => updateField(item.id, "price_usd", e.target.value)}
-                        className="rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
-                      />
-                    </div>
-                    <textarea
-                      rows={5}
-                      value={form.mechanism_config ?? ""}
-                      onChange={(e) => updateField(item.id, "mechanism_config", e.target.value)}
-                      className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 font-mono text-xs dark:border-slate-700"
-                    />
-                    <textarea
-                      rows={2}
-                      placeholder="description (shown to everyone, before unlock)"
-                      value={form.description ?? ""}
-                      onChange={(e) => updateField(item.id, "description", e.target.value)}
-                      className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-xs dark:border-slate-700"
-                    />
-                    <textarea
-                      rows={2}
-                      placeholder="mechanism_explanation (the 'How it works' text)"
-                      value={form.mechanism_explanation ?? ""}
-                      onChange={(e) => updateField(item.id, "mechanism_explanation", e.target.value)}
-                      className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-xs dark:border-slate-700"
-                    />
-                  </div>
-
-                  <ChecklistItemsEditor destinationId={item.id} />
-
-                  {error && <p className="mt-2 text-red-600">{error}</p>}
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      onClick={() => approve(item.id)}
-                      className="rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white"
-                    >
-                      Approve &amp; Publish
-                    </button>
-                    <button
-                      onClick={() => discard(item.id)}
-                      className="rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white"
-                    >
-                      Discard
-                    </button>
-                  </div>
-                </div>
-              )}
-            </li>
-          );
-        })}
+        {items.map((item) => (
+          <li key={item.id} className="rounded border border-slate-200 dark:border-slate-800">
+            <Link to={`/admin/destinations/${item.id}`} className="flex items-center justify-between p-3 text-sm">
+              <span className="font-medium">
+                {item.name} <span className="font-normal text-slate-500">({item.country})</span>
+              </span>
+              <span className="text-xs text-slate-500">review</span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </div>
   );
@@ -519,157 +250,86 @@ function InquiriesTab() {
   };
 
   return (
-    <div className="mt-6 space-y-3">
+    <div className="mt-6">
       {messages.length === 0 && <p className="text-sm text-slate-500">No messages yet.</p>}
-      {messages.map((m) => (
-        <div key={m.id} className="rounded border border-slate-200 p-3 text-sm dark:border-slate-800">
-          <div className="flex items-center justify-between">
-            <span className="font-medium">
-              {m.name} <span className="font-normal text-slate-500">({m.email})</span>
-            </span>
-            <span className="text-xs uppercase text-slate-500">{m.status}</span>
-          </div>
-          <p className="mt-2 whitespace-pre-wrap">{m.message}</p>
-          <p className="mt-1 text-xs text-slate-400">{new Date(m.created_at).toLocaleString()}</p>
-
-          {m.admin_reply && (
-            <div className="mt-2 rounded bg-green-50 p-2 text-xs dark:bg-green-900/20">
-              <span className="font-semibold">Your reply</span> ({new Date(m.replied_at).toLocaleString()}):
-              <p className="mt-1 whitespace-pre-wrap">{m.admin_reply}</p>
-            </div>
-          )}
-
-          <div className="mt-2 flex gap-2">
-            {m.status !== "read" && (
-              <button onClick={() => setStatus(m.id, "read")} className="rounded bg-slate-500 px-2 py-1 text-xs text-white">
-                Mark read
-              </button>
-            )}
-            {m.status !== "resolved" && (
-              <button onClick={() => setStatus(m.id, "resolved")} className="rounded bg-green-600 px-2 py-1 text-xs text-white">
-                Mark resolved
-              </button>
-            )}
-            <button
-              onClick={() => setOpenReplyId(openReplyId === m.id ? null : m.id)}
-              className="rounded bg-amber-600 px-2 py-1 text-xs text-white"
-            >
-              {m.admin_reply ? "Reply again" : "Reply"}
-            </button>
-          </div>
-
-          {openReplyId === m.id && (
-            <div className="mt-2 space-y-2">
-              <textarea
-                rows={4}
-                placeholder={`Write your reply to ${m.name}...`}
-                value={replyDrafts[m.id] ?? ""}
-                onChange={(e) => setReplyDrafts((d) => ({ ...d, [m.id]: e.target.value }))}
-                className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-sm dark:border-slate-700"
-              />
-              <button onClick={() => sendReply(m.id)} className="rounded bg-amber-600 px-3 py-1.5 text-xs font-medium text-white">
-                Send email reply
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const EMPTY_CHECKLIST_ITEM = { item_type: "document", order_index: 0, is_required: true, text_key: "" };
-
-function ChecklistItemsEditor({ destinationId }) {
-  const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState(EMPTY_CHECKLIST_ITEM);
-
-  const load = () =>
-    api.get("/admin/api/checklist-items", { params: { destination_id: destinationId } }).then((res) => setItems(res.data));
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [destinationId]);
-
-  const updateItem = async (id, patch) => {
-    const item = items.find((i) => i.id === id);
-    await api.put(`/admin/api/checklist-items/${id}`, { ...item, ...patch, destination_id: destinationId });
-    load();
-  };
-
-  const deleteItem = async (id) => {
-    await api.delete(`/admin/api/checklist-items/${id}`);
-    load();
-  };
-
-  const addItem = async () => {
-    if (!newItem.text_key.trim()) return;
-    await api.post("/admin/api/checklist-items", {
-      ...newItem,
-      order_index: items.length,
-      destination_id: destinationId,
-    });
-    setNewItem(EMPTY_CHECKLIST_ITEM);
-    load();
-  };
-
-  return (
-    <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
-      <h4 className="text-xs font-semibold uppercase text-slate-500">Steps &amp; documents needed</h4>
-      <ul className="mt-2 space-y-1">
-        {items.map((item) => (
-          <li key={item.id} className="flex items-center gap-2 text-xs">
-            <select
-              value={item.item_type}
-              onChange={(e) => updateItem(item.id, { item_type: e.target.value })}
-              className="rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
-            >
-              <option value="document">document</option>
-              <option value="action">action</option>
-              <option value="gear">gear</option>
-              <option value="payment">payment</option>
-            </select>
-            <input
-              value={item.text_key}
-              onChange={(e) => updateItem(item.id, { text_key: e.target.value })}
-              className="flex-1 rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
-            />
-            <label className="flex items-center gap-1">
-              <input
-                type="checkbox"
-                checked={item.is_required}
-                onChange={(e) => updateItem(item.id, { is_required: e.target.checked })}
-              />
-              required
-            </label>
-            <button onClick={() => deleteItem(item.id)} className="text-red-600 underline">
-              remove
-            </button>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-2 flex items-center gap-2 text-xs">
-        <select
-          value={newItem.item_type}
-          onChange={(e) => setNewItem((f) => ({ ...f, item_type: e.target.value }))}
-          className="rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
-        >
-          <option value="document">document</option>
-          <option value="action">action</option>
-          <option value="gear">gear</option>
-          <option value="payment">payment</option>
-        </select>
-        <input
-          placeholder="e.g. Valid passport (6+ months)"
-          value={newItem.text_key}
-          onChange={(e) => setNewItem((f) => ({ ...f, text_key: e.target.value }))}
-          className="flex-1 rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
-        />
-        <button onClick={addItem} className="rounded bg-slate-700 px-2 py-1 text-white">
-          + add
-        </button>
-      </div>
+      {messages.length > 0 && (
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800">
+              <th className="pb-2 pr-3">From</th>
+              <th className="pb-2 pr-3">Message</th>
+              <th className="pb-2 pr-3">Received</th>
+              <th className="pb-2 pr-3">Status</th>
+              <th className="pb-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {messages.map((m) => (
+              <Fragment key={m.id}>
+                <tr className="border-b border-slate-100 align-top dark:border-slate-900">
+                  <td className="py-2 pr-3">
+                    <div className="font-medium">{m.name}</div>
+                    <div className="text-xs text-slate-500">{m.email}</div>
+                  </td>
+                  <td className="max-w-sm py-2 pr-3 whitespace-pre-wrap">{m.message}</td>
+                  <td className="py-2 pr-3 text-xs text-slate-400">{new Date(m.created_at).toLocaleString()}</td>
+                  <td className="py-2 pr-3 text-xs uppercase text-slate-500">{m.status}</td>
+                  <td className="py-2">
+                    <div className="flex flex-wrap gap-2">
+                      {m.status !== "read" && (
+                        <button onClick={() => setStatus(m.id, "read")} className="rounded bg-slate-500 px-2 py-1 text-xs text-white">
+                          Mark read
+                        </button>
+                      )}
+                      {m.status !== "resolved" && (
+                        <button onClick={() => setStatus(m.id, "resolved")} className="rounded bg-green-600 px-2 py-1 text-xs text-white">
+                          Mark resolved
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setOpenReplyId(openReplyId === m.id ? null : m.id)}
+                        className="rounded bg-amber-600 px-2 py-1 text-xs text-white"
+                      >
+                        {m.admin_reply ? "Reply again" : "Reply"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {(m.admin_reply || openReplyId === m.id) && (
+                  <tr className="border-b border-slate-100 dark:border-slate-900">
+                    <td />
+                    <td colSpan={4} className="py-2">
+                      {m.admin_reply && (
+                        <div className="rounded bg-green-50 p-2 text-xs dark:bg-green-900/20">
+                          <span className="font-semibold">Your reply</span> ({new Date(m.replied_at).toLocaleString()}):
+                          <p className="mt-1 whitespace-pre-wrap">{m.admin_reply}</p>
+                        </div>
+                      )}
+                      {openReplyId === m.id && (
+                        <div className="mt-2 space-y-2">
+                          <textarea
+                            rows={4}
+                            placeholder={`Write your reply to ${m.name}...`}
+                            value={replyDrafts[m.id] ?? ""}
+                            onChange={(e) => setReplyDrafts((d) => ({ ...d, [m.id]: e.target.value }))}
+                            className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-sm dark:border-slate-700"
+                          />
+                          <button
+                            onClick={() => sendReply(m.id)}
+                            className="rounded bg-amber-600 px-3 py-1.5 text-xs font-medium text-white"
+                          >
+                            Send email reply
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
