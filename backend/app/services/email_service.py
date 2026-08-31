@@ -91,6 +91,27 @@ def send_source_fetch_failure_email(admin_emails: list[str], destination_name: s
     )
 
 
+def send_follow_up_reminder_email(admin_emails: list[str], items: list[dict]) -> None:
+    """items: list of {destination_name, title, notes} due today."""
+    if not admin_emails or not items:
+        return
+    rows = "".join(
+        f"<li><strong>{i['destination_name']}</strong> - {i['title']}"
+        + (f"<br/><span style='color:#666;font-size:13px'>{i['notes']}</span>" if i.get("notes") else "")
+        + "</li>"
+        for i in items
+    )
+    body = f"<p>You scheduled these for today - worth checking:</p><ul>{rows}</ul>"
+    resend.Emails.send(
+        {
+            "from": settings.email_from,
+            "to": admin_emails,
+            "subject": f"Permit Tracker: {len(items)} follow-up{'s' if len(items) != 1 else ''} due today",
+            "html": body,
+        }
+    )
+
+
 def send_contact_reply(to_email: str, to_name: str, original_message: str, reply_message: str) -> None:
     body = (
         f"<p>Hi {to_name},</p>"

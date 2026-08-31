@@ -1,7 +1,7 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, ForeignKey, String, Text
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -26,3 +26,7 @@ class AdminFollowUp(UUIDPKMixin, TimestampMixin, Base):
     # URLs, what changed last time, what "good" looks like).
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_done: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Set once the due-date reminder email has gone out, so the daily job
+    # sends it exactly once per follow-up rather than re-notifying every day
+    # it stays undone.
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
