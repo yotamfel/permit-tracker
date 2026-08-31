@@ -76,7 +76,7 @@ function FilterSelect({ label, value, onChange, options, allLabel }) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-stone-300 bg-white px-2 py-1.5 dark:border-stone-700 dark:bg-stone-800"
+        className="rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
       >
         <option value="">{allLabel}</option>
         {options.map(([value_, labelText]) => (

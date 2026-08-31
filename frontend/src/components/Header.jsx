@@ -48,7 +48,7 @@ export default function Header() {
             aria-label="theme"
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            className="rounded-lg border border-stone-300 bg-transparent px-1 py-0.5 dark:border-stone-700"
+            className="rounded-lg border border-stone-300 bg-white px-1 py-0.5 text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
           >
             <option value="light">{t("theme.light")}</option>
             <option value="dark">{t("theme.dark")}</option>

@@ -146,23 +146,23 @@ export default function DestinationDetail() {
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t("destination.checklist")}</h2>
         {checklist?.is_owned ? (
           <>
-            <PrepSection
-              title={t("destination.section_general")}
-              items={checklist.items.filter((i) => i.section === "general")}
-              t={t}
-              onToggle={handleToggleItem}
-            />
-            <PrepSection
-              title={t("destination.section_specific")}
-              items={checklist.items.filter((i) => i.section === "specific")}
-              t={t}
-              onToggle={handleToggleItem}
-            />
-            <PrepSection
+            <div className="mt-2 rounded-2xl border border-stone-200 p-4 dark:border-stone-800">
+              <PrepSection
+                title={t("destination.section_general")}
+                items={checklist.items.filter((i) => i.section === "general")}
+                t={t}
+                onToggle={handleToggleItem}
+              />
+              <PrepSection
+                title={t("destination.section_specific")}
+                items={checklist.items.filter((i) => i.section === "specific")}
+                t={t}
+                onToggle={handleToggleItem}
+              />
+            </div>
+            <GoodToKnowSection
               title={t("destination.section_good_to_know")}
               items={checklist.items.filter((i) => i.section === "good_to_know")}
-              t={t}
-              onToggle={handleToggleItem}
             />
           </>
         ) : (
@@ -212,7 +212,7 @@ export default function DestinationDetail() {
                 <select
                   value={subscription.lead_time_minutes}
                   onChange={(e) => setSubscription((s) => ({ ...s, lead_time_minutes: e.target.value }))}
-                  className="mt-1 block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
+                  className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
                 >
                   {LEAD_TIME_OPTIONS.map((opt) => (
                     <option key={opt.minutes} value={opt.minutes}>
@@ -269,6 +269,40 @@ function PrepSection({ title, items, t, onToggle }) {
       <ul className="mt-1 space-y-2">
         {items.map((item) => (
           <PrepItem key={item.id} item={item} t={t} onToggle={onToggle} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function GoodToKnowSection({ title, items }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-900 dark:bg-sky-950/40">
+      <h3 className="flex items-center gap-1.5 text-sm font-semibold text-sky-900 dark:text-sky-200">
+        <span aria-hidden="true">💡</span>
+        {title}
+      </h3>
+      <ul className="mt-2 space-y-2">
+        {items.map((item) => (
+          <li key={item.id} className="flex items-start gap-2 text-sm text-sky-950 dark:text-sky-100">
+            <span aria-hidden="true" className="mt-0.5 text-sky-400">
+              •
+            </span>
+            <span>
+              {item.text}
+              {item.link_url && (
+                <a
+                  href={item.link_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-0.5 block text-xs text-sky-700 hover:underline dark:text-sky-300"
+                >
+                  {item.link_url} ↗
+                </a>
+              )}
+            </span>
+          </li>
         ))}
       </ul>
     </div>

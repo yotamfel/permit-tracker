@@ -211,7 +211,7 @@ export default function AdminDestinationEdit() {
         <select
           value={form.category}
           onChange={(e) => set("category", e.target.value)}
-          className="rounded-lg border border-stone-300 bg-transparent px-2 py-1 text-xs font-medium uppercase tracking-wide text-amber-700 dark:border-stone-700 dark:text-amber-400"
+          className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium uppercase tracking-wide text-amber-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
         >
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
@@ -243,7 +243,7 @@ export default function AdminDestinationEdit() {
         <select
           value={form.competitiveness_level}
           onChange={(e) => set("competitiveness_level", e.target.value)}
-          className="rounded-full border border-stone-300 bg-transparent px-2 py-0.5 text-xs font-medium dark:border-stone-700"
+          className="rounded-full border border-stone-300 bg-white px-2 py-0.5 text-xs font-medium text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
         >
           {COMPETITIVENESS.map((c) => (
             <option key={c} value={c}>
@@ -261,7 +261,7 @@ export default function AdminDestinationEdit() {
             <select
               value={form.mechanism_type}
               onChange={(e) => set("mechanism_type", e.target.value)}
-              className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 dark:border-stone-700 dark:bg-stone-900"
+              className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
             >
               {MECHANISMS.map((m) => (
                 <option key={m} value={m}>
@@ -275,7 +275,7 @@ export default function AdminDestinationEdit() {
             <select
               value={form.issuing_authority}
               onChange={(e) => set("issuing_authority", e.target.value)}
-              className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 dark:border-stone-700 dark:bg-stone-900"
+              className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
             >
               {ISSUERS.map((i) => (
                 <option key={i} value={i}>
@@ -400,7 +400,7 @@ function ChecklistGroup({ title, items, onUpdate, onDelete, onAdd }) {
               <select
                 value={item.item_type}
                 onChange={(e) => onUpdate(item.id, { item_type: e.target.value })}
-                className="rounded border border-stone-300 bg-transparent px-1 py-0.5 text-xs dark:border-stone-700"
+                className="rounded border border-stone-300 bg-white px-1 py-0.5 text-xs text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
               >
                 {ITEM_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -438,7 +438,7 @@ function ChecklistGroup({ title, items, onUpdate, onDelete, onAdd }) {
         <select
           value={newItemType}
           onChange={(e) => setNewItemType(e.target.value)}
-          className="rounded border border-stone-300 bg-transparent px-1 py-0.5 text-xs dark:border-stone-700"
+          className="rounded border border-stone-300 bg-white px-1 py-0.5 text-xs text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
         >
           {ITEM_TYPES.map((t) => (
             <option key={t} value={t}>

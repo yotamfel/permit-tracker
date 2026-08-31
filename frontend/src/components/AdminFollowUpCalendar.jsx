@@ -165,7 +165,7 @@ export default function AdminFollowUpCalendar() {
             <select
               value={newFollowUp.destination_id}
               onChange={(e) => setNewFollowUp((f) => ({ ...f, destination_id: e.target.value }))}
-              className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
+              className="block w-full rounded border border-slate-300 bg-white px-2 py-1 text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             >
               <option value="">Select destination...</option>
               {destinations.map((d) => (
