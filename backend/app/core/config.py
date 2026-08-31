@@ -20,6 +20,10 @@ class Settings(BaseSettings):
 
     frontend_url: str = "http://localhost:5173"
 
+    # Google Identity Services client ID - not a secret, but the backend needs it
+    # to verify the "audience" claim on ID tokens it receives from the frontend.
+    google_client_id: str = ""
+
     # English-only for now (multilingual support paused at the user's request - see
     # README.md). The translations table / mechanism_config / API all already support
     # arbitrary locales without code changes - this list is the only thing to extend

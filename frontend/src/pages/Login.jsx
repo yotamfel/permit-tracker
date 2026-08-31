@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../lib/AuthContext";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -28,7 +29,17 @@ export default function Login() {
       <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
         Log in to unlock full prep checklists and set alerts for hard-to-get permits worldwide.
       </p>
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+
+      <div className="mt-4">
+        <GoogleSignInButton onSuccess={() => navigate("/")} onError={() => setError(t("auth.error"))} />
+      </div>
+      <div className="my-4 flex items-center gap-2 text-xs text-stone-400">
+        <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
+        or
+        <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="email"
           required
