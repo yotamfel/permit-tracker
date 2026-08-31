@@ -14,23 +14,11 @@ const CATEGORIES = [
   "seasonal_nature_event",
   "endurance_event",
 ];
-const MECHANISMS = [
-  "fixed_daily_quota",
-  "lottery",
-  "rolling_window",
-  "fixed_annual_date",
-  "weekly_release",
-  "guided_tour_only",
-  "single_operator_annual_quota",
-  "first_come_first_served",
-];
-const COMPETITIVENESS = ["low", "medium", "high", "very_high"];
-
 export default function Browse() {
   const { t, i18n } = useTranslation();
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ country: "", category: "", mechanism_type: "", competitiveness_level: "" });
+  const [filters, setFilters] = useState({ country: "", category: "" });
 
   useEffect(() => {
     setLoading(true);
@@ -49,7 +37,7 @@ export default function Browse() {
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Catalog</h1>
       <p className="mt-1 text-stone-600 dark:text-stone-400">{t("browse.subtitle")}</p>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 dark:border-stone-800 dark:bg-stone-900/50 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 dark:border-stone-800 dark:bg-stone-900/50">
         <FilterSelect
           label={t("browse.filter_country")}
           value={filters.country}
@@ -62,20 +50,6 @@ export default function Browse() {
           value={filters.category}
           onChange={(v) => setFilters((f) => ({ ...f, category: v }))}
           options={CATEGORIES.map((c) => [c, t(`category.${c}`)])}
-          allLabel={t("browse.all")}
-        />
-        <FilterSelect
-          label={t("browse.filter_mechanism")}
-          value={filters.mechanism_type}
-          onChange={(v) => setFilters((f) => ({ ...f, mechanism_type: v }))}
-          options={MECHANISMS.map((m) => [m, t(`mechanism_type.${m}`)])}
-          allLabel={t("browse.all")}
-        />
-        <FilterSelect
-          label={t("browse.filter_competitiveness")}
-          value={filters.competitiveness_level}
-          onChange={(v) => setFilters((f) => ({ ...f, competitiveness_level: v }))}
-          options={COMPETITIVENESS.map((c) => [c, t(`competitiveness_level.${c}`)])}
           allLabel={t("browse.all")}
         />
       </div>
