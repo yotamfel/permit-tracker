@@ -44,6 +44,14 @@ class ChecklistItemType(str, enum.Enum):
     payment = "payment"
 
 
+class ChecklistItemSection(str, enum.Enum):
+    # "Specific to this permit" - required for the actual permit/application itself.
+    specific = "specific"
+    # "Good to know" - useful but not strictly required for the permit application
+    # (e.g. country-entry visa rules, health/safety notes for this destination).
+    good_to_know = "good_to_know"
+
+
 class Platform(str, enum.Enum):
     web = "web"
     ios = "ios"

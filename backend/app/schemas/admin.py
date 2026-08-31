@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from app.models.enums import (
     Category,
+    ChecklistItemSection,
     ChecklistItemType,
     CompetitivenessLevel,
     IssuingAuthority,
@@ -106,6 +107,7 @@ class AdminDestinationOut(BaseModel):
 class AdminChecklistItemIn(BaseModel):
     destination_id: uuid.UUID
     item_type: ChecklistItemType
+    section: ChecklistItemSection = ChecklistItemSection.specific
     order_index: int = 0
     is_required: bool = True
     text_key: str

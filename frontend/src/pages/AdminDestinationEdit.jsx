@@ -21,8 +21,6 @@ export default function AdminDestinationEdit() {
   const navigate = useNavigate();
   const [form, setForm] = useState(null);
   const [checklistItems, setChecklistItems] = useState([]);
-  const [newItemText, setNewItemText] = useState("");
-  const [newItemType, setNewItemType] = useState("document");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -103,16 +101,16 @@ export default function AdminDestinationEdit() {
     load();
   };
 
-  const addChecklistItem = async () => {
-    if (!newItemText.trim()) return;
+  const addChecklistItem = async (section, itemType, text) => {
+    if (!text.trim()) return;
     await api.post("/admin/api/checklist-items", {
       destination_id: id,
-      item_type: newItemType,
+      item_type: itemType,
+      section,
       order_index: checklistItems.length,
       is_required: true,
-      text_key: newItemText,
+      text_key: text,
     });
-    setNewItemText("");
     load();
   };
 
@@ -272,63 +270,22 @@ export default function AdminDestinationEdit() {
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Prepare for your trip</h2>
         <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
           "Documents &amp; Bureaucracy" (general requirements like passport/insurance) aren't editable here yet -
-          manage those via /docs if needed. Editing "Specific to this permit" below.
+          manage those via /docs if needed.
         </p>
-        <ul className="mt-2 space-y-2">
-          {checklistItems.map((item) => (
-            <li key={item.id} className="flex items-center gap-2 text-sm">
-              <select
-                value={item.item_type}
-                onChange={(e) => updateChecklistItem(item.id, { item_type: e.target.value })}
-                className="rounded border border-stone-300 bg-transparent px-1 py-0.5 text-xs dark:border-stone-700"
-              >
-                {ITEM_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-              <input
-                value={item.text_key}
-                onChange={(e) => updateChecklistItem(item.id, { text_key: e.target.value })}
-                className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
-              />
-              <label className="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
-                <input
-                  type="checkbox"
-                  checked={item.is_required}
-                  onChange={(e) => updateChecklistItem(item.id, { is_required: e.target.checked })}
-                />
-                required
-              </label>
-              <button onClick={() => deleteChecklistItem(item.id)} className="text-xs text-red-600 underline">
-                remove
-              </button>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-2 flex items-center gap-2 text-sm">
-          <select
-            value={newItemType}
-            onChange={(e) => setNewItemType(e.target.value)}
-            className="rounded border border-stone-300 bg-transparent px-1 py-0.5 text-xs dark:border-stone-700"
-          >
-            {ITEM_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <input
-            placeholder="e.g. Valid passport (6+ months)"
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
-          />
-          <button onClick={addChecklistItem} className="rounded bg-stone-700 px-3 py-1 text-xs text-white">
-            + add
-          </button>
-        </div>
+        <ChecklistGroup
+          title="Specific to this permit - required for the application itself"
+          items={checklistItems.filter((i) => i.section === "specific")}
+          onUpdate={updateChecklistItem}
+          onDelete={deleteChecklistItem}
+          onAdd={(itemType, text) => addChecklistItem("specific", itemType, text)}
+        />
+        <ChecklistGroup
+          title="Good to know - useful but not required for the application (country-entry rules, safety tips, etc.)"
+          items={checklistItems.filter((i) => i.section === "good_to_know")}
+          onUpdate={updateChecklistItem}
+          onDelete={deleteChecklistItem}
+          onAdd={(itemType, text) => addChecklistItem("good_to_know", itemType, text)}
+        />
       </section>
 
       <section className="mt-6">
@@ -373,6 +330,77 @@ export default function AdminDestinationEdit() {
           Discard
         </button>
       </section>
+    </div>
+  );
+}
+
+function ChecklistGroup({ title, items, onUpdate, onDelete, onAdd }) {
+  const [newItemText, setNewItemText] = useState("");
+  const [newItemType, setNewItemType] = useState("document");
+
+  const handleAdd = () => {
+    onAdd(newItemType, newItemText);
+    setNewItemText("");
+  };
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">{title}</h3>
+      <ul className="mt-2 space-y-2">
+        {items.map((item) => (
+          <li key={item.id} className="flex items-center gap-2 text-sm">
+            <select
+              value={item.item_type}
+              onChange={(e) => onUpdate(item.id, { item_type: e.target.value })}
+              className="rounded border border-stone-300 bg-transparent px-1 py-0.5 text-xs dark:border-stone-700"
+            >
+              {ITEM_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input
+              value={item.text_key}
+              onChange={(e) => onUpdate(item.id, { text_key: e.target.value })}
+              className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
+            />
+            <label className="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+              <input
+                type="checkbox"
+                checked={item.is_required}
+                onChange={(e) => onUpdate(item.id, { is_required: e.target.checked })}
+              />
+              required
+            </label>
+            <button onClick={() => onDelete(item.id)} className="text-xs text-red-600 underline">
+              remove
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 flex items-center gap-2 text-sm">
+        <select
+          value={newItemType}
+          onChange={(e) => setNewItemType(e.target.value)}
+          className="rounded border border-stone-300 bg-transparent px-1 py-0.5 text-xs dark:border-stone-700"
+        >
+          {ITEM_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+        <input
+          placeholder="e.g. Valid passport (6+ months)"
+          value={newItemText}
+          onChange={(e) => setNewItemText(e.target.value)}
+          className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
+        />
+        <button onClick={handleAdd} className="rounded bg-stone-700 px-3 py-1 text-xs text-white">
+          + add
+        </button>
+      </div>
     </div>
   );
 }

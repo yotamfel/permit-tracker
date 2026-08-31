@@ -149,6 +149,12 @@ export default function DestinationDetail() {
               t={t}
               onToggle={handleToggleItem}
             />
+            <PrepSection
+              title={t("destination.section_good_to_know")}
+              items={checklist.items.filter((i) => i.section === "good_to_know")}
+              t={t}
+              onToggle={handleToggleItem}
+            />
           </>
         ) : (
           <div className="relative mt-2 rounded-2xl border-2 border-dashed border-stone-300 p-6 dark:border-stone-700">

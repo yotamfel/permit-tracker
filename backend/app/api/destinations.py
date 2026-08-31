@@ -154,14 +154,15 @@ def get_checklist(
             )
         )
 
-    # Section 2: destination-specific checklist items ("Specific to this permit").
+    # Sections 2 & 3: destination-specific checklist items - "Specific to this
+    # permit" (section="specific") and "Good to know" (section="good_to_know").
     checklist_texts = translate_bulk(db, "checklist_item.text", [item.id for item in d.checklist_items], locale)
     for item in d.checklist_items:
         text = checklist_texts.get(item.id) or item.text_key
         items.append(
             PrepItemOut(
                 id=item.id,
-                section="specific",
+                section=item.section.value,
                 type=item.item_type.value,
                 order_index=item.order_index,
                 is_required=item.is_required,
