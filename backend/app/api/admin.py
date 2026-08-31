@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_admin, get_db
+from app.models.admin_follow_up import AdminFollowUp
 from app.models.checklist_item import ChecklistItem
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
@@ -22,6 +23,8 @@ from app.schemas.admin import (
     AdminDestinationOut,
     AdminDestinationRequirementIn,
     AdminDestinationRequirementOut,
+    AdminFollowUpIn,
+    AdminFollowUpOut,
     AdminGeneralRequirementIn,
     AdminGeneralRequirementOut,
     AdminMonitoringDiffOut,
@@ -320,6 +323,66 @@ def delete_translation(translation_id: uuid.UUID, db: Session = Depends(get_db))
     if t is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Translation not found")
     db.delete(t)
+    db.commit()
+
+
+# --- Admin follow-up calendar ------------------------------------------------
+# Scheduled reminders to manually re-check something about a destination on a
+# given date (e.g. "official prices publish in October, go check") - not tied
+# to the automated monitoring job, purely admin-authored notes-to-self. The
+# same destination can have several of these on different dates.
+
+
+def _follow_up_out(db: Session, f: AdminFollowUp) -> AdminFollowUpOut:
+    d = db.get(Destination, f.destination_id)
+    return AdminFollowUpOut(
+        id=f.id,
+        destination_id=f.destination_id,
+        destination_name=d.name if d else "(deleted destination)",
+        due_date=f.due_date,
+        title=f.title,
+        notes=f.notes,
+        is_done=f.is_done,
+        created_at=f.created_at,
+    )
+
+
+@router.get("/follow-ups", response_model=list[AdminFollowUpOut])
+def list_follow_ups(db: Session = Depends(get_db)) -> list[AdminFollowUpOut]:
+    follow_ups = db.query(AdminFollowUp).order_by(AdminFollowUp.due_date).all()
+    return [_follow_up_out(db, f) for f in follow_ups]
+
+
+@router.post("/follow-ups", response_model=AdminFollowUpOut)
+def create_follow_up(body: AdminFollowUpIn, db: Session = Depends(get_db)) -> AdminFollowUpOut:
+    if db.get(Destination, body.destination_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
+    f = AdminFollowUp(**body.model_dump())
+    db.add(f)
+    db.commit()
+    db.refresh(f)
+    return _follow_up_out(db, f)
+
+
+@router.put("/follow-ups/{follow_up_id}", response_model=AdminFollowUpOut)
+def update_follow_up(follow_up_id: uuid.UUID, body: AdminFollowUpIn, db: Session = Depends(get_db)) -> AdminFollowUpOut:
+    f = db.get(AdminFollowUp, follow_up_id)
+    if f is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Follow-up not found")
+    for field, value in body.model_dump().items():
+        setattr(f, field, value)
+    db.add(f)
+    db.commit()
+    db.refresh(f)
+    return _follow_up_out(db, f)
+
+
+@router.delete("/follow-ups/{follow_up_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_follow_up(follow_up_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
+    f = db.get(AdminFollowUp, follow_up_id)
+    if f is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Follow-up not found")
+    db.delete(f)
     db.commit()
 
 

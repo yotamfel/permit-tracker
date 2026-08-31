@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
+import AdminFollowUpCalendar from "../components/AdminFollowUpCalendar";
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -42,6 +43,15 @@ export default function Admin() {
       {tab === "stats" && <StatsTab />}
       {tab === "feedback" && <FeedbackStatsTab />}
       {tab === "inquiries" && <InquiriesTab />}
+      {tab === "follow-ups" && (
+        <div className="mt-6">
+          <p className="mb-4 text-sm text-slate-500">
+            Schedule a reminder to manually re-check something about a destination on a specific date - e.g.
+            official prices that only publish in October. Click a marked day to see what's due.
+          </p>
+          <AdminFollowUpCalendar />
+        </div>
+      )}
     </div>
   );
 }
@@ -53,6 +63,7 @@ const TABS = [
   { key: "stats", label: "Stats" },
   { key: "feedback", label: "Feedback" },
   { key: "inquiries", label: "Inquiries" },
+  { key: "follow-ups", label: "Follow-ups" },
 ];
 
 function DestinationsTab() {

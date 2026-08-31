@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -198,6 +198,22 @@ class AdminMonitoringDiffOut(BaseModel):
     diff_summary: str
     review_status: ReviewStatus
     reviewed_at: datetime | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class AdminFollowUpIn(BaseModel):
+    destination_id: uuid.UUID
+    due_date: date
+    title: str
+    notes: str | None = None
+    is_done: bool = False
+
+
+class AdminFollowUpOut(AdminFollowUpIn):
+    id: uuid.UUID
+    destination_name: str
     created_at: datetime
 
     model_config = {"from_attributes": True}
