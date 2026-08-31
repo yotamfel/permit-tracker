@@ -1,0 +1,117 @@
+{
+  "app_name": "עוקב היתרים",
+  "nav": {
+    "browse": "עיון",
+    "account": "החשבון שלי",
+    "admin": "ניהול",
+    "login": "התחברות",
+    "signup": "הרשמה",
+    "logout": "התנתקות"
+  },
+  "theme": {
+    "light": "בהיר",
+    "dark": "כהה",
+    "system": "לפי המערכת"
+  },
+  "browse": {
+    "title": "כל מה שצריך כדי להתכונן להיתרים הכי קשים בעולם",
+    "subtitle": "מסמכים, מועדים והתראות לטרקים, פארקים, קמפינג, צלילה, ספארי ואירועי טבע עונתיים בעולם - הכול במקום אחד.",
+    "filter_country": "מדינה",
+    "filter_category": "קטגוריה",
+    "filter_mechanism": "אופן השחרור",
+    "filter_competitiveness": "רמת תחרותיות",
+    "all": "הכול",
+    "no_results": "אין יעדים התואמים את הסינון הזה.",
+    "next_release": "מועד השחרור הבא הידוע",
+    "not_computable": "תלוי בתאריך הנסיעה שלכם",
+    "unlock_for": "פתיחה ב-${{price}}",
+    "owned": "פתוח"
+  },
+  "category": {
+    "trek": "טרק",
+    "national_park_entry": "כניסה לפארק לאומי",
+    "camping": "קמפינג",
+    "diving": "צלילה",
+    "wildlife_safari": "ספארי חיות בר",
+    "thru_hike": "מסלול מרחק ארוך",
+    "tourist_attraction": "אתר תיירותי",
+    "seasonal_nature_event": "אירוע טבע עונתי"
+  },
+  "mechanism_type": {
+    "fixed_daily_quota": "מכסה יומית קבועה",
+    "lottery": "הגרלה",
+    "rolling_window": "חלון נגלל",
+    "fixed_annual_date": "תאריך שנתי קבוע",
+    "weekly_release": "שחרור שבועי",
+    "guided_tour_only": "טור מודרך בלבד",
+    "single_operator_annual_quota": "מכסה שנתית לספק בלעדי",
+    "first_come_first_served": "כל הקודם זוכה"
+  },
+  "competitiveness_level": {
+    "low": "נמוכה",
+    "medium": "בינונית",
+    "high": "גבוהה",
+    "very_high": "גבוהה מאוד"
+  },
+  "destination": {
+    "how_it_works": "איך זה עובד",
+    "checklist": "התכוננו לנסיעה",
+    "section_general": "מסמכים ובירוקרטיה",
+    "section_specific": "ספציפי להיתר הזה",
+    "checklist_locked": "פתחו את היעד כדי לראות את רשימת הדרישות המלאה ואת התאריכים המדויקים.",
+    "source": "מקור רשמי",
+    "last_verified": "אומת לאחרונה",
+    "not_yet_verified": "טרם אומת",
+    "unlock_cta": "פתיחה ב-${{price}}",
+    "unlocking": "מפנה לתשלום...",
+    "already_owned": "פתחתם את היעד הזה",
+    "set_alert": "הגדרת התראה",
+    "required": "חובה",
+    "optional": "אופציונלי"
+  },
+  "alert": {
+    "title": "קבלו התראה לפני הפתיחה",
+    "lead_time": "התרו לי כמה ימים מראש",
+    "travel_date": "תאריך הנסיעה המתוכנן",
+    "travel_date_help": "ליעד הזה אין מועד שחרור קבוע - ההתראה מבוססת על תאריך הנסיעה שלכם.",
+    "submit": "הגדרת התראה",
+    "success": "ההתראה הוגדרה! נשלח לכם אימייל.",
+    "delete": "הסרת התראה"
+  },
+  "auth": {
+    "email": "אימייל",
+    "password": "סיסמה",
+    "login_title": "התחברות",
+    "signup_title": "יצירת חשבון",
+    "submit_login": "התחברות",
+    "submit_signup": "הרשמה",
+    "switch_to_signup": "אין לכם חשבון? הירשמו",
+    "switch_to_login": "כבר יש לכם חשבון? התחברו",
+    "error": "משהו השתבש. בדקו את הפרטים ונסו שוב."
+  },
+  "account": {
+    "title": "החשבון שלי",
+    "purchases": "היעדים שפתחתם",
+    "no_purchases": "עדיין לא פתחתם יעדים.",
+    "preferences": "העדפות",
+    "language": "שפה"
+  },
+  "admin": {
+    "title": "ניהול",
+    "destinations": "יעדים",
+    "monitoring": "בדיקת שינויים",
+    "checklist_items": "פריטי רשימה",
+    "translations": "תרגומים",
+    "pending": "ממתין",
+    "approved": "אושר",
+    "dismissed": "נדחה",
+    "approve": "אישור",
+    "dismiss": "דחייה",
+    "previous_text": "תמונת מצב קודמת",
+    "new_text": "תמונת מצב חדשה",
+    "published": "פורסם",
+    "unpublished": "לא פורסם",
+    "save": "שמירה",
+    "create": "יצירת יעד"
+  }
+}

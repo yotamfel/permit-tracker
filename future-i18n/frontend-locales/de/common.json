@@ -1,0 +1,117 @@
+{
+  "app_name": "Permit Tracker",
+  "nav": {
+    "browse": "Entdecken",
+    "account": "Konto",
+    "admin": "Admin",
+    "login": "Anmelden",
+    "signup": "Registrieren",
+    "logout": "Abmelden"
+  },
+  "theme": {
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "browse": {
+    "title": "Alles, was Sie für die begehrtesten Genehmigungen der Welt brauchen",
+    "subtitle": "Dokumente, Fristen und Erinnerungen für Treks, Nationalparks, Camping, Tauchen, Safaris und saisonale Events weltweit - alles an einem Ort.",
+    "filter_country": "Land",
+    "filter_category": "Kategorie",
+    "filter_mechanism": "Freigabeart",
+    "filter_competitiveness": "Wettbewerbsniveau",
+    "all": "Alle",
+    "no_results": "Keine Ziele entsprechen diesen Filtern.",
+    "next_release": "Nächster bekannter Freigabetermin",
+    "not_computable": "Hängt von Ihrem Reisedatum ab",
+    "unlock_for": "Freischalten für ${{price}}",
+    "owned": "Freigeschaltet"
+  },
+  "category": {
+    "trek": "Trekking",
+    "national_park_entry": "Nationalpark-Eintritt",
+    "camping": "Camping",
+    "diving": "Tauchen",
+    "wildlife_safari": "Wildtier-Safari",
+    "thru_hike": "Fernwanderweg",
+    "tourist_attraction": "Touristenattraktion",
+    "seasonal_nature_event": "Saisonales Naturereignis"
+  },
+  "mechanism_type": {
+    "fixed_daily_quota": "Feste Tageskontingent",
+    "lottery": "Losverfahren",
+    "rolling_window": "Gleitendes Zeitfenster",
+    "fixed_annual_date": "Fester Jahrestermin",
+    "weekly_release": "Wöchentliche Freigabe",
+    "guided_tour_only": "Nur geführte Touren",
+    "single_operator_annual_quota": "Jahreskontingent eines Anbieters",
+    "first_come_first_served": "Wer zuerst kommt, mahlt zuerst"
+  },
+  "competitiveness_level": {
+    "low": "Niedrig",
+    "medium": "Mittel",
+    "high": "Hoch",
+    "very_high": "Sehr hoch"
+  },
+  "destination": {
+    "how_it_works": "So funktioniert es",
+    "checklist": "Reisevorbereitung",
+    "section_general": "Dokumente & Formalitäten",
+    "section_specific": "Speziell für diese Genehmigung",
+    "checklist_locked": "Schalten Sie dieses Ziel frei, um die vollständige Checkliste und genaue Termine zu sehen.",
+    "source": "Offizielle Quelle",
+    "last_verified": "Zuletzt geprüft",
+    "not_yet_verified": "Noch nicht geprüft",
+    "unlock_cta": "Freischalten für ${{price}}",
+    "unlocking": "Weiterleitung zur Kasse...",
+    "already_owned": "Sie haben dieses Ziel freigeschaltet",
+    "set_alert": "Erinnerung einrichten",
+    "required": "Erforderlich",
+    "optional": "Optional"
+  },
+  "alert": {
+    "title": "Vor der Öffnung benachrichtigt werden",
+    "lead_time": "So viele Tage vorher benachrichtigen",
+    "travel_date": "Ihr geplantes Reisedatum",
+    "travel_date_help": "Für dieses Ziel gibt es keinen festen Freigabetermin - Erinnerungen basieren stattdessen auf Ihrem Reisedatum.",
+    "submit": "Erinnerung einrichten",
+    "success": "Erinnerung eingerichtet! Wir schreiben Ihnen eine E-Mail.",
+    "delete": "Erinnerung entfernen"
+  },
+  "auth": {
+    "email": "E-Mail",
+    "password": "Passwort",
+    "login_title": "Anmelden",
+    "signup_title": "Konto erstellen",
+    "submit_login": "Anmelden",
+    "submit_signup": "Registrieren",
+    "switch_to_signup": "Noch kein Konto? Registrieren",
+    "switch_to_login": "Bereits ein Konto? Anmelden",
+    "error": "Etwas ist schiefgelaufen. Überprüfen Sie Ihre Angaben und versuchen Sie es erneut."
+  },
+  "account": {
+    "title": "Ihr Konto",
+    "purchases": "Ihre freigeschalteten Ziele",
+    "no_purchases": "Sie haben noch keine Ziele freigeschaltet.",
+    "preferences": "Einstellungen",
+    "language": "Sprache"
+  },
+  "admin": {
+    "title": "Admin",
+    "destinations": "Ziele",
+    "monitoring": "Überwachte Änderungen",
+    "checklist_items": "Checklisten-Einträge",
+    "translations": "Übersetzungen",
+    "pending": "Ausstehend",
+    "approved": "Genehmigt",
+    "dismissed": "Abgelehnt",
+    "approve": "Genehmigen",
+    "dismiss": "Ablehnen",
+    "previous_text": "Vorheriger Stand",
+    "new_text": "Neuer Stand",
+    "published": "Veröffentlicht",
+    "unpublished": "Unveröffentlicht",
+    "save": "Speichern",
+    "create": "Ziel erstellen"
+  }
+}

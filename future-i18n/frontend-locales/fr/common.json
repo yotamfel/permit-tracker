@@ -1,0 +1,117 @@
+{
+  "app_name": "Permit Tracker",
+  "nav": {
+    "browse": "Explorer",
+    "account": "Compte",
+    "admin": "Admin",
+    "login": "Connexion",
+    "signup": "S'inscrire",
+    "logout": "Déconnexion"
+  },
+  "theme": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "browse": {
+    "title": "Tout ce qu'il faut pour préparer les permis les plus difficiles à obtenir au monde",
+    "subtitle": "Documents, échéances et alertes pour les treks, parcs, camping, plongée, safaris et événements saisonniers dans le monde entier - tout au même endroit.",
+    "filter_country": "Pays",
+    "filter_category": "Catégorie",
+    "filter_mechanism": "Mode de délivrance",
+    "filter_competitiveness": "Niveau de compétitivité",
+    "all": "Tous",
+    "no_results": "Aucune destination ne correspond à ces filtres.",
+    "next_release": "Prochaine ouverture connue",
+    "not_computable": "Dépend de votre date de voyage",
+    "unlock_for": "Débloquer pour ${{price}}",
+    "owned": "Débloqué"
+  },
+  "category": {
+    "trek": "Trek",
+    "national_park_entry": "Entrée de parc national",
+    "camping": "Camping",
+    "diving": "Plongée",
+    "wildlife_safari": "Safari animalier",
+    "thru_hike": "Randonnée longue distance",
+    "tourist_attraction": "Site touristique",
+    "seasonal_nature_event": "Événement naturel saisonnier"
+  },
+  "mechanism_type": {
+    "fixed_daily_quota": "Quota quotidien fixe",
+    "lottery": "Tirage au sort",
+    "rolling_window": "Fenêtre glissante",
+    "fixed_annual_date": "Date annuelle fixe",
+    "weekly_release": "Ouverture hebdomadaire",
+    "guided_tour_only": "Visite guidée uniquement",
+    "single_operator_annual_quota": "Quota annuel d'un opérateur unique",
+    "first_come_first_served": "Premier arrivé, premier servi"
+  },
+  "competitiveness_level": {
+    "low": "Faible",
+    "medium": "Moyen",
+    "high": "Élevé",
+    "very_high": "Très élevé"
+  },
+  "destination": {
+    "how_it_works": "Comment ça marche",
+    "checklist": "Préparez votre voyage",
+    "section_general": "Documents et démarches",
+    "section_specific": "Spécifique à ce permis",
+    "checklist_locked": "Débloquez cette destination pour voir la liste complète et les dates exactes.",
+    "source": "Source officielle",
+    "last_verified": "Dernière vérification",
+    "not_yet_verified": "Pas encore vérifié",
+    "unlock_cta": "Débloquer pour ${{price}}",
+    "unlocking": "Redirection vers le paiement...",
+    "already_owned": "Vous avez débloqué cette destination",
+    "set_alert": "Définir une alerte",
+    "required": "Obligatoire",
+    "optional": "Facultatif"
+  },
+  "alert": {
+    "title": "Être averti avant l'ouverture",
+    "lead_time": "Me prévenir ce nombre de jours à l'avance",
+    "travel_date": "Votre date de voyage prévue",
+    "travel_date_help": "Cette destination n'a pas de date d'ouverture fixe - les alertes se basent sur votre date de voyage.",
+    "submit": "Définir l'alerte",
+    "success": "Alerte définie ! Nous vous enverrons un e-mail.",
+    "delete": "Supprimer l'alerte"
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "login_title": "Connexion",
+    "signup_title": "Créer un compte",
+    "submit_login": "Connexion",
+    "submit_signup": "S'inscrire",
+    "switch_to_signup": "Pas de compte ? Inscrivez-vous",
+    "switch_to_login": "Déjà un compte ? Connectez-vous",
+    "error": "Une erreur s'est produite. Vérifiez vos informations et réessayez."
+  },
+  "account": {
+    "title": "Votre compte",
+    "purchases": "Vos destinations débloquées",
+    "no_purchases": "Vous n'avez encore débloqué aucune destination.",
+    "preferences": "Préférences",
+    "language": "Langue"
+  },
+  "admin": {
+    "title": "Admin",
+    "destinations": "Destinations",
+    "monitoring": "Changements surveillés",
+    "checklist_items": "Éléments de la liste",
+    "translations": "Traductions",
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "dismissed": "Rejeté",
+    "approve": "Approuver",
+    "dismiss": "Rejeter",
+    "previous_text": "Version précédente",
+    "new_text": "Nouvelle version",
+    "published": "Publié",
+    "unpublished": "Non publié",
+    "save": "Enregistrer",
+    "create": "Créer une destination"
+  }
+}

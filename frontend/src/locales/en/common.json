@@ -1,0 +1,117 @@
+{
+  "app_name": "Permit Tracker",
+  "nav": {
+    "browse": "Browse",
+    "account": "Account",
+    "admin": "Admin",
+    "login": "Log in",
+    "signup": "Sign up",
+    "logout": "Log out"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "browse": {
+    "title": "Everything you need to prepare for the world's hardest-to-get permits",
+    "subtitle": "Documents, deadlines, and alerts for treks, parks, camping, diving, safaris and seasonal events worldwide - all in one place.",
+    "filter_country": "Country",
+    "filter_category": "Category",
+    "filter_mechanism": "How it's released",
+    "filter_competitiveness": "Competitiveness",
+    "all": "All",
+    "no_results": "No destinations match these filters.",
+    "next_release": "Next known release",
+    "not_computable": "Depends on your travel date",
+    "unlock_for": "Unlock for ${{price}}",
+    "owned": "Unlocked"
+  },
+  "category": {
+    "trek": "Trek",
+    "national_park_entry": "National Park Entry",
+    "camping": "Camping",
+    "diving": "Diving",
+    "wildlife_safari": "Wildlife Safari",
+    "thru_hike": "Thru-hike",
+    "tourist_attraction": "Tourist Attraction",
+    "seasonal_nature_event": "Seasonal Nature Event"
+  },
+  "mechanism_type": {
+    "fixed_daily_quota": "Fixed Daily Quota",
+    "lottery": "Lottery",
+    "rolling_window": "Rolling Window",
+    "fixed_annual_date": "Fixed Annual Date",
+    "weekly_release": "Weekly Release",
+    "guided_tour_only": "Guided Tour Only",
+    "single_operator_annual_quota": "Single Operator Annual Quota",
+    "first_come_first_served": "First Come, First Served"
+  },
+  "competitiveness_level": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "very_high": "Very High"
+  },
+  "destination": {
+    "how_it_works": "How it works",
+    "checklist": "Prepare for your trip",
+    "section_general": "Documents & Bureaucracy",
+    "section_specific": "Specific to this permit",
+    "checklist_locked": "Unlock this destination to see the full checklist and exact dates.",
+    "source": "Official source",
+    "last_verified": "Last verified",
+    "not_yet_verified": "Not yet verified",
+    "unlock_cta": "Unlock for ${{price}}",
+    "unlocking": "Redirecting to checkout...",
+    "already_owned": "You've unlocked this destination",
+    "set_alert": "Set an alert",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "alert": {
+    "title": "Get notified before it opens",
+    "lead_time": "Notify me this many days before",
+    "travel_date": "Your intended travel date",
+    "travel_date_help": "This destination has no fixed release date - alerts are based on your travel date instead.",
+    "submit": "Set alert",
+    "success": "Alert set! We'll email you.",
+    "delete": "Remove alert"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "login_title": "Log in",
+    "signup_title": "Create an account",
+    "submit_login": "Log in",
+    "submit_signup": "Sign up",
+    "switch_to_signup": "Need an account? Sign up",
+    "switch_to_login": "Already have an account? Log in",
+    "error": "Something went wrong. Check your details and try again."
+  },
+  "account": {
+    "title": "Your account",
+    "purchases": "Your unlocked destinations",
+    "no_purchases": "You haven't unlocked any destinations yet.",
+    "preferences": "Preferences",
+    "language": "Language"
+  },
+  "admin": {
+    "title": "Admin",
+    "destinations": "Destinations",
+    "monitoring": "Monitoring diffs",
+    "checklist_items": "Checklist items",
+    "translations": "Translations",
+    "pending": "Pending",
+    "approved": "Approved",
+    "dismissed": "Dismissed",
+    "approve": "Approve",
+    "dismiss": "Dismiss",
+    "previous_text": "Previous snapshot",
+    "new_text": "New snapshot",
+    "published": "Published",
+    "unpublished": "Unpublished",
+    "save": "Save",
+    "create": "Create destination"
+  }
+}

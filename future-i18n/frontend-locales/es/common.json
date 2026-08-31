@@ -1,0 +1,117 @@
+{
+  "app_name": "Permit Tracker",
+  "nav": {
+    "browse": "Explorar",
+    "account": "Cuenta",
+    "admin": "Admin",
+    "login": "Iniciar sesión",
+    "signup": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "theme": {
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "browse": {
+    "title": "Todo lo que necesitas para prepararte para los permisos más difíciles de conseguir del mundo",
+    "subtitle": "Documentos, plazos y alertas para treks, parques, camping, buceo, safaris y eventos estacionales en todo el mundo - todo en un solo lugar.",
+    "filter_country": "País",
+    "filter_category": "Categoría",
+    "filter_mechanism": "Forma de liberación",
+    "filter_competitiveness": "Nivel de competitividad",
+    "all": "Todos",
+    "no_results": "Ningún destino coincide con estos filtros.",
+    "next_release": "Próxima apertura conocida",
+    "not_computable": "Depende de tu fecha de viaje",
+    "unlock_for": "Desbloquear por ${{price}}",
+    "owned": "Desbloqueado"
+  },
+  "category": {
+    "trek": "Trekking",
+    "national_park_entry": "Entrada a parque nacional",
+    "camping": "Camping",
+    "diving": "Buceo",
+    "wildlife_safari": "Safari de fauna",
+    "thru_hike": "Ruta de larga distancia",
+    "tourist_attraction": "Atracción turística",
+    "seasonal_nature_event": "Evento natural estacional"
+  },
+  "mechanism_type": {
+    "fixed_daily_quota": "Cupo diario fijo",
+    "lottery": "Sorteo",
+    "rolling_window": "Ventana móvil",
+    "fixed_annual_date": "Fecha anual fija",
+    "weekly_release": "Liberación semanal",
+    "guided_tour_only": "Solo con tour guiado",
+    "single_operator_annual_quota": "Cupo anual de un solo operador",
+    "first_come_first_served": "Por orden de llegada"
+  },
+  "competitiveness_level": {
+    "low": "Baja",
+    "medium": "Media",
+    "high": "Alta",
+    "very_high": "Muy alta"
+  },
+  "destination": {
+    "how_it_works": "Cómo funciona",
+    "checklist": "Prepara tu viaje",
+    "section_general": "Documentos y trámites",
+    "section_specific": "Específico de este permiso",
+    "checklist_locked": "Desbloquea este destino para ver la lista completa y las fechas exactas.",
+    "source": "Fuente oficial",
+    "last_verified": "Última verificación",
+    "not_yet_verified": "Aún no verificado",
+    "unlock_cta": "Desbloquear por ${{price}}",
+    "unlocking": "Redirigiendo al pago...",
+    "already_owned": "Ya desbloqueaste este destino",
+    "set_alert": "Configurar alerta",
+    "required": "Obligatorio",
+    "optional": "Opcional"
+  },
+  "alert": {
+    "title": "Recibe un aviso antes de la apertura",
+    "lead_time": "Avísame con esta cantidad de días de antelación",
+    "travel_date": "Tu fecha de viaje prevista",
+    "travel_date_help": "Este destino no tiene una fecha de apertura fija - las alertas se basan en tu fecha de viaje.",
+    "submit": "Configurar alerta",
+    "success": "¡Alerta configurada! Te enviaremos un correo.",
+    "delete": "Eliminar alerta"
+  },
+  "auth": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "login_title": "Iniciar sesión",
+    "signup_title": "Crear una cuenta",
+    "submit_login": "Iniciar sesión",
+    "submit_signup": "Registrarse",
+    "switch_to_signup": "¿No tienes cuenta? Regístrate",
+    "switch_to_login": "¿Ya tienes cuenta? Inicia sesión",
+    "error": "Algo salió mal. Revisa tus datos e inténtalo de nuevo."
+  },
+  "account": {
+    "title": "Tu cuenta",
+    "purchases": "Tus destinos desbloqueados",
+    "no_purchases": "Todavía no has desbloqueado ningún destino.",
+    "preferences": "Preferencias",
+    "language": "Idioma"
+  },
+  "admin": {
+    "title": "Admin",
+    "destinations": "Destinos",
+    "monitoring": "Cambios monitoreados",
+    "checklist_items": "Elementos de la lista",
+    "translations": "Traducciones",
+    "pending": "Pendiente",
+    "approved": "Aprobado",
+    "dismissed": "Descartado",
+    "approve": "Aprobar",
+    "dismiss": "Descartar",
+    "previous_text": "Versión anterior",
+    "new_text": "Nueva versión",
+    "published": "Publicado",
+    "unpublished": "No publicado",
+    "save": "Guardar",
+    "create": "Crear destino"
+  }
+}
