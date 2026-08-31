@@ -22,7 +22,9 @@ class AdminDestinationIn(BaseModel):
     mechanism_config: dict
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
-    source_url: str
+    # Nullable to match the DB column - stub destinations (§10) may not have a
+    # verified source yet. Admins should fill this in before publishing.
+    source_url: str | None = None
     price_usd: float = 4.99
     is_published: bool = False
 
