@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
+import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import DestinationDetail from "./pages/DestinationDetail";
 import Login from "./pages/Login";
@@ -10,10 +11,11 @@ import Contact from "./pages/Contact";
 
 export default function App() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-stone-950">
       <Header />
       <Routes>
-        <Route path="/" element={<Browse />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/browse" element={<Browse />} />
         <Route path="/destinations/:id" element={<DestinationDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />

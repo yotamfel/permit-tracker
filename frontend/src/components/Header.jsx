@@ -12,23 +12,34 @@ export default function Header() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="border-b border-slate-200 dark:border-slate-800">
+    <header className="border-b border-stone-200 bg-white/80 backdrop-blur dark:border-stone-800 dark:bg-stone-950/80">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-        <Link to="/" className="text-lg font-semibold">
+        <Link to="/" className="flex items-center gap-1.5 text-lg font-bold text-stone-900 dark:text-stone-50">
+          <span aria-hidden="true">🧭</span>
           {t("app_name")}
         </Link>
 
-        <nav className="flex items-center gap-4 text-sm">
-          <Link to="/">{t("nav.browse")}</Link>
-          <Link to="/contact">Contact</Link>
-          {user && <Link to="/account">{t("nav.account")}</Link>}
-          <Link to="/admin">{t("nav.admin")}</Link>
+        <nav className="flex items-center gap-4 text-sm text-stone-700 dark:text-stone-300">
+          <Link to="/browse" className="hover:text-amber-700 dark:hover:text-amber-400">
+            {t("nav.browse")}
+          </Link>
+          <Link to="/contact" className="hover:text-amber-700 dark:hover:text-amber-400">
+            Contact
+          </Link>
+          {user && (
+            <Link to="/account" className="hover:text-amber-700 dark:hover:text-amber-400">
+              {t("nav.account")}
+            </Link>
+          )}
+          <Link to="/admin" className="hover:text-amber-700 dark:hover:text-amber-400">
+            {t("nav.admin")}
+          </Link>
 
           <select
             aria-label="theme"
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            className="rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
+            className="rounded-lg border border-stone-300 bg-transparent px-1 py-0.5 dark:border-stone-700"
           >
             <option value="light">{t("theme.light")}</option>
             <option value="dark">{t("theme.dark")}</option>
@@ -36,13 +47,20 @@ export default function Header() {
           </select>
 
           {user ? (
-            <button onClick={logout} className="underline">
+            <button onClick={logout} className="underline hover:text-amber-700 dark:hover:text-amber-400">
               {t("nav.logout")}
             </button>
           ) : (
             <>
-              <Link to="/login">{t("nav.login")}</Link>
-              <Link to="/signup">{t("nav.signup")}</Link>
+              <Link to="/login" className="hover:text-amber-700 dark:hover:text-amber-400">
+                {t("nav.login")}
+              </Link>
+              <Link
+                to="/signup"
+                className="rounded-full bg-amber-600 px-3 py-1.5 font-medium text-white hover:bg-amber-700"
+              >
+                {t("nav.signup")}
+              </Link>
             </>
           )}
         </nav>

@@ -59,3 +59,33 @@ def translate_bulk(db: Session, entity_type: str, entity_ids: list[uuid.UUID], l
         if value is not None:
             result[entity_id] = value
     return result
+
+
+def translate_one_entity_multi_type(
+    db: Session, entity_types: list[str], entity_id: uuid.UUID, locale: str
+) -> dict[str, str]:
+    """Batch version of translate() for a single entity across several entity_types
+    (e.g. a destination's name/description/mechanism_explanation) - one query
+    instead of one per field."""
+    if not entity_types:
+        return {}
+    rows = (
+        db.query(Translation)
+        .filter(
+            Translation.entity_type.in_(entity_types),
+            Translation.entity_id == entity_id,
+            Translation.locale.in_({locale, settings.default_locale}),
+        )
+        .all()
+    )
+    by_locale: dict[str, dict[str, str]] = {}
+    for row in rows:
+        by_locale.setdefault(row.entity_type, {})[row.locale] = row.value
+
+    result: dict[str, str] = {}
+    for entity_type in entity_types:
+        locales = by_locale.get(entity_type, {})
+        value = locales.get(locale) or locales.get(settings.default_locale)
+        if value is not None:
+            result[entity_type] = value
+    return result
