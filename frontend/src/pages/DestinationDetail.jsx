@@ -134,11 +134,24 @@ export default function DestinationDetail() {
         <p className="mt-1 text-sm font-medium text-amber-700 dark:text-amber-400">
           {t(`mechanism_type.${destination.mechanism_type}`)}
         </p>
-        <p className="mt-2 text-stone-700 dark:text-stone-300">{destination.mechanism_explanation}</p>
-        {destination.is_owned && destination.mechanism_config && (
-          <p className="mt-3 rounded-lg bg-white p-3 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-300">
-            {formatMechanismConfig(destination.mechanism_type, destination.mechanism_config)}
-          </p>
+        {destination.is_owned ? (
+          <>
+            <p className="mt-2 text-stone-700 dark:text-stone-300">{destination.mechanism_explanation}</p>
+            {destination.mechanism_config && (
+              <p className="mt-3 rounded-lg bg-white p-3 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                {formatMechanismConfig(destination.mechanism_type, destination.mechanism_config)}
+              </p>
+            )}
+          </>
+        ) : (
+          <div className="relative mt-2 overflow-hidden rounded-lg">
+            <p className="select-none blur-sm">
+              ████ ███████ ████ ████ ████████ ██ ████ ████████ ██████ ████ ████████ ██ ████ ████ ██████████.
+            </p>
+            <div className="absolute inset-0 flex items-center justify-center bg-stone-50/70 dark:bg-stone-900/70">
+              <span className="text-xs text-stone-500 dark:text-stone-400">{t("destination.mechanism_locked")}</span>
+            </div>
+          </div>
         )}
       </section>
 

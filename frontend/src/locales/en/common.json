@@ -61,6 +61,7 @@
     "section_specific": "Specific to this permit",
     "section_good_to_know": "Good to know",
     "checklist_locked": "Unlock this destination to see the full checklist and exact dates.",
+    "mechanism_locked": "Unlock this destination to see exactly how it works.",
     "source": "Official source",
     "last_verified": "Last verified",
     "not_yet_verified": "Not yet verified",

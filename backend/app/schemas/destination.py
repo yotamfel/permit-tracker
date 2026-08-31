@@ -49,7 +49,10 @@ class DestinationDetailOut(BaseModel):
     name: str
     description: str | None
     mechanism_type: MechanismType
-    mechanism_explanation: str
+    # Only populated when is_owned is True - gated server-side (same pattern as
+    # mechanism_config/application_url below). Only the description paragraph
+    # is free to read before unlocking.
+    mechanism_explanation: str | None
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
     last_verified_at: datetime | None

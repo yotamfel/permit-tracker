@@ -55,6 +55,8 @@ export default function Home() {
         </div>
       </section>
 
+      <ReleaseCalendar />
+
       {featured.length > 0 && (
         <section className="mx-auto max-w-5xl px-4 py-14">
           <div className="mb-6 flex items-baseline justify-between">
@@ -70,8 +72,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      <ReleaseCalendar />
 
       <section className="border-t border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-900/50">
         <div className="mx-auto max-w-5xl px-4 py-14">

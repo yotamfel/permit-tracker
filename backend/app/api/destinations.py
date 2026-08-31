@@ -118,7 +118,7 @@ def get_destination(
     )
     name = texts.get("destination.name", d.name)
     description = texts.get("destination.description")
-    explanation = texts.get("destination.mechanism_explanation", "")
+    explanation = texts.get("destination.mechanism_explanation") if is_owned else None
 
     return DestinationDetailOut(
         id=d.id,

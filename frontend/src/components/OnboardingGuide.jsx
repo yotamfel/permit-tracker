@@ -4,17 +4,17 @@ import { useOnboarding } from "../lib/OnboardingContext";
 const STEPS = [
   {
     title: "Search destinations",
-    text: "Find the trek, park, dive, or event you're after - filter by country, category, or how competitive it is.",
+    text: "Find the trek, park, dive, or event you're after - filter by country or category.",
     illustration: <SearchMockup />,
   },
   {
     title: "See what's involved, before you buy",
-    text: "Every destination page explains how the permit works and how competitive it is, in plain language - free to read, no purchase needed.",
+    text: "Every destination page shows a free description of the place and how competitive it is - no purchase needed to read that part.",
     illustration: <DetailMockup />,
   },
   {
     title: "Unlock your game plan",
-    text: "One quick unlock reveals the full checklist and the exact steps, dates, and documents you need.",
+    text: "One quick unlock reveals exactly how the permit works, plus the full checklist and the exact steps, dates, and documents you need.",
     illustration: <LockedMockup />,
   },
   {
