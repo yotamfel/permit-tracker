@@ -1,4 +1,6 @@
-from sqlalchemy import Enum, String
+from datetime import datetime
+
+from sqlalchemy import DateTime, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -15,3 +17,5 @@ class User(UUIDPKMixin, TimestampMixin, Base):
     theme_preference: Mapped[ThemePreference] = mapped_column(
         Enum(ThemePreference, name="theme_preference"), nullable=False, default=ThemePreference.system
     )
+    password_reset_token: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    password_reset_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

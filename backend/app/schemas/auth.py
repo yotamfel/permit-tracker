@@ -19,6 +19,15 @@ class GoogleAuthRequest(BaseModel):
     credential: str  # the ID token JWT from Google Identity Services
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

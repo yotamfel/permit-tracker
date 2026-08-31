@@ -1,18 +1,32 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { useAuth } from "../lib/AuthContext";
 import DestinationCard from "../components/DestinationCard";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [featured, setFeatured] = useState([]);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Entering the site fresh (no remembered login) goes to login/signup
+    // first, per the site's requested flow - a returning, already-logged-in
+    // visitor lands straight on this page as before.
+    if (!loading && !user) {
+      navigate("/login", { replace: true });
+    }
+  }, [loading, user, navigate]);
 
   useEffect(() => {
     api
       .get("/api/destinations", { params: { locale: i18n.language } })
       .then((res) => setFeatured(pickFeatured(res.data)));
   }, [i18n.language]);
+
+  if (loading || !user) return null;
 
   return (
     <div>
