@@ -457,6 +457,14 @@ function StatsTab() {
           <div className="text-2xl font-bold">${stats.total_revenue_usd}</div>
           <div className="text-sm text-slate-500">Total revenue</div>
         </div>
+        <div>
+          <div className="text-2xl font-bold">{stats.total_accounts}</div>
+          <div className="text-sm text-slate-500">Accounts created</div>
+        </div>
+        <div>
+          <div className="text-2xl font-bold">{stats.accounts_created_last_7_days}</div>
+          <div className="text-sm text-slate-500">New accounts (7 days)</div>
+        </div>
       </div>
 
       {stats.by_destination.length === 0 ? (

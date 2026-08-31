@@ -24,6 +24,8 @@ class DestinationPurchaseStatsOut(BaseModel):
 class PurchaseStatsOut(BaseModel):
     total_purchases: int
     total_revenue_usd: float
+    total_accounts: int
+    accounts_created_last_7_days: int
     by_destination: list[DestinationPurchaseStatsOut]
 
 

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -385,9 +385,15 @@ def purchase_stats(db: Session = Depends(get_db)) -> PurchaseStatsOut:
     ]
     rows.sort(key=lambda r: r.purchase_count, reverse=True)
 
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    total_accounts = db.query(User).count()
+    recent_accounts = db.query(User).filter(User.created_at >= seven_days_ago).count()
+
     return PurchaseStatsOut(
         total_purchases=len(completed),
         total_revenue_usd=round(sum(float(p.amount_usd) for p in completed), 2),
+        total_accounts=total_accounts,
+        accounts_created_last_7_days=recent_accounts,
         by_destination=rows,
     )
 

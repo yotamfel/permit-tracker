@@ -25,6 +25,10 @@ export default function Signup() {
   return (
     <div className="mx-auto max-w-sm px-4 py-8">
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("auth.signup_title")}</h1>
+      <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+        Free to browse. Create an account to unlock full prep checklists and get alerts before
+        application windows open.
+      </p>
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <input
           type="email"

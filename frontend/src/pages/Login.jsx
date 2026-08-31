@@ -25,6 +25,9 @@ export default function Login() {
   return (
     <div className="mx-auto max-w-sm px-4 py-8">
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("auth.login_title")}</h1>
+      <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+        Log in to unlock full prep checklists and set alerts for hard-to-get permits worldwide.
+      </p>
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <input
           type="email"
