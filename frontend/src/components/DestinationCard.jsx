@@ -10,6 +10,7 @@ const CATEGORY_ICON = {
   thru_hike: "🎒",
   tourist_attraction: "🗼",
   seasonal_nature_event: "🌸",
+  endurance_event: "🏁",
 };
 
 export default function DestinationCard({ d }) {

@@ -12,6 +12,7 @@ const CATEGORIES = [
   "thru_hike",
   "tourist_attraction",
   "seasonal_nature_event",
+  "endurance_event",
 ];
 const MECHANISMS = [
   "fixed_daily_quota",

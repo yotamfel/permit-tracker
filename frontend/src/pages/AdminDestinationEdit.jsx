@@ -6,7 +6,7 @@ import { COMPETITIVENESS_INFO } from "../components/CompetitivenessNote";
 
 const CATEGORIES = [
   "trek", "national_park_entry", "camping", "diving", "wildlife_safari",
-  "thru_hike", "tourist_attraction", "seasonal_nature_event",
+  "thru_hike", "tourist_attraction", "seasonal_nature_event", "endurance_event",
 ];
 const MECHANISMS = [
   "fixed_daily_quota", "lottery", "rolling_window", "fixed_annual_date",

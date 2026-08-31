@@ -35,7 +35,8 @@
     "wildlife_safari": "Wildlife Safari",
     "thru_hike": "Thru-hike",
     "tourist_attraction": "Tourist Attraction",
-    "seasonal_nature_event": "Seasonal Nature Event"
+    "seasonal_nature_event": "Seasonal Nature Event",
+    "endurance_event": "Endurance Event"
   },
   "mechanism_type": {
     "fixed_daily_quota": "Fixed Daily Quota",

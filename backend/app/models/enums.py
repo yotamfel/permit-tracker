@@ -10,6 +10,10 @@ class Category(str, enum.Enum):
     thru_hike = "thru_hike"
     tourist_attraction = "tourist_attraction"
     seasonal_nature_event = "seasonal_nature_event"
+    # Mass-participation registration events (closed-road cycling sportives,
+    # multi-day walking marches) - not a permit to visit a place, but a
+    # capped-entry registration with the same "hard to get a spot" dynamic.
+    endurance_event = "endurance_event"
 
 
 class MechanismType(str, enum.Enum):
