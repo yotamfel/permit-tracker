@@ -33,7 +33,7 @@ from app.schemas.admin import (
 from app.schemas.contact import AdminContactMessageOut, AdminContactMessageReplyIn, AdminContactMessageStatusUpdate
 from app.schemas.mechanism_config import validate_mechanism_config
 from app.services.email_service import send_contact_reply
-from app.services.i18n import translate
+from app.services.i18n import translate, translate_bulk
 
 router = APIRouter(prefix="/admin/api", tags=["admin"], dependencies=[Depends(get_current_admin)])
 
@@ -67,6 +67,21 @@ def _destination_out(db: Session, d: Destination) -> AdminDestinationOut:
     return out
 
 
+def _destinations_out(db: Session, destinations: list[Destination]) -> list[AdminDestinationOut]:
+    """Batch version of _destination_out - two translation queries total instead
+    of two per destination, to avoid an N+1 query pattern on the admin list."""
+    ids = [d.id for d in destinations]
+    descriptions = translate_bulk(db, "destination.description", ids, "en")
+    explanations = translate_bulk(db, "destination.mechanism_explanation", ids, "en")
+    out = []
+    for d in destinations:
+        item = AdminDestinationOut.model_validate(d)
+        item.description = descriptions.get(d.id)
+        item.mechanism_explanation = explanations.get(d.id)
+        out.append(item)
+    return out
+
+
 # --- Destinations ---------------------------------------------------------
 
 
@@ -78,7 +93,7 @@ _DESTINATION_MODEL_FIELDS = {
 
 @router.get("/destinations", response_model=list[AdminDestinationOut])
 def list_destinations(db: Session = Depends(get_db)) -> list[AdminDestinationOut]:
-    return [_destination_out(db, d) for d in db.query(Destination).order_by(Destination.name).all()]
+    return _destinations_out(db, db.query(Destination).order_by(Destination.name).all())
 
 
 @router.post("/destinations", response_model=AdminDestinationOut)
