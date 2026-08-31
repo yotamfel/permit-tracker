@@ -10,6 +10,7 @@ import logging
 from datetime import datetime, timezone
 
 from app.db import SessionLocal
+import app.models  # noqa: F401 - registers every model so cross-model relationships (e.g. Destination.sources) resolve
 from app.models.admin_follow_up import AdminFollowUp
 from app.models.admin_user import AdminUser
 from app.models.destination import Destination

@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.core.config import get_settings
 from app.db import SessionLocal
+import app.models  # noqa: F401 - registers every model so cross-model relationships (e.g. Destination.sources) resolve
 from app.models.alert_subscription import AlertSubscription
 from app.models.destination import Destination
 from app.models.post_release_feedback import PostReleaseFeedback

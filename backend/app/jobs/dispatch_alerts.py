@@ -28,6 +28,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from app.db import SessionLocal
+import app.models  # noqa: F401 - registers every model so cross-model relationships (e.g. Destination.sources) resolve
 from app.models.alert_subscription import AlertSubscription
 from app.models.destination import Destination
 from app.models.enums import MechanismType, NotificationStatus

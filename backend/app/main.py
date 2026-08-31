@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import app.models  # noqa: F401 - registers every model so cross-model relationships resolve regardless of route import order
 from app.api import admin, auth, checkout, contact, destinations, feedback, subscriptions, webhooks
 from app.core.config import get_settings
 

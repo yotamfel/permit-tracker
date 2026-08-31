@@ -17,6 +17,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.db import SessionLocal
+import app.models  # noqa: F401 - registers every model so cross-model relationships (e.g. Destination.sources) resolve
 from app.models.admin_user import AdminUser
 from app.models.destination import Destination
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
