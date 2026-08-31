@@ -9,6 +9,7 @@ from app.models.enums import Category, CompetitivenessLevel, MechanismType
 from app.models.general_requirement import DestinationRequirement
 from app.models.user import User
 from app.schemas.destination import (
+    CalendarEntryOut,
     DestinationCardOut,
     DestinationChecklistOut,
     DestinationDetailOut,
@@ -17,7 +18,7 @@ from app.schemas.destination import (
 from app.services.checklist_completion import completed_prep_item_ids, toggle_completion
 from app.services.i18n import translate_bulk, translate_one_entity_multi_type
 from app.services.ownership import owned_destination_ids, user_owns_destination
-from app.services.release_date import compute_next_release
+from app.services.release_date import compute_next_release, compute_release_dates_in_month
 
 router = APIRouter(prefix="/api/destinations", tags=["destinations"])
 
@@ -60,6 +61,37 @@ def list_destinations(
                 price_usd=float(d.price_usd),
                 next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
                 is_owned=d.id in owned_ids,
+            )
+        )
+    return out
+
+
+@router.get("/calendar", response_model=list[CalendarEntryOut])
+def calendar(
+    month: str = Query(..., pattern=r"^\d{4}-\d{2}$"),
+    db: Session = Depends(get_db),
+    locale: str = Depends(get_locale),
+) -> list[CalendarEntryOut]:
+    """"What opens this month" (spec addendum: Post-Release Feedback + Homepage
+    Calendar §2) - free to view, no purchase or login needed; only destinations
+    with a computable destination-wide release date appear (see
+    compute_release_dates_in_month for exactly which mechanism types qualify)."""
+    year, month_num = (int(p) for p in month.split("-"))
+    destinations = db.query(Destination).filter(Destination.is_published.is_(True)).all()
+    names = translate_bulk(db, "destination.name", [d.id for d in destinations], locale)
+
+    out = []
+    for d in destinations:
+        dates = compute_release_dates_in_month(d.mechanism_type.value, d.mechanism_config, year, month_num)
+        if not dates:
+            continue
+        out.append(
+            CalendarEntryOut(
+                destination_id=d.id,
+                name=names.get(d.id, d.name),
+                category=d.category,
+                mechanism_type=d.mechanism_type,
+                dates=dates,
             )
         )
     return out

@@ -40,6 +40,7 @@ export default function Admin() {
       {tab === "review" && <ReviewQueueTab />}
       {tab === "monitoring" && <MonitoringTab t={t} />}
       {tab === "stats" && <StatsTab />}
+      {tab === "feedback" && <FeedbackStatsTab />}
       {tab === "inquiries" && <InquiriesTab />}
     </div>
   );
@@ -50,6 +51,7 @@ const TABS = [
   { key: "destinations", label: "Destinations" },
   { key: "monitoring", label: "Monitoring diffs" },
   { key: "stats", label: "Stats" },
+  { key: "feedback", label: "Feedback" },
   { key: "inquiries", label: "Inquiries" },
 ];
 
@@ -221,6 +223,117 @@ function StatsTab() {
             ))}
           </tbody>
         </table>
+      )}
+    </div>
+  );
+}
+
+function FeedbackStatsTab() {
+  const [stats, setStats] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("response_count");
+
+  useEffect(() => {
+    api.get("/admin/api/feedback-stats").then((res) => setStats(res.data));
+  }, []);
+
+  if (!stats) return null;
+
+  const categories = [...new Set(stats.by_destination.map((r) => r.category))].sort();
+  const rows = stats.by_destination
+    .filter((r) => categoryFilter === "all" || r.category === categoryFilter)
+    .slice()
+    .sort((a, b) => (b[sortBy] ?? -1) - (a[sortBy] ?? -1));
+
+  return (
+    <div className="mt-6">
+      <p className="mb-4 text-sm text-slate-500">
+        Private user responses to the post-release "did you get in / did the site help" follow-up email.
+        Never shown to regular users or aggregated anywhere public.
+      </p>
+      <div className="mb-6 flex gap-8">
+        <div>
+          <div className="text-2xl font-bold">{stats.total_responses}</div>
+          <div className="text-sm text-slate-500">Total responses</div>
+        </div>
+        <div>
+          <div className="text-2xl font-bold">{stats.overall_succeeded_pct ?? "-"}%</div>
+          <div className="text-sm text-slate-500">Succeeded</div>
+        </div>
+        <div>
+          <div className="text-2xl font-bold">{stats.overall_helpful_pct ?? "-"}%</div>
+          <div className="text-sm text-slate-500">Found site helpful</div>
+        </div>
+      </div>
+
+      {stats.by_destination.length === 0 ? (
+        <p className="text-sm text-slate-500">No responses yet.</p>
+      ) : (
+        <>
+          <div className="mb-3 flex items-center gap-3 text-sm">
+            <label className="flex items-center gap-1">
+              Category
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
+              >
+                <option value="all">All</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-1">
+              Sort by
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
+              >
+                <option value="response_count">Response count</option>
+                <option value="succeeded_pct">Succeeded %</option>
+                <option value="helpful_pct">Helpful %</option>
+              </select>
+            </label>
+          </div>
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800">
+                <th className="pb-2">Destination</th>
+                <th className="pb-2">Category</th>
+                <th className="pb-2">Responses</th>
+                <th className="pb-2">Succeeded</th>
+                <th className="pb-2">Helpful</th>
+                <th className="pb-2">Comments</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.destination_id} className="border-b border-slate-100 align-top dark:border-slate-900">
+                  <td className="py-2">{row.destination_name}</td>
+                  <td className="py-2 text-xs text-slate-500">{row.category}</td>
+                  <td className="py-2">{row.response_count}</td>
+                  <td className="py-2">{row.succeeded_pct ?? "-"}%</td>
+                  <td className="py-2">{row.helpful_pct ?? "-"}%</td>
+                  <td className="py-2">
+                    {row.comments.length === 0 ? (
+                      <span className="text-slate-400">-</span>
+                    ) : (
+                      <ul className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
+                        {row.comments.map((c, i) => (
+                          <li key={i}>"{c}"</li>
+                        ))}
+                      </ul>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
     </div>
   );

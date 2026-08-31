@@ -1,4 +1,5 @@
 import uuid
+from datetime import date as date_type
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -62,3 +63,11 @@ class DestinationDetailOut(BaseModel):
 class DestinationChecklistOut(BaseModel):
     is_owned: bool
     items: list[PrepItemOut] = []
+
+
+class CalendarEntryOut(BaseModel):
+    destination_id: uuid.UUID
+    name: str
+    category: Category
+    mechanism_type: MechanismType
+    dates: list[date_type]

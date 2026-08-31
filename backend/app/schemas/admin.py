@@ -30,6 +30,23 @@ class PurchaseStatsOut(BaseModel):
     by_destination: list[DestinationPurchaseStatsOut]
 
 
+class DestinationFeedbackStatsOut(BaseModel):
+    destination_id: uuid.UUID
+    destination_name: str
+    category: Category
+    response_count: int
+    succeeded_pct: float | None
+    helpful_pct: float | None
+    comments: list[str]
+
+
+class FeedbackStatsOut(BaseModel):
+    total_responses: int
+    overall_succeeded_pct: float | None
+    overall_helpful_pct: float | None
+    by_destination: list[DestinationFeedbackStatsOut]
+
+
 class ReviewQueueItemOut(BaseModel):
     id: uuid.UUID
     country: str

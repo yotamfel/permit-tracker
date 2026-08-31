@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, auth, checkout, contact, destinations, subscriptions, webhooks
+from app.api import admin, auth, checkout, contact, destinations, feedback, subscriptions, webhooks
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -24,6 +24,7 @@ app.include_router(webhooks.router)
 app.include_router(subscriptions.router)
 app.include_router(contact.router)
 app.include_router(admin.router)
+app.include_router(feedback.router)
 
 
 @app.get("/api/health")

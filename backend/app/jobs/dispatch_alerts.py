@@ -34,16 +34,12 @@ from app.models.enums import MechanismType, NotificationStatus
 from app.models.notification_log import NotificationLog
 from app.models.user import User
 from app.services.email_service import send_alert_email
-from app.services.release_date import compute_next_release, compute_rolling_window_open_date
+from app.services.release_date import NO_FIXED_DATE_TYPES as _NO_FIXED_DATE_TYPE_VALUES
+from app.services.release_date import subscription_release_moment
 
 logger = logging.getLogger(__name__)
 
-NO_FIXED_DATE_TYPES = {
-    MechanismType.guided_tour_only,
-    MechanismType.first_come_first_served,
-    MechanismType.single_operator_annual_quota,
-    MechanismType.fixed_daily_quota,
-}
+NO_FIXED_DATE_TYPES = {MechanismType(v) for v in _NO_FIXED_DATE_TYPE_VALUES}
 
 
 def _already_notified_recently(db, subscription_id, lead_time_minutes: int) -> bool:
@@ -59,19 +55,9 @@ def _already_notified_recently(db, subscription_id, lead_time_minutes: int) -> b
 def _release_moment(d: Destination, sub: AlertSubscription) -> datetime | None:
     """The actual release/open moment this subscription is alerting on (before
     subtracting lead time) - used both to compute the trigger and for the email
-    copy."""
-    if d.mechanism_type == MechanismType.rolling_window:
-        if sub.travel_date is None:
-            return None
-        open_date = compute_rolling_window_open_date(d.mechanism_config["days_before_travel_date"], sub.travel_date)
-        return datetime.combine(open_date, datetime.min.time(), tzinfo=timezone.utc)
-
-    if d.mechanism_type in NO_FIXED_DATE_TYPES:
-        if sub.travel_date is None:
-            return None
-        return datetime.combine(sub.travel_date, datetime.min.time(), tzinfo=timezone.utc)
-
-    return compute_next_release(d.mechanism_type.value, d.mechanism_config)
+    copy. Delegates to the shared implementation in release_date.py, also used
+    by dispatch_feedback.py."""
+    return subscription_release_moment(d, sub)
 
 
 def run() -> None:

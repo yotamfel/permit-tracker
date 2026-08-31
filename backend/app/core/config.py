@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     email_from: str = "alerts@permit-tracker.example"
 
     frontend_url: str = "http://localhost:5173"
+    # The backend's own public URL - needed to build absolute links in emails
+    # that point back at backend-rendered pages (e.g. the no-login post-release
+    # feedback response page), as opposed to frontend_url which is for links
+    # into the SPA.
+    backend_url: str = "http://localhost:8000"
 
     # Google Identity Services client ID - not a secret, but the backend needs it
     # to verify the "audience" claim on ID tokens it receives from the frontend.

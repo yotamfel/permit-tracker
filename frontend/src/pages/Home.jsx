@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import { useOnboarding } from "../lib/OnboardingContext";
 import DestinationCard from "../components/DestinationCard";
+import ReleaseCalendar from "../components/ReleaseCalendar";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -69,6 +70,8 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <ReleaseCalendar />
 
       <section className="border-t border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-900/50">
         <div className="mx-auto max-w-5xl px-4 py-14">

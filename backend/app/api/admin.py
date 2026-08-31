@@ -8,9 +8,10 @@ from app.core.deps import get_current_admin, get_db
 from app.models.checklist_item import ChecklistItem
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
-from app.models.enums import ContactMessageStatus, PurchaseStatus, ReviewStatus
+from app.models.enums import Category, ContactMessageStatus, PurchaseStatus, ReviewStatus
 from app.models.general_requirement import DestinationRequirement, GeneralRequirement
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
+from app.models.post_release_feedback import PostReleaseFeedback
 from app.models.purchase import Purchase
 from app.models.translation import Translation
 from app.models.user import User
@@ -26,7 +27,9 @@ from app.schemas.admin import (
     AdminMonitoringDiffOut,
     AdminTranslationIn,
     AdminTranslationOut,
+    DestinationFeedbackStatsOut,
     DestinationPurchaseStatsOut,
+    FeedbackStatsOut,
     PurchaseStatsOut,
     ReviewQueueItemOut,
 )
@@ -410,6 +413,65 @@ def purchase_stats(db: Session = Depends(get_db)) -> PurchaseStatsOut:
         total_accounts=total_accounts,
         accounts_created_last_7_days=recent_accounts,
         by_destination=rows,
+    )
+
+
+# --- Post-release feedback stats (spec addendum: Post-Release Feedback +
+# Homepage Calendar §1.3, overridden for admins by the admin-feedback-stats
+# addendum §1) - aggregated view only, admin-only, never exposed to regular
+# users or on any public route. ---------------------------------------------
+
+
+def _pct(numerator: int, denominator: int) -> float | None:
+    if denominator == 0:
+        return None
+    return round(100 * numerator / denominator, 1)
+
+
+@router.get("/feedback-stats", response_model=FeedbackStatsOut)
+def feedback_stats(db: Session = Depends(get_db)) -> FeedbackStatsOut:
+    rows = db.query(PostReleaseFeedback).filter(PostReleaseFeedback.responded_at.isnot(None)).all()
+    destinations = {d.id: d for d in db.query(Destination).all()}
+
+    by_dest: dict[uuid.UUID, dict] = {}
+    for r in rows:
+        entry = by_dest.setdefault(
+            r.destination_id, {"count": 0, "succeeded_yes": 0, "succeeded_answered": 0, "helpful_yes": 0, "helpful_answered": 0, "comments": []}
+        )
+        entry["count"] += 1
+        if r.succeeded is not None:
+            entry["succeeded_answered"] += 1
+            entry["succeeded_yes"] += int(r.succeeded)
+        if r.found_site_helpful is not None:
+            entry["helpful_answered"] += 1
+            entry["helpful_yes"] += int(r.found_site_helpful)
+        if r.free_text_comment:
+            entry["comments"].append(r.free_text_comment)
+
+    by_destination = [
+        DestinationFeedbackStatsOut(
+            destination_id=dest_id,
+            destination_name=destinations[dest_id].name if dest_id in destinations else "(deleted destination)",
+            category=destinations[dest_id].category if dest_id in destinations else Category.tourist_attraction,
+            response_count=data["count"],
+            succeeded_pct=_pct(data["succeeded_yes"], data["succeeded_answered"]),
+            helpful_pct=_pct(data["helpful_yes"], data["helpful_answered"]),
+            comments=data["comments"],
+        )
+        for dest_id, data in by_dest.items()
+    ]
+    by_destination.sort(key=lambda r: r.response_count, reverse=True)
+
+    total_succeeded_yes = sum(1 for r in rows if r.succeeded)
+    total_succeeded_answered = sum(1 for r in rows if r.succeeded is not None)
+    total_helpful_yes = sum(1 for r in rows if r.found_site_helpful)
+    total_helpful_answered = sum(1 for r in rows if r.found_site_helpful is not None)
+
+    return FeedbackStatsOut(
+        total_responses=len(rows),
+        overall_succeeded_pct=_pct(total_succeeded_yes, total_succeeded_answered),
+        overall_helpful_pct=_pct(total_helpful_yes, total_helpful_answered),
+        by_destination=by_destination,
     )
 
 
