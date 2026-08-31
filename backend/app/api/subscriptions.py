@@ -32,7 +32,7 @@ def create_subscription(
     if d is None or not d.is_published:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
 
-    if not user_owns_destination(db, user.id, d.id):
+    if not user_owns_destination(db, user, d.id):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Purchase this destination to enable alerts")
 
     if d.mechanism_type in TRAVEL_DATE_REQUIRED_TYPES and body.travel_date is None:

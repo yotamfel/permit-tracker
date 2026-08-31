@@ -20,7 +20,7 @@ export default function Header() {
         </Link>
 
         <nav className="flex items-center gap-4 text-sm text-stone-700 dark:text-stone-300">
-          <Link to="/browse" className="hover:text-amber-700 dark:hover:text-amber-400">
+          <Link to="/catalog" className="hover:text-amber-700 dark:hover:text-amber-400">
             {t("nav.browse")}
           </Link>
           <Link to="/contact" className="hover:text-amber-700 dark:hover:text-amber-400">

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
@@ -66,6 +66,13 @@ export default function DestinationDetail() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
+      <Link
+        to="/catalog"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-stone-500 hover:text-amber-700 dark:text-stone-400 dark:hover:text-amber-400"
+      >
+        ← Back to catalog
+      </Link>
+
       {purchaseStatus === "success" && !destination.is_owned && (
         <div className="mb-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
           Payment received - refresh in a few seconds once the webhook processes.
@@ -128,8 +135,12 @@ export default function DestinationDetail() {
             rel="noreferrer"
             className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
-            Apply here →
+            Continue to the official application site ↗
           </a>
+          <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">
+            This opens the official site for {destination.name} in a new tab. You submit your
+            application there directly - we don't process or submit applications on your behalf.
+          </p>
         </section>
       )}
 

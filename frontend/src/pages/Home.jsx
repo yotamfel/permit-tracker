@@ -23,10 +23,10 @@ export default function Home() {
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-600 dark:text-stone-400">{t("browse.subtitle")}</p>
           <Link
-            to="/browse"
+            to="/catalog"
             className="mt-8 inline-block rounded-full bg-amber-600 px-8 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-700"
           >
-            Browse all destinations
+            View catalog
           </Link>
         </div>
       </section>
@@ -35,7 +35,7 @@ export default function Home() {
         <section className="mx-auto max-w-5xl px-4 py-14">
           <div className="mb-6 flex items-baseline justify-between">
             <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Popular right now</h2>
-            <Link to="/browse" className="text-sm font-medium text-amber-700 hover:underline dark:text-amber-400">
+            <Link to="/catalog" className="text-sm font-medium text-amber-700 hover:underline dark:text-amber-400">
               See all →
             </Link>
           </div>

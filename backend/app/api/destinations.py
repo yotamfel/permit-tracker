@@ -43,7 +43,7 @@ def list_destinations(
     destinations = query.order_by(Destination.country, Destination.name).all()
 
     names = translate_bulk(db, "destination.name", [d.id for d in destinations], locale)
-    owned_ids = owned_destination_ids(db, user.id if user else None)
+    owned_ids = owned_destination_ids(db, user, [d.id for d in destinations])
 
     out = []
     for d in destinations:
@@ -75,7 +75,7 @@ def get_destination(
     if d is None or not d.is_published:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
 
-    is_owned = user_owns_destination(db, user.id if user else None, destination_id)
+    is_owned = user_owns_destination(db, user, destination_id)
 
     texts = translate_one_entity_multi_type(
         db,
@@ -117,7 +117,7 @@ def get_checklist(
     if d is None or not d.is_published:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
 
-    is_owned = user_owns_destination(db, user.id if user else None, destination_id)
+    is_owned = user_owns_destination(db, user, destination_id)
     if not is_owned:
         return DestinationChecklistOut(is_owned=False, items=[])
 
