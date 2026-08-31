@@ -8,7 +8,7 @@ from app.models.alert_subscription import AlertSubscription
 from app.models.destination import Destination
 from app.models.enums import MechanismType
 from app.models.user import User
-from app.schemas.subscription import SubscriptionCreateRequest, SubscriptionOut
+from app.schemas.subscription import LEAD_TIME_PRESET_MINUTES, SubscriptionCreateRequest, SubscriptionOut
 from app.services.ownership import user_owns_destination
 
 router = APIRouter(prefix="/api/subscriptions", tags=["subscriptions"])
@@ -41,10 +41,13 @@ def create_subscription(
             f"travel_date is required to set an alert for mechanism_type={d.mechanism_type.value}",
         )
 
+    if body.lead_time_minutes not in LEAD_TIME_PRESET_MINUTES:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "lead_time_minutes must be one of the offered presets")
+
     sub = AlertSubscription(
         user_id=user.id,
         destination_id=d.id,
-        lead_time_days=body.lead_time_days,
+        lead_time_minutes=body.lead_time_minutes,
         travel_date=body.travel_date,
         is_active=True,
     )

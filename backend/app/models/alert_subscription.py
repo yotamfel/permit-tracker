@@ -18,7 +18,10 @@ class AlertSubscription(UUIDPKMixin, TimestampMixin, Base):
     destination_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("destinations.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    lead_time_days: Mapped[int] = mapped_column(Integer, nullable=False, default=7)
+    # Minutes rather than days, so short lead times (e.g. 30 minutes before an
+    # exact release time) are representable. Presets: 20160 (2wk), 10080 (1wk),
+    # 4320 (3d), 1440 (1d), 30 (30min) - see app/api/subscriptions.py.
+    lead_time_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=10080)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     # For mechanism types with no computable release date (guided_tour_only,
     # first_come_first_served): the user supplies their intended travel date,

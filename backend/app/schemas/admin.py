@@ -39,6 +39,8 @@ class ReviewQueueItemOut(BaseModel):
     source_url: str | None
     application_url: str | None
     price_usd: float
+    description: str | None = None
+    mechanism_explanation: str | None = None
     # Best-available research context for this draft, so the admin can see
     # where the data came from before approving it - the source_url if set,
     # else whatever description text (often the original scraped/imported
@@ -63,13 +65,31 @@ class AdminDestinationIn(BaseModel):
     application_url: str | None = None
     price_usd: float = 4.99
     is_published: bool = False
+    # Not Destination model columns - these live in the translations table
+    # (locale="en") and are upserted there by the endpoint, not written
+    # directly onto the Destination row.
+    description: str | None = None
+    mechanism_explanation: str | None = None
 
 
-class AdminDestinationOut(AdminDestinationIn):
+class AdminDestinationOut(BaseModel):
     id: uuid.UUID
+    country: str
+    category: Category
+    name: str
+    mechanism_type: MechanismType
+    mechanism_config: dict
+    issuing_authority: IssuingAuthority
+    competitiveness_level: CompetitivenessLevel
+    source_url: str | None
+    application_url: str | None
+    price_usd: float
+    is_published: bool
     last_verified_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    description: str | None = None
+    mechanism_explanation: str | None = None
 
     model_config = {"from_attributes": True}
 

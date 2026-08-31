@@ -1,6 +1,7 @@
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Enum, String, Text
+from sqlalchemy import DateTime, Enum, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -25,3 +26,7 @@ class ContactMessage(UUIDPKMixin, TimestampMixin, Base):
         nullable=False,
         default=ContactMessageStatus.new,
     )
+    # The admin's reply, emailed directly to `email` above - stored so the
+    # admin panel shows what was already sent.
+    admin_reply: Mapped[str | None] = mapped_column(Text, nullable=True)
+    replied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

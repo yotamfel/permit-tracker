@@ -1,5 +1,6 @@
 from app.models.admin_user import AdminUser
 from app.models.alert_subscription import AlertSubscription
+from app.models.checklist_completion import ChecklistCompletion
 from app.models.checklist_item import ChecklistItem
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
@@ -13,6 +14,7 @@ from app.models.user import User
 __all__ = [
     "AdminUser",
     "AlertSubscription",
+    "ChecklistCompletion",
     "ChecklistItem",
     "ContactMessage",
     "Destination",

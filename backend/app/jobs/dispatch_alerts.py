@@ -1,27 +1,31 @@
 """
-Alert dispatch job. For each active alert_subscription, computes whether "now" falls
-within lead_time_days of the destination's next known release/open date and, if so,
-sends the alert email once and logs it to notification_log.
+Alert dispatch job. For each active alert_subscription, computes whether "now" is
+past (trigger moment = release moment - lead_time_minutes) and, if so, sends the
+alert email once and logs it to notification_log.
 
-- fixed_annual_date / weekly_release / lottery: release date computed directly from
-  mechanism_config (see app/services/release_date.py).
+- fixed_annual_date / weekly_release / lottery: release date+time computed directly
+  from mechanism_config (see app/services/release_date.py).
 - rolling_window: booking opens `days_before_travel_date` days before the user's
   travel_date (required on the subscription for this mechanism type).
 - guided_tour_only / first_come_first_served / single_operator_annual_quota /
   fixed_daily_quota: no fixed release date exists at all - the "trigger" is just the
-  user's travel_date minus lead_time_days, and the email is a generic "book as early
-  as possible for your travel date" reminder rather than an exact release-time alert.
+  user's travel_date minus lead_time_minutes, and the email is a generic "book as
+  early as possible for your travel date" reminder rather than an exact-time alert.
 
-Run via: python -m app.jobs.dispatch_alerts (intended to run daily).
+Run via: python -m app.jobs.dispatch_alerts. Because the shortest lead-time preset is
+30 minutes, this needs to run frequently (every 10-15 minutes) to be timely - see
+SETUP_GUIDE.md for the Railway cron schedule. A less frequent schedule still works
+correctly (the trigger check is "has the moment passed", not "is it exactly now"),
+just with less precise timing for the short presets.
 
 Simplification: dedupe is done by checking whether a notification was already sent
-for this subscription within the last `lead_time_days` days, rather than tracking an
-explicit per-cycle key. This is correct for annual/weekly cycles that are longer than
-typical lead times, but could under-fire on a second event happening inside that
-window - acceptable for MVP, flagged here for anyone extending this job.
+for this subscription within the last `lead_time_minutes`, rather than tracking an
+explicit per-cycle key. This is correct for annual/weekly cycles that are much longer
+than any lead-time preset, but could under-fire on a second event happening inside
+that window - acceptable for MVP, flagged here for anyone extending this job.
 """
 import logging
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from app.db import SessionLocal
 from app.models.alert_subscription import AlertSubscription
@@ -42,8 +46,8 @@ NO_FIXED_DATE_TYPES = {
 }
 
 
-def _already_notified_recently(db, subscription_id, lead_time_days: int) -> bool:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=max(lead_time_days, 1))
+def _already_notified_recently(db, subscription_id, lead_time_minutes: int) -> bool:
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=max(lead_time_minutes, 1))
     return (
         db.query(NotificationLog)
         .filter(NotificationLog.subscription_id == subscription_id, NotificationLog.sent_at >= cutoff)
@@ -52,27 +56,28 @@ def _already_notified_recently(db, subscription_id, lead_time_days: int) -> bool
     )
 
 
-def _compute_trigger_date(d: Destination, sub: AlertSubscription) -> date | None:
+def _release_moment(d: Destination, sub: AlertSubscription) -> datetime | None:
+    """The actual release/open moment this subscription is alerting on (before
+    subtracting lead time) - used both to compute the trigger and for the email
+    copy."""
     if d.mechanism_type == MechanismType.rolling_window:
         if sub.travel_date is None:
             return None
-        return compute_rolling_window_open_date(d.mechanism_config["days_before_travel_date"], sub.travel_date)
+        open_date = compute_rolling_window_open_date(d.mechanism_config["days_before_travel_date"], sub.travel_date)
+        return datetime.combine(open_date, datetime.min.time(), tzinfo=timezone.utc)
 
     if d.mechanism_type in NO_FIXED_DATE_TYPES:
         if sub.travel_date is None:
             return None
-        return sub.travel_date - timedelta(days=sub.lead_time_days)
+        return datetime.combine(sub.travel_date, datetime.min.time(), tzinfo=timezone.utc)
 
-    next_release = compute_next_release(d.mechanism_type.value, d.mechanism_config)
-    if next_release is None:
-        return None
-    return (next_release - timedelta(days=sub.lead_time_days)).date()
+    return compute_next_release(d.mechanism_type.value, d.mechanism_config)
 
 
 def run() -> None:
     db = SessionLocal()
     try:
-        today = datetime.now(timezone.utc).date()
+        now = datetime.now(timezone.utc)
         subs = db.query(AlertSubscription).filter(AlertSubscription.is_active.is_(True)).all()
 
         for sub in subs:
@@ -81,11 +86,14 @@ def run() -> None:
             if d is None or user is None or not d.is_published:
                 continue
 
-            trigger_date = _compute_trigger_date(d, sub)
-            if trigger_date is None or trigger_date > today:
+            release_moment = _release_moment(d, sub)
+            if release_moment is None:
+                continue
+            trigger_moment = release_moment - timedelta(minutes=sub.lead_time_minutes)
+            if trigger_moment > now:
                 continue
 
-            if _already_notified_recently(db, sub.id, sub.lead_time_days):
+            if _already_notified_recently(db, sub.id, sub.lead_time_minutes):
                 continue
 
             is_book_early = d.mechanism_type in NO_FIXED_DATE_TYPES | {MechanismType.rolling_window}
@@ -98,8 +106,8 @@ def run() -> None:
             else:
                 body = (
                     f"<p>The application/release window for <strong>{d.name}</strong> opens soon "
-                    f"(around {trigger_date + timedelta(days=sub.lead_time_days)}). "
-                    f"You asked to be notified {sub.lead_time_days} day(s) in advance.</p>"
+                    f"(around {release_moment.strftime('%Y-%m-%d %H:%M %Z')}). "
+                    f"You asked to be notified {_format_lead_time(sub.lead_time_minutes)} in advance.</p>"
                 )
 
             status = NotificationStatus.sent
@@ -120,6 +128,16 @@ def run() -> None:
             db.commit()
     finally:
         db.close()
+
+
+def _format_lead_time(minutes: int) -> str:
+    if minutes % 1440 == 0:
+        days = minutes // 1440
+        return f"{days} day{'s' if days != 1 else ''}"
+    if minutes % 60 == 0:
+        hours = minutes // 60
+        return f"{hours} hour{'s' if hours != 1 else ''}"
+    return f"{minutes} minutes"
 
 
 if __name__ == "__main__":

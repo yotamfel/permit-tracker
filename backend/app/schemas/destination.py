@@ -21,6 +21,7 @@ class PrepItemOut(BaseModel):
     order_index: int
     is_required: bool
     text: str  # resolved via translations table for the active locale
+    is_completed: bool = False
 
 
 class DestinationCardOut(BaseModel):

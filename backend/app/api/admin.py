@@ -30,8 +30,10 @@ from app.schemas.admin import (
     PurchaseStatsOut,
     ReviewQueueItemOut,
 )
-from app.schemas.contact import AdminContactMessageOut, AdminContactMessageStatusUpdate
+from app.schemas.contact import AdminContactMessageOut, AdminContactMessageReplyIn, AdminContactMessageStatusUpdate
 from app.schemas.mechanism_config import validate_mechanism_config
+from app.services.email_service import send_contact_reply
+from app.services.i18n import translate
 
 router = APIRouter(prefix="/admin/api", tags=["admin"], dependencies=[Depends(get_current_admin)])
 
@@ -43,22 +45,54 @@ def _validate_config(body: AdminDestinationIn) -> None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Invalid mechanism_config: {exc}") from exc
 
 
+def _upsert_en_translation(db: Session, entity_type: str, entity_id: uuid.UUID, value: str | None) -> None:
+    if value is None:
+        return
+    existing = (
+        db.query(Translation)
+        .filter(Translation.entity_type == entity_type, Translation.entity_id == entity_id, Translation.locale == "en")
+        .first()
+    )
+    if existing is not None:
+        existing.value = value
+        db.add(existing)
+    else:
+        db.add(Translation(entity_type=entity_type, entity_id=entity_id, locale="en", value=value))
+
+
+def _destination_out(db: Session, d: Destination) -> AdminDestinationOut:
+    out = AdminDestinationOut.model_validate(d)
+    out.description = translate(db, "destination.description", d.id, "en")
+    out.mechanism_explanation = translate(db, "destination.mechanism_explanation", d.id, "en")
+    return out
+
+
 # --- Destinations ---------------------------------------------------------
+
+
+_DESTINATION_MODEL_FIELDS = {
+    "country", "category", "name", "mechanism_type", "mechanism_config", "issuing_authority",
+    "competitiveness_level", "source_url", "application_url", "price_usd", "is_published",
+}
 
 
 @router.get("/destinations", response_model=list[AdminDestinationOut])
 def list_destinations(db: Session = Depends(get_db)) -> list[AdminDestinationOut]:
-    return [AdminDestinationOut.model_validate(d) for d in db.query(Destination).order_by(Destination.name).all()]
+    return [_destination_out(db, d) for d in db.query(Destination).order_by(Destination.name).all()]
 
 
 @router.post("/destinations", response_model=AdminDestinationOut)
 def create_destination(body: AdminDestinationIn, db: Session = Depends(get_db)) -> AdminDestinationOut:
     _validate_config(body)
-    d = Destination(**body.model_dump())
+    payload = {k: v for k, v in body.model_dump().items() if k in _DESTINATION_MODEL_FIELDS}
+    d = Destination(**payload)
     db.add(d)
+    db.flush()
+    _upsert_en_translation(db, "destination.description", d.id, body.description)
+    _upsert_en_translation(db, "destination.mechanism_explanation", d.id, body.mechanism_explanation)
     db.commit()
     db.refresh(d)
-    return AdminDestinationOut.model_validate(d)
+    return _destination_out(db, d)
 
 
 @router.get("/destinations/{destination_id}", response_model=AdminDestinationOut)
@@ -66,7 +100,7 @@ def get_destination(destination_id: uuid.UUID, db: Session = Depends(get_db)) ->
     d = db.get(Destination, destination_id)
     if d is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
-    return AdminDestinationOut.model_validate(d)
+    return _destination_out(db, d)
 
 
 @router.put("/destinations/{destination_id}", response_model=AdminDestinationOut)
@@ -78,12 +112,15 @@ def update_destination(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
     _validate_config(body)
     for field, value in body.model_dump().items():
-        setattr(d, field, value)
+        if field in _DESTINATION_MODEL_FIELDS:
+            setattr(d, field, value)
     d.last_verified_at = datetime.now(timezone.utc)
     db.add(d)
+    _upsert_en_translation(db, "destination.description", d.id, body.description)
+    _upsert_en_translation(db, "destination.mechanism_explanation", d.id, body.mechanism_explanation)
     db.commit()
     db.refresh(d)
-    return AdminDestinationOut.model_validate(d)
+    return _destination_out(db, d)
 
 
 @router.delete("/destinations/{destination_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -382,9 +419,20 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
         .all()
     }
 
+    explanations = {
+        t.entity_id: t.value
+        for t in db.query(Translation)
+        .filter(
+            Translation.entity_type == "destination.mechanism_explanation",
+            Translation.entity_id.in_([d.id for d in pending]),
+        )
+        .all()
+    }
+
     items = []
     for d in pending:
-        source_note = d.source_url or notes.get(d.id)
+        description = notes.get(d.id)
+        source_note = d.source_url or description
         items.append(
             ReviewQueueItemOut(
                 id=d.id,
@@ -398,6 +446,8 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
                 source_url=d.source_url,
                 application_url=d.application_url,
                 price_usd=float(d.price_usd),
+                description=description,
+                mechanism_explanation=explanations.get(d.id),
                 source_note=source_note,
             )
         )
@@ -415,13 +465,16 @@ def approve_review_item(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
     _validate_config(body)
     for field, value in body.model_dump().items():
-        setattr(d, field, value)
+        if field in _DESTINATION_MODEL_FIELDS:
+            setattr(d, field, value)
     d.is_published = True
     d.last_verified_at = datetime.now(timezone.utc)
     db.add(d)
+    _upsert_en_translation(db, "destination.description", d.id, body.description)
+    _upsert_en_translation(db, "destination.mechanism_explanation", d.id, body.mechanism_explanation)
     db.commit()
     db.refresh(d)
-    return AdminDestinationOut.model_validate(d)
+    return _destination_out(db, d)
 
 
 # --- Contact messages ---------------------------------------------------------
@@ -446,6 +499,25 @@ def update_contact_message_status(
     if msg is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Message not found")
     msg.status = body.status
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    return AdminContactMessageOut.model_validate(msg)
+
+
+@router.post("/contact-messages/{message_id}/reply", response_model=AdminContactMessageOut)
+def reply_to_contact_message(
+    message_id: uuid.UUID, body: AdminContactMessageReplyIn, db: Session = Depends(get_db)
+) -> AdminContactMessageOut:
+    msg = db.get(ContactMessage, message_id)
+    if msg is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Message not found")
+
+    send_contact_reply(msg.email, msg.name, msg.message, body.message)
+
+    msg.admin_reply = body.message
+    msg.replied_at = datetime.now(timezone.utc)
+    msg.status = ContactMessageStatus.resolved
     db.add(msg)
     db.commit()
     db.refresh(msg)

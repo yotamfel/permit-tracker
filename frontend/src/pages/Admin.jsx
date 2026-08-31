@@ -13,6 +13,8 @@ const EMPTY_FORM = {
   competitiveness_level: "medium",
   source_url: "",
   application_url: "",
+  description: "",
+  mechanism_explanation: "",
   price_usd: 4.99,
   is_published: false,
 };
@@ -160,6 +162,20 @@ function DestinationsTab({ t }) {
           value={form.price_usd}
           onChange={(e) => setForm((f) => ({ ...f, price_usd: e.target.value }))}
           className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 dark:border-slate-700"
+        />
+        <textarea
+          rows={2}
+          placeholder="description (shown to everyone, before unlock)"
+          value={form.description}
+          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+          className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-xs dark:border-slate-700"
+        />
+        <textarea
+          rows={2}
+          placeholder="mechanism_explanation (the 'How it works' text)"
+          value={form.mechanism_explanation}
+          onChange={(e) => setForm((f) => ({ ...f, mechanism_explanation: e.target.value }))}
+          className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-xs dark:border-slate-700"
         />
         <textarea
           rows={6}
@@ -378,7 +394,24 @@ function ReviewQueueTab() {
                       onChange={(e) => updateField(item.id, "mechanism_config", e.target.value)}
                       className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 font-mono text-xs dark:border-slate-700"
                     />
+                    <textarea
+                      rows={2}
+                      placeholder="description (shown to everyone, before unlock)"
+                      value={form.description ?? ""}
+                      onChange={(e) => updateField(item.id, "description", e.target.value)}
+                      className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-xs dark:border-slate-700"
+                    />
+                    <textarea
+                      rows={2}
+                      placeholder="mechanism_explanation (the 'How it works' text)"
+                      value={form.mechanism_explanation ?? ""}
+                      onChange={(e) => updateField(item.id, "mechanism_explanation", e.target.value)}
+                      className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-xs dark:border-slate-700"
+                    />
                   </div>
+
+                  <ChecklistItemsEditor destinationId={item.id} />
+
                   {error && <p className="mt-2 text-red-600">{error}</p>}
                   <div className="mt-3 flex gap-2">
                     <button
@@ -454,6 +487,8 @@ function StatsTab() {
 
 function InquiriesTab() {
   const [messages, setMessages] = useState([]);
+  const [replyDrafts, setReplyDrafts] = useState({});
+  const [openReplyId, setOpenReplyId] = useState(null);
 
   const load = () => api.get("/admin/api/contact-messages").then((res) => setMessages(res.data));
 
@@ -463,6 +498,15 @@ function InquiriesTab() {
 
   const setStatus = async (id, status) => {
     await api.patch(`/admin/api/contact-messages/${id}`, { status });
+    load();
+  };
+
+  const sendReply = async (id) => {
+    const message = replyDrafts[id];
+    if (!message) return;
+    await api.post(`/admin/api/contact-messages/${id}/reply`, { message });
+    setOpenReplyId(null);
+    setReplyDrafts((d) => ({ ...d, [id]: "" }));
     load();
   };
 
@@ -479,6 +523,14 @@ function InquiriesTab() {
           </div>
           <p className="mt-2 whitespace-pre-wrap">{m.message}</p>
           <p className="mt-1 text-xs text-slate-400">{new Date(m.created_at).toLocaleString()}</p>
+
+          {m.admin_reply && (
+            <div className="mt-2 rounded bg-green-50 p-2 text-xs dark:bg-green-900/20">
+              <span className="font-semibold">Your reply</span> ({new Date(m.replied_at).toLocaleString()}):
+              <p className="mt-1 whitespace-pre-wrap">{m.admin_reply}</p>
+            </div>
+          )}
+
           <div className="mt-2 flex gap-2">
             {m.status !== "read" && (
               <button onClick={() => setStatus(m.id, "read")} className="rounded bg-slate-500 px-2 py-1 text-xs text-white">
@@ -490,9 +542,126 @@ function InquiriesTab() {
                 Mark resolved
               </button>
             )}
+            <button
+              onClick={() => setOpenReplyId(openReplyId === m.id ? null : m.id)}
+              className="rounded bg-amber-600 px-2 py-1 text-xs text-white"
+            >
+              {m.admin_reply ? "Reply again" : "Reply"}
+            </button>
           </div>
+
+          {openReplyId === m.id && (
+            <div className="mt-2 space-y-2">
+              <textarea
+                rows={4}
+                placeholder={`Write your reply to ${m.name}...`}
+                value={replyDrafts[m.id] ?? ""}
+                onChange={(e) => setReplyDrafts((d) => ({ ...d, [m.id]: e.target.value }))}
+                className="block w-full rounded border border-slate-300 bg-transparent px-2 py-1 text-sm dark:border-slate-700"
+              />
+              <button onClick={() => sendReply(m.id)} className="rounded bg-amber-600 px-3 py-1.5 text-xs font-medium text-white">
+                Send email reply
+              </button>
+            </div>
+          )}
         </div>
       ))}
+    </div>
+  );
+}
+
+const EMPTY_CHECKLIST_ITEM = { item_type: "document", order_index: 0, is_required: true, text_key: "" };
+
+function ChecklistItemsEditor({ destinationId }) {
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState(EMPTY_CHECKLIST_ITEM);
+
+  const load = () =>
+    api.get("/admin/api/checklist-items", { params: { destination_id: destinationId } }).then((res) => setItems(res.data));
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destinationId]);
+
+  const updateItem = async (id, patch) => {
+    const item = items.find((i) => i.id === id);
+    await api.put(`/admin/api/checklist-items/${id}`, { ...item, ...patch, destination_id: destinationId });
+    load();
+  };
+
+  const deleteItem = async (id) => {
+    await api.delete(`/admin/api/checklist-items/${id}`);
+    load();
+  };
+
+  const addItem = async () => {
+    if (!newItem.text_key.trim()) return;
+    await api.post("/admin/api/checklist-items", {
+      ...newItem,
+      order_index: items.length,
+      destination_id: destinationId,
+    });
+    setNewItem(EMPTY_CHECKLIST_ITEM);
+    load();
+  };
+
+  return (
+    <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
+      <h4 className="text-xs font-semibold uppercase text-slate-500">Steps &amp; documents needed</h4>
+      <ul className="mt-2 space-y-1">
+        {items.map((item) => (
+          <li key={item.id} className="flex items-center gap-2 text-xs">
+            <select
+              value={item.item_type}
+              onChange={(e) => updateItem(item.id, { item_type: e.target.value })}
+              className="rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
+            >
+              <option value="document">document</option>
+              <option value="action">action</option>
+              <option value="gear">gear</option>
+              <option value="payment">payment</option>
+            </select>
+            <input
+              value={item.text_key}
+              onChange={(e) => updateItem(item.id, { text_key: e.target.value })}
+              className="flex-1 rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
+            />
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={item.is_required}
+                onChange={(e) => updateItem(item.id, { is_required: e.target.checked })}
+              />
+              required
+            </label>
+            <button onClick={() => deleteItem(item.id)} className="text-red-600 underline">
+              remove
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 flex items-center gap-2 text-xs">
+        <select
+          value={newItem.item_type}
+          onChange={(e) => setNewItem((f) => ({ ...f, item_type: e.target.value }))}
+          className="rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
+        >
+          <option value="document">document</option>
+          <option value="action">action</option>
+          <option value="gear">gear</option>
+          <option value="payment">payment</option>
+        </select>
+        <input
+          placeholder="e.g. Valid passport (6+ months)"
+          value={newItem.text_key}
+          onChange={(e) => setNewItem((f) => ({ ...f, text_key: e.target.value }))}
+          className="flex-1 rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-700"
+        />
+        <button onClick={addItem} className="rounded bg-slate-700 px-2 py-1 text-white">
+          + add
+        </button>
+      </div>
     </div>
   );
 }

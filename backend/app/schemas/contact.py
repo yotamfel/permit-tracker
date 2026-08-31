@@ -20,9 +20,15 @@ class AdminContactMessageOut(BaseModel):
     status: ContactMessageStatus
     user_id: uuid.UUID | None
     created_at: datetime
+    admin_reply: str | None
+    replied_at: datetime | None
 
     model_config = {"from_attributes": True}
 
 
 class AdminContactMessageStatusUpdate(BaseModel):
     status: ContactMessageStatus
+
+
+class AdminContactMessageReplyIn(BaseModel):
+    message: str

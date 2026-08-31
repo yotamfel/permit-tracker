@@ -32,3 +32,20 @@ def send_contact_notification(admin_emails: list[str], name: str, from_email: st
             "html": body,
         }
     )
+
+
+def send_contact_reply(to_email: str, to_name: str, original_message: str, reply_message: str) -> None:
+    body = (
+        f"<p>Hi {to_name},</p>"
+        f"<p>{reply_message}</p>"
+        f"<hr/>"
+        f"<p style='color:#777;font-size:12px'>Your original message: {original_message}</p>"
+    )
+    resend.Emails.send(
+        {
+            "from": settings.email_from,
+            "to": [to_email],
+            "subject": "Re: your message to Permit Tracker",
+            "html": body,
+        }
+    )

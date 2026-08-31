@@ -13,6 +13,14 @@ const TRAVEL_DATE_REQUIRED = new Set([
   "rolling_window",
 ]);
 
+const LEAD_TIME_OPTIONS = [
+  { minutes: 20160, label: "2 weeks before" },
+  { minutes: 10080, label: "1 week before" },
+  { minutes: 4320, label: "3 days before" },
+  { minutes: 1440, label: "1 day before" },
+  { minutes: 30, label: "30 minutes before" },
+];
+
 export default function DestinationDetail() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
@@ -21,7 +29,7 @@ export default function DestinationDetail() {
   const [destination, setDestination] = useState(null);
   const [checklist, setChecklist] = useState(null);
   const [error, setError] = useState("");
-  const [subscription, setSubscription] = useState({ lead_time_days: 7, travel_date: "" });
+  const [subscription, setSubscription] = useState({ lead_time_minutes: 10080, travel_date: "" });
   const [alertMessage, setAlertMessage] = useState("");
 
   const load = useCallback(() => {
@@ -51,12 +59,33 @@ export default function DestinationDetail() {
     try {
       await api.post("/api/subscriptions", {
         destination_id: id,
-        lead_time_days: Number(subscription.lead_time_days),
+        lead_time_minutes: Number(subscription.lead_time_minutes),
         travel_date: subscription.travel_date || null,
       });
       setAlertMessage(t("alert.success"));
     } catch (e) {
       setAlertMessage(e.response?.data?.detail || t("auth.error"));
+    }
+  };
+
+  const handleToggleItem = async (prepItemId) => {
+    // Optimistic update, then reconcile with the server response.
+    setChecklist((c) => ({
+      ...c,
+      items: c.items.map((i) => (i.id === prepItemId ? { ...i, is_completed: !i.is_completed } : i)),
+    }));
+    try {
+      const res = await api.post(`/api/destinations/${id}/checklist/${prepItemId}/toggle`);
+      setChecklist((c) => ({
+        ...c,
+        items: c.items.map((i) => (i.id === prepItemId ? { ...i, is_completed: res.data.is_completed } : i)),
+      }));
+    } catch {
+      // revert on failure
+      setChecklist((c) => ({
+        ...c,
+        items: c.items.map((i) => (i.id === prepItemId ? { ...i, is_completed: !i.is_completed } : i)),
+      }));
     }
   };
 
@@ -111,11 +140,13 @@ export default function DestinationDetail() {
               title={t("destination.section_general")}
               items={checklist.items.filter((i) => i.section === "general")}
               t={t}
+              onToggle={handleToggleItem}
             />
             <PrepSection
               title={t("destination.section_specific")}
               items={checklist.items.filter((i) => i.section === "specific")}
               t={t}
+              onToggle={handleToggleItem}
             />
           </>
         ) : (
@@ -162,13 +193,17 @@ export default function DestinationDetail() {
               <h3 className="font-semibold text-stone-900 dark:text-stone-100">{t("alert.title")}</h3>
               <label className="block text-sm text-stone-700 dark:text-stone-300">
                 {t("alert.lead_time")}
-                <input
-                  type="number"
-                  min={0}
-                  value={subscription.lead_time_days}
-                  onChange={(e) => setSubscription((s) => ({ ...s, lead_time_days: e.target.value }))}
+                <select
+                  value={subscription.lead_time_minutes}
+                  onChange={(e) => setSubscription((s) => ({ ...s, lead_time_minutes: e.target.value }))}
                   className="mt-1 block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
-                />
+                >
+                  {LEAD_TIME_OPTIONS.map((opt) => (
+                    <option key={opt.minutes} value={opt.minutes}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               </label>
               {needsTravelDate && (
                 <label className="block text-sm text-stone-700 dark:text-stone-300">
@@ -210,25 +245,30 @@ export default function DestinationDetail() {
   );
 }
 
-function PrepSection({ title, items, t }) {
+function PrepSection({ title, items, t, onToggle }) {
   if (items.length === 0) return null;
   return (
     <div className="mt-3">
       <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400">{title}</h3>
       <ul className="mt-1 space-y-2">
         {items.map((item) => (
-          <PrepItem key={item.id} item={item} t={t} />
+          <PrepItem key={item.id} item={item} t={t} onToggle={onToggle} />
         ))}
       </ul>
     </div>
   );
 }
 
-function PrepItem({ item, t }) {
+function PrepItem({ item, t, onToggle }) {
   return (
-    <li className="flex items-start gap-2 text-sm text-stone-700 dark:text-stone-300">
-      <span className="mt-0.5 text-amber-600 dark:text-amber-400">•</span>
-      <span>
+    <li className="flex items-start gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={item.is_completed}
+        onChange={() => onToggle(item.id)}
+        className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
+      />
+      <span className={item.is_completed ? "text-stone-400 line-through dark:text-stone-500" : "text-stone-700 dark:text-stone-300"}>
         {item.text}{" "}
         <span className="text-xs text-stone-400">
           ({item.is_required ? t("destination.required") : t("destination.optional")})

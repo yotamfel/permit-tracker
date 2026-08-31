@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.core.deps import get_db, get_locale, get_optional_current_user
+from app.core.deps import get_current_user, get_db, get_locale, get_optional_current_user
 from app.models.destination import Destination
 from app.models.enums import Category, CompetitivenessLevel, MechanismType
 from app.models.general_requirement import DestinationRequirement
@@ -14,6 +14,7 @@ from app.schemas.destination import (
     DestinationDetailOut,
     PrepItemOut,
 )
+from app.services.checklist_completion import completed_prep_item_ids, toggle_completion
 from app.services.i18n import translate_bulk, translate_one_entity_multi_type
 from app.services.ownership import owned_destination_ids, user_owns_destination
 from app.services.release_date import compute_next_release
@@ -121,6 +122,7 @@ def get_checklist(
     if not is_owned:
         return DestinationChecklistOut(is_owned=False, items=[])
 
+    completed_ids = completed_prep_item_ids(db, user.id if user else None, destination_id)
     items: list[PrepItemOut] = []
 
     # Section 1: general requirements ("Documents & Bureaucracy") - spec addendum §2.3.
@@ -148,6 +150,7 @@ def get_checklist(
                 order_index=dr.order_index,
                 is_required=True,
                 text=text,
+                is_completed=dr.id in completed_ids,
             )
         )
 
@@ -163,7 +166,21 @@ def get_checklist(
                 order_index=item.order_index,
                 is_required=item.is_required,
                 text=text,
+                is_completed=item.id in completed_ids,
             )
         )
 
     return DestinationChecklistOut(is_owned=True, items=items)
+
+
+@router.post("/{destination_id}/checklist/{prep_item_id}/toggle")
+def toggle_checklist_item(
+    destination_id: uuid.UUID,
+    prep_item_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    if not user_owns_destination(db, user, destination_id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Unlock this destination first")
+    is_completed = toggle_completion(db, user.id, destination_id, prep_item_id)
+    return {"is_completed": is_completed}
