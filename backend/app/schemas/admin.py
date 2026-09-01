@@ -67,6 +67,9 @@ class ReviewQueueItemOut(BaseModel):
     # note) exists for it in any locale. Full source list lives in the
     # separate destination_sources table (see AdminSourceOut).
     source_note: str | None
+    # Most recent researcher+reviewer pipeline report for this destination, if
+    # any - lets the review queue link straight to it. See AdminResearchReportOut.
+    research_report_id: uuid.UUID | None = None
 
     model_config = {"from_attributes": True}
 

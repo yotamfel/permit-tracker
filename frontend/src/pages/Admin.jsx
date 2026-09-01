@@ -273,6 +273,8 @@ function MonitoringTab({ t }) {
 
 function ReviewQueueTab({ onCountChange }) {
   const [items, setItems] = useState([]);
+  const [openReportFor, setOpenReportFor] = useState(null);
+  const [reportsById, setReportsById] = useState({});
 
   const load = () =>
     api.get("/admin/api/review-queue").then((res) => {
@@ -284,6 +286,18 @@ function ReviewQueueTab({ onCountChange }) {
     load();
   }, []);
 
+  const toggleReport = async (item) => {
+    if (openReportFor === item.id) {
+      setOpenReportFor(null);
+      return;
+    }
+    setOpenReportFor(item.id);
+    if (!reportsById[item.research_report_id]) {
+      const res = await api.get(`/admin/api/research-reports/${item.research_report_id}`);
+      setReportsById((r) => ({ ...r, [item.research_report_id]: res.data }));
+    }
+  };
+
   return (
     <div className="mt-6">
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
@@ -293,16 +307,60 @@ function ReviewQueueTab({ onCountChange }) {
       </p>
       {items.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">Nothing pending review.</p>}
       <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={item.id} className="rounded border border-slate-200 dark:border-slate-800">
-            <Link to={`/admin/destinations/${item.id}`} className="flex items-center justify-between p-3 text-sm">
-              <span className="font-medium">
-                {item.name} <span className="font-normal text-slate-500 dark:text-slate-300">({item.country})</span>
-              </span>
-              <span className="text-xs text-slate-500 dark:text-slate-300">review</span>
-            </Link>
-          </li>
-        ))}
+        {items.map((item) => {
+          const report = item.research_report_id ? reportsById[item.research_report_id] : null;
+          const expanded = openReportFor === item.id;
+          return (
+            <li key={item.id} className="rounded border border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between p-3 text-sm">
+                <Link to={`/admin/destinations/${item.id}`} className="flex-1">
+                  <span className="font-medium">
+                    {item.name} <span className="font-normal text-slate-500 dark:text-slate-300">({item.country})</span>
+                  </span>
+                </Link>
+                <div className="flex items-center gap-3">
+                  {item.research_report_id && (
+                    <button
+                      onClick={() => toggleReport(item)}
+                      className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                    >
+                      {expanded ? "כווץ דוח מחקר" : "דוח מחקר"}
+                    </button>
+                  )}
+                  <Link to={`/admin/destinations/${item.id}`} className="text-xs text-slate-500 dark:text-slate-300">
+                    review
+                  </Link>
+                </div>
+              </div>
+              {expanded && (
+                <div className="space-y-3 border-t border-slate-200 p-3 text-sm dark:border-slate-800" dir="rtl">
+                  {!report ? (
+                    <p className="text-xs text-slate-500 dark:text-slate-300">טוען...</p>
+                  ) : (
+                    <>
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נעשה (חוקר)</h4>
+                        <p className="mt-1 whitespace-pre-wrap">{report.researcher_summary}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בודק)</h4>
+                        <p className="mt-1 whitespace-pre-wrap">{report.reviewer_summary}</p>
+                      </div>
+                      {report.escalations && (
+                        <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
+                          <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
+                            דברים שהושארו להכרעה שלך
+                          </h4>
+                          <p className="mt-1 whitespace-pre-wrap">{report.escalations}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

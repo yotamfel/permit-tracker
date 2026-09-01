@@ -485,6 +485,23 @@ def list_research_reports(db: Session = Depends(get_db)) -> list[AdminResearchRe
     return out
 
 
+@router.get("/research-reports/{report_id}", response_model=AdminResearchReportOut)
+def get_research_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> AdminResearchReportOut:
+    r = db.get(DestinationResearchReport, report_id)
+    if r is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Report not found")
+    d = db.get(Destination, r.destination_id)
+    return AdminResearchReportOut(
+        id=r.id,
+        destination_id=r.destination_id,
+        destination_name=d.name if d else "(deleted destination)",
+        researcher_summary=r.researcher_summary,
+        reviewer_summary=r.reviewer_summary,
+        escalations=r.escalations,
+        created_at=r.created_at,
+    )
+
+
 @router.delete("/research-reports/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_research_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
     r = db.get(DestinationResearchReport, report_id)
@@ -789,6 +806,18 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
     for s in db.query(DestinationSource).filter(DestinationSource.destination_id.in_([d.id for d in pending])).all():
         sources_by_destination.setdefault(s.destination_id, []).append(s.note or s.url or "")
 
+    # Latest research report per destination (there can be more than one if a
+    # destination was re-run through the pipeline) - keep only the newest.
+    latest_report_by_destination: dict[uuid.UUID, uuid.UUID] = {}
+    reports = (
+        db.query(DestinationResearchReport)
+        .filter(DestinationResearchReport.destination_id.in_([d.id for d in pending]))
+        .order_by(DestinationResearchReport.created_at.desc())
+        .all()
+    )
+    for r in reports:
+        latest_report_by_destination.setdefault(r.destination_id, r.id)
+
     items = []
     for d in pending:
         description = notes.get(d.id)
@@ -810,6 +839,7 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
                 description=description,
                 mechanism_explanation=explanations.get(d.id),
                 source_note=source_note,
+                research_report_id=latest_report_by_destination.get(d.id),
             )
         )
     return items
