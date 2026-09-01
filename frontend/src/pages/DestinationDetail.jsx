@@ -3,7 +3,7 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
-import { formatMechanismConfig } from "../lib/mechanismConfig";
+import { getMechanismStats } from "../lib/mechanismConfig";
 import CompetitivenessNote from "../components/CompetitivenessNote";
 
 const TRAVEL_DATE_REQUIRED = new Set([
@@ -158,9 +158,16 @@ export default function DestinationDetail() {
           {t(`mechanism_type.${destination.mechanism_type}`)}
         </p>
         {Object.keys(destination.mechanism_config).length > 0 && (
-          <p className="mt-2 rounded-lg bg-white p-3 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-300">
-            {formatMechanismConfig(destination.mechanism_type, destination.mechanism_config)}
-          </p>
+          <ul className="mt-2 space-y-1.5 rounded-lg bg-white p-3 dark:bg-stone-800">
+            {getMechanismStats(destination.mechanism_type, destination.mechanism_config).map((stat, i) => (
+              <li key={i} className="flex items-baseline gap-2 text-sm text-stone-700 dark:text-stone-300">
+                <span className="text-amber-600 dark:text-amber-400" aria-hidden="true">
+                  ●
+                </span>
+                <span>{stat}</span>
+              </li>
+            ))}
+          </ul>
         )}
         {destination.is_owned ? (
           <p className="mt-2 text-stone-700 dark:text-stone-300">{destination.mechanism_explanation}</p>
