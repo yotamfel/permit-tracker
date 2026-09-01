@@ -248,3 +248,15 @@ class AdminFollowUpOut(AdminFollowUpIn):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class AdminResearchReportOut(BaseModel):
+    id: uuid.UUID
+    destination_id: uuid.UUID
+    destination_name: str
+    researcher_summary: str
+    reviewer_summary: str
+    escalations: str | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

@@ -12,6 +12,7 @@ from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
 from app.models.notification_log import NotificationLog
 from app.models.post_release_feedback import PostReleaseFeedback
 from app.models.purchase import Purchase
+from app.models.research_report import DestinationResearchReport
 from app.models.translation import Translation
 from app.models.user import User
 
@@ -25,6 +26,7 @@ __all__ = [
     "Destination",
     "DestinationAlternative",
     "DestinationRequirement",
+    "DestinationResearchReport",
     "DestinationSource",
     "GeneralRequirement",
     "MonitoringDiff",

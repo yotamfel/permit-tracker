@@ -52,6 +52,7 @@ export default function Admin() {
           <AdminFollowUpCalendar />
         </div>
       )}
+      {tab === "research-reports" && <ResearchReportsTab />}
     </div>
   );
 }
@@ -64,7 +65,86 @@ const TABS = [
   { key: "feedback", label: "Feedback" },
   { key: "inquiries", label: "Inquiries" },
   { key: "follow-ups", label: "Follow-ups" },
+  { key: "research-reports", label: "Research Reports" },
 ];
+
+function ResearchReportsTab() {
+  const [reports, setReports] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
+
+  const load = () => api.get("/admin/api/research-reports").then((res) => setReports(res.data));
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const deleteReport = async (id) => {
+    await api.delete(`/admin/api/research-reports/${id}`);
+    load();
+  };
+
+  return (
+    <div className="mt-6">
+      <p className="mb-4 text-sm text-slate-500">
+        דוח לכל יעד שעבר את תהליך המילוי והבדיקה הדו-שלבי (חוקר + בודק). לוחצים על יעד כדי לפתוח את הדוח המלא.
+      </p>
+      {reports.length === 0 && <p className="text-sm text-slate-500">אין עדיין דוחות.</p>}
+      <ul className="space-y-2">
+        {reports.map((r) => {
+          const expanded = expandedId === r.id;
+          return (
+            <li key={r.id} className="rounded border border-slate-200 dark:border-slate-800">
+              <button
+                onClick={() => setExpandedId(expanded ? null : r.id)}
+                className="flex w-full items-center justify-between p-3 text-left text-sm"
+              >
+                <span>
+                  <Link
+                    to={`/admin/destinations/${r.destination_id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="font-medium text-blue-700 underline dark:text-blue-400"
+                  >
+                    {r.destination_name}
+                  </Link>{" "}
+                  <span className="text-xs text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+                  {r.escalations && (
+                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                      דורש הכרעה
+                    </span>
+                  )}
+                </span>
+                <span className="text-xs text-slate-500">{expanded ? "כווץ" : "פתח"}</span>
+              </button>
+              {expanded && (
+                <div className="space-y-3 border-t border-slate-200 p-3 text-sm dark:border-slate-800" dir="rtl">
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-slate-500">מה נעשה (חוקר)</h4>
+                    <p className="mt-1 whitespace-pre-wrap">{r.researcher_summary}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-slate-500">מה נמצא ותוקן (בודק)</h4>
+                    <p className="mt-1 whitespace-pre-wrap">{r.reviewer_summary}</p>
+                  </div>
+                  {r.escalations && (
+                    <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
+                      <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
+                        דברים שהושארו להכרעה שלך
+                      </h4>
+                      <p className="mt-1 whitespace-pre-wrap">{r.escalations}</p>
+                    </div>
+                  )}
+                  <button onClick={() => deleteReport(r.id)} className="text-xs text-red-600 underline">
+                    מחק דוח
+                  </button>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 function DestinationsTab() {
   const [destinations, setDestinations] = useState([]);

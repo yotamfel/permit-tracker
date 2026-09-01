@@ -17,6 +17,7 @@ from app.models.general_requirement import DestinationRequirement, GeneralRequir
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
 from app.models.post_release_feedback import PostReleaseFeedback
 from app.models.purchase import Purchase
+from app.models.research_report import DestinationResearchReport
 from app.models.translation import Translation
 from app.models.user import User
 from app.schemas.admin import (
@@ -33,6 +34,7 @@ from app.schemas.admin import (
     AdminGeneralRequirementIn,
     AdminGeneralRequirementOut,
     AdminMonitoringDiffOut,
+    AdminResearchReportOut,
     AdminSourceIn,
     AdminSourceOut,
     AdminTranslationIn,
@@ -454,6 +456,41 @@ def delete_translation(translation_id: uuid.UUID, db: Session = Depends(get_db))
     if t is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Translation not found")
     db.delete(t)
+    db.commit()
+
+
+# --- Research reports (two-agent fill-in-and-verify workflow) ---------------
+# Written directly to the DB by the orchestrating session after each
+# destination's researcher+reviewer pass - no POST here on purpose, this is
+# a record of what already happened, not something the admin authors.
+
+
+@router.get("/research-reports", response_model=list[AdminResearchReportOut])
+def list_research_reports(db: Session = Depends(get_db)) -> list[AdminResearchReportOut]:
+    reports = db.query(DestinationResearchReport).order_by(DestinationResearchReport.created_at.desc()).all()
+    out = []
+    for r in reports:
+        d = db.get(Destination, r.destination_id)
+        out.append(
+            AdminResearchReportOut(
+                id=r.id,
+                destination_id=r.destination_id,
+                destination_name=d.name if d else "(deleted destination)",
+                researcher_summary=r.researcher_summary,
+                reviewer_summary=r.reviewer_summary,
+                escalations=r.escalations,
+                created_at=r.created_at,
+            )
+        )
+    return out
+
+
+@router.delete("/research-reports/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_research_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
+    r = db.get(DestinationResearchReport, report_id)
+    if r is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Report not found")
+    db.delete(r)
     db.commit()
 
 
