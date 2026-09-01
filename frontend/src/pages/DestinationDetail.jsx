@@ -426,18 +426,17 @@ function CustomChecklistSection({ items, onToggle, onDelete, onAdd }) {
       {items.length > 0 && (
         <ul className="mt-1 space-y-2">
           {items.map((item) => (
-            <li key={item.id} className="flex items-start gap-2 text-sm">
+            <li
+              key={item.id}
+              className={`flex items-start gap-2 rounded-lg px-2 py-1 text-sm ${item.is_completed ? "border border-emerald-300 dark:border-emerald-800" : ""}`}
+            >
               <input
                 type="checkbox"
                 checked={item.is_completed}
                 onChange={() => onToggle(item.id, true)}
                 className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
               />
-              <span
-                className={`flex-1 ${item.is_completed ? "text-stone-400 line-through dark:text-stone-500" : "text-stone-800 dark:text-stone-300"}`}
-              >
-                {item.text}
-              </span>
+              <span className="flex-1 text-stone-800 dark:text-stone-300">{item.text}</span>
               <button
                 onClick={() => onDelete(item.id)}
                 aria-label="Remove"
@@ -505,7 +504,9 @@ function GoodToKnowSection({ title, items }) {
 
 function PrepItem({ item, t, onToggle }) {
   return (
-    <li className="flex items-start gap-2 text-sm">
+    <li
+      className={`flex items-start gap-2 rounded-lg px-2 py-1 text-sm ${item.is_completed ? "border border-emerald-300 dark:border-emerald-800" : ""}`}
+    >
       <input
         type="checkbox"
         checked={item.is_completed}
@@ -513,7 +514,7 @@ function PrepItem({ item, t, onToggle }) {
         className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
       />
       <span>
-        <span className={item.is_completed ? "text-stone-400 line-through dark:text-stone-500" : "text-stone-800 dark:text-stone-300"}>
+        <span className="text-stone-800 dark:text-stone-300">
           {item.text}{" "}
           <span className="text-xs text-stone-400">
             ({item.is_required ? t("destination.required") : t("destination.optional")})
