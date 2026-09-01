@@ -188,15 +188,22 @@ class AdminGeneralRequirementOut(AdminGeneralRequirementIn):
 class AdminDestinationRequirementIn(BaseModel):
     destination_id: uuid.UUID
     general_requirement_id: uuid.UUID
-    destination_specific_note_key: str | None = None
     order_index: int = 0
     action_url: str | None = None
+    # Plain text - the endpoint upserts this into the translations table
+    # (entity_type="destination_requirement.note") rather than the client
+    # managing destination_specific_note_key directly.
+    note: str | None = None
 
 
-class AdminDestinationRequirementOut(AdminDestinationRequirementIn):
+class AdminDestinationRequirementOut(BaseModel):
     id: uuid.UUID
-
-    model_config = {"from_attributes": True}
+    destination_id: uuid.UUID
+    general_requirement_id: uuid.UUID
+    general_requirement_title: str
+    order_index: int
+    action_url: str | None
+    note: str | None
 
 
 class AdminAlternativeIn(BaseModel):

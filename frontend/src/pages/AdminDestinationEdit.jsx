@@ -15,6 +15,7 @@ const MECHANISMS = [
 const ISSUERS = ["government", "tribal", "commercial", "mixed"];
 const COMPETITIVENESS = ["low", "medium", "high", "very_high"];
 const ITEM_TYPES = ["document", "action", "gear", "payment"];
+const REQUIREMENT_TYPES = ["passport_validity", "visa", "vaccination", "travel_insurance", "fitness_certificate", "other"];
 
 export default function AdminDestinationEdit() {
   const { id } = useParams();
@@ -24,6 +25,8 @@ export default function AdminDestinationEdit() {
   const [sources, setSources] = useState([]);
   const [alternatives, setAlternatives] = useState([]);
   const [allDestinations, setAllDestinations] = useState([]);
+  const [destRequirements, setDestRequirements] = useState([]);
+  const [generalRequirements, setGeneralRequirements] = useState([]);
   const [newAltId, setNewAltId] = useState("");
   const [newAltNote, setNewAltNote] = useState("");
   const [error, setError] = useState("");
@@ -37,6 +40,8 @@ export default function AdminDestinationEdit() {
     api.get("/admin/api/sources", { params: { destination_id: id } }).then((res) => setSources(res.data));
     api.get("/admin/api/alternatives", { params: { destination_id: id } }).then((res) => setAlternatives(res.data));
     api.get("/admin/api/destinations").then((res) => setAllDestinations(res.data));
+    api.get("/admin/api/destination-requirements", { params: { destination_id: id } }).then((res) => setDestRequirements(res.data));
+    api.get("/admin/api/general-requirements").then((res) => setGeneralRequirements(res.data));
   }, [id]);
 
   useEffect(() => {
@@ -153,6 +158,42 @@ export default function AdminDestinationEdit() {
 
   const deleteAlternative = async (altId) => {
     await api.delete(`/admin/api/alternatives/${altId}`);
+    load();
+  };
+
+  const attachRequirement = async (generalRequirementId) => {
+    await api.post("/admin/api/destination-requirements", {
+      destination_id: id,
+      general_requirement_id: generalRequirementId,
+      order_index: destRequirements.length,
+    });
+    load();
+  };
+
+  const createAndAttachRequirement = async (title, description, requirementType) => {
+    const res = await api.post("/admin/api/general-requirements", {
+      requirement_type: requirementType,
+      title_key: title,
+      description_key: description,
+    });
+    await attachRequirement(res.data.id);
+  };
+
+  const updateRequirement = async (attachmentId, patch) => {
+    const dr = destRequirements.find((r) => r.id === attachmentId);
+    await api.put(`/admin/api/destination-requirements/${attachmentId}`, {
+      destination_id: id,
+      general_requirement_id: dr.general_requirement_id,
+      order_index: dr.order_index,
+      action_url: dr.action_url,
+      note: dr.note,
+      ...patch,
+    });
+    load();
+  };
+
+  const detachRequirement = async (attachmentId) => {
+    await api.delete(`/admin/api/destination-requirements/${attachmentId}`);
     load();
   };
 
@@ -339,10 +380,14 @@ export default function AdminDestinationEdit() {
 
       <section className="mt-6">
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Prepare for your trip</h2>
-        <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-          "Documents &amp; Bureaucracy" (general requirements like passport/insurance) aren't editable here yet -
-          manage those via /docs if needed.
-        </p>
+        <RequirementsEditor
+          requirements={destRequirements}
+          allRequirements={generalRequirements}
+          onAttach={attachRequirement}
+          onCreateAndAttach={createAndAttachRequirement}
+          onUpdate={updateRequirement}
+          onDetach={detachRequirement}
+        />
         <ChecklistGroup
           title="Specific to this permit - required for the application itself"
           items={checklistItems.filter((i) => i.section === "specific")}
@@ -445,6 +490,121 @@ export default function AdminDestinationEdit() {
           Discard
         </button>
       </section>
+    </div>
+  );
+}
+
+function RequirementsEditor({ requirements, allRequirements, onAttach, onCreateAndAttach, onUpdate, onDetach }) {
+  const [pickerValue, setPickerValue] = useState("");
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newType, setNewType] = useState("other");
+
+  const attachedIds = new Set(requirements.map((r) => r.general_requirement_id));
+  const available = allRequirements.filter((g) => !attachedIds.has(g.id));
+
+  const handlePickerChange = (value) => {
+    if (value === "__new__") {
+      setShowNewForm(true);
+      setPickerValue("");
+      return;
+    }
+    setPickerValue("");
+    if (value) onAttach(value);
+  };
+
+  const handleCreateSubmit = () => {
+    if (!newTitle.trim()) return;
+    onCreateAndAttach(newTitle, newDescription, newType);
+    setNewTitle("");
+    setNewDescription("");
+    setNewType("other");
+    setShowNewForm(false);
+  };
+
+  return (
+    <div className="mb-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
+        Documents & Bureaucracy (general requirements)
+      </h3>
+      <ul className="mt-2 space-y-2">
+        {requirements.map((r) => (
+          <li key={r.id} className="rounded border border-stone-200 p-2 dark:border-stone-700">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-stone-800 dark:text-stone-200">{r.general_requirement_title}</span>
+              <button onClick={() => onDetach(r.id)} className="text-xs text-red-600 underline">
+                remove
+              </button>
+            </div>
+            <input
+              value={r.note ?? ""}
+              onChange={(e) => onUpdate(r.id, { note: e.target.value })}
+              placeholder="Destination-specific note (optional)"
+              className="mt-1.5 block w-full rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+            />
+            <input
+              value={r.action_url ?? ""}
+              onChange={(e) => onUpdate(r.id, { action_url: e.target.value })}
+              placeholder="Link for this requirement (optional, e.g. a visa application form)"
+              className="mt-1.5 block w-full rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+            />
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-2 flex items-center gap-2 text-sm">
+        <select
+          value={pickerValue}
+          onChange={(e) => handlePickerChange(e.target.value)}
+          className="rounded border border-stone-300 bg-white px-2 py-1 text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+        >
+          <option value="">Attach an existing requirement...</option>
+          {available.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.title_key}
+            </option>
+          ))}
+          <option value="__new__">+ Create new requirement...</option>
+        </select>
+      </div>
+
+      {showNewForm && (
+        <div className="mt-2 space-y-2 rounded border border-stone-200 p-2 dark:border-stone-700">
+          <select
+            value={newType}
+            onChange={(e) => setNewType(e.target.value)}
+            className="rounded border border-stone-300 bg-white px-2 py-1 text-xs text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+          >
+            {REQUIREMENT_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <input
+            placeholder="Title (e.g. Yellow fever vaccination certificate)"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            className="block w-full rounded border border-stone-300 bg-transparent px-2 py-1 text-xs dark:border-stone-700"
+          />
+          <textarea
+            placeholder="Description shown to users"
+            rows={2}
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
+            className="block w-full rounded border border-stone-300 bg-transparent px-2 py-1 text-xs dark:border-stone-700"
+          />
+          <div className="flex gap-2">
+            <button onClick={handleCreateSubmit} className="rounded bg-stone-700 px-3 py-1 text-xs text-white">
+              Create &amp; attach
+            </button>
+            <button onClick={() => setShowNewForm(false)} className="rounded border border-stone-300 px-3 py-1 text-xs dark:border-stone-700">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

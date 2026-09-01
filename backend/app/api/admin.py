@@ -338,6 +338,20 @@ def delete_general_requirement(requirement_id: uuid.UUID, db: Session = Depends(
 # --- Destination <-> general requirement attachments (spec addendum §2.2) ---
 
 
+def _destination_requirement_out(db: Session, dr: DestinationRequirement) -> AdminDestinationRequirementOut:
+    gr = db.get(GeneralRequirement, dr.general_requirement_id)
+    note = translate(db, "destination_requirement.note", dr.id, "en") if dr.destination_specific_note_key else None
+    return AdminDestinationRequirementOut(
+        id=dr.id,
+        destination_id=dr.destination_id,
+        general_requirement_id=dr.general_requirement_id,
+        general_requirement_title=gr.title_key if gr else "(deleted requirement)",
+        order_index=dr.order_index,
+        action_url=dr.action_url,
+        note=note,
+    )
+
+
 @router.get("/destination-requirements", response_model=list[AdminDestinationRequirementOut])
 def list_destination_requirements(
     destination_id: uuid.UUID | None = None, db: Session = Depends(get_db)
@@ -345,21 +359,44 @@ def list_destination_requirements(
     query = db.query(DestinationRequirement)
     if destination_id:
         query = query.filter(DestinationRequirement.destination_id == destination_id)
-    return [
-        AdminDestinationRequirementOut.model_validate(dr)
-        for dr in query.order_by(DestinationRequirement.order_index).all()
-    ]
+    return [_destination_requirement_out(db, dr) for dr in query.order_by(DestinationRequirement.order_index).all()]
 
 
 @router.post("/destination-requirements", response_model=AdminDestinationRequirementOut)
 def attach_destination_requirement(
     body: AdminDestinationRequirementIn, db: Session = Depends(get_db)
 ) -> AdminDestinationRequirementOut:
-    dr = DestinationRequirement(**body.model_dump())
+    dr = DestinationRequirement(
+        destination_id=body.destination_id,
+        general_requirement_id=body.general_requirement_id,
+        order_index=body.order_index,
+        action_url=body.action_url,
+        destination_specific_note_key="custom" if body.note else None,
+    )
     db.add(dr)
+    db.flush()
+    _upsert_en_translation(db, "destination_requirement.note", dr.id, body.note)
     db.commit()
     db.refresh(dr)
-    return AdminDestinationRequirementOut.model_validate(dr)
+    return _destination_requirement_out(db, dr)
+
+
+@router.put("/destination-requirements/{attachment_id}", response_model=AdminDestinationRequirementOut)
+def update_destination_requirement(
+    attachment_id: uuid.UUID, body: AdminDestinationRequirementIn, db: Session = Depends(get_db)
+) -> AdminDestinationRequirementOut:
+    dr = db.get(DestinationRequirement, attachment_id)
+    if dr is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Attachment not found")
+    dr.general_requirement_id = body.general_requirement_id
+    dr.order_index = body.order_index
+    dr.action_url = body.action_url
+    dr.destination_specific_note_key = "custom" if body.note else None
+    db.add(dr)
+    _upsert_en_translation(db, "destination_requirement.note", dr.id, body.note)
+    db.commit()
+    db.refresh(dr)
+    return _destination_requirement_out(db, dr)
 
 
 @router.delete("/destination-requirements/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT)
