@@ -11,6 +11,7 @@ from app.models.destination_alternative import DestinationAlternative
 from app.models.enums import Category, CompetitivenessLevel, MechanismType
 from app.models.general_requirement import DestinationRequirement
 from app.models.user import User
+from app.models.user_checklist_item import UserChecklistItem
 from app.schemas.destination import (
     AlternativeOut,
     CalendarEntryOut,
@@ -18,6 +19,7 @@ from app.schemas.destination import (
     DestinationChecklistOut,
     DestinationDetailOut,
     PrepItemOut,
+    UserChecklistItemIn,
 )
 from app.services.checklist_completion import completed_prep_item_ids, toggle_completion
 from app.services.i18n import translate_bulk, translate_one_entity_multi_type
@@ -312,6 +314,28 @@ def get_checklist(
             )
         )
 
+    # Section 4: the user's own free-text additions - personal, never shown
+    # to other users.
+    custom_items = (
+        db.query(UserChecklistItem)
+        .filter(UserChecklistItem.user_id == user.id, UserChecklistItem.destination_id == destination_id)
+        .order_by(UserChecklistItem.order_index)
+        .all()
+    )
+    for c in custom_items:
+        items.append(
+            PrepItemOut(
+                id=c.id,
+                section="custom",
+                type="custom",
+                order_index=c.order_index,
+                is_required=False,
+                text=c.text,
+                is_completed=c.is_completed,
+                link_url=None,
+            )
+        )
+
     return DestinationChecklistOut(is_owned=True, items=items)
 
 
@@ -326,3 +350,83 @@ def toggle_checklist_item(
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Unlock this destination first")
     is_completed = toggle_completion(db, user.id, destination_id, prep_item_id)
     return {"is_completed": is_completed}
+
+
+@router.post("/{destination_id}/checklist/custom", response_model=PrepItemOut)
+def add_custom_checklist_item(
+    destination_id: uuid.UUID,
+    body: UserChecklistItemIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> PrepItemOut:
+    if not user_owns_destination(db, user, destination_id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Unlock this destination first")
+    if not body.text.strip():
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Text can't be empty")
+    max_order = (
+        db.query(UserChecklistItem)
+        .filter(UserChecklistItem.user_id == user.id, UserChecklistItem.destination_id == destination_id)
+        .count()
+    )
+    item = UserChecklistItem(
+        user_id=user.id, destination_id=destination_id, text=body.text.strip(), order_index=max_order
+    )
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return PrepItemOut(
+        id=item.id,
+        section="custom",
+        type="custom",
+        order_index=item.order_index,
+        is_required=False,
+        text=item.text,
+        is_completed=item.is_completed,
+        link_url=None,
+    )
+
+
+@router.post("/{destination_id}/checklist/custom/{item_id}/toggle")
+def toggle_custom_checklist_item(
+    destination_id: uuid.UUID,
+    item_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    item = (
+        db.query(UserChecklistItem)
+        .filter(
+            UserChecklistItem.id == item_id,
+            UserChecklistItem.user_id == user.id,
+            UserChecklistItem.destination_id == destination_id,
+        )
+        .first()
+    )
+    if item is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
+    item.is_completed = not item.is_completed
+    db.add(item)
+    db.commit()
+    return {"is_completed": item.is_completed}
+
+
+@router.delete("/{destination_id}/checklist/custom/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_custom_checklist_item(
+    destination_id: uuid.UUID,
+    item_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> None:
+    item = (
+        db.query(UserChecklistItem)
+        .filter(
+            UserChecklistItem.id == item_id,
+            UserChecklistItem.user_id == user.id,
+            UserChecklistItem.destination_id == destination_id,
+        )
+        .first()
+    )
+    if item is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
+    db.delete(item)
+    db.commit()

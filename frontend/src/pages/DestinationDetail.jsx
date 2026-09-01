@@ -85,14 +85,17 @@ export default function DestinationDetail() {
     }
   };
 
-  const handleToggleItem = async (prepItemId) => {
+  const handleToggleItem = async (prepItemId, isCustom) => {
     // Optimistic update, then reconcile with the server response.
     setChecklist((c) => ({
       ...c,
       items: c.items.map((i) => (i.id === prepItemId ? { ...i, is_completed: !i.is_completed } : i)),
     }));
     try {
-      const res = await api.post(`/api/destinations/${id}/checklist/${prepItemId}/toggle`);
+      const path = isCustom
+        ? `/api/destinations/${id}/checklist/custom/${prepItemId}/toggle`
+        : `/api/destinations/${id}/checklist/${prepItemId}/toggle`;
+      const res = await api.post(path);
       setChecklist((c) => ({
         ...c,
         items: c.items.map((i) => (i.id === prepItemId ? { ...i, is_completed: res.data.is_completed } : i)),
@@ -103,6 +106,20 @@ export default function DestinationDetail() {
         ...c,
         items: c.items.map((i) => (i.id === prepItemId ? { ...i, is_completed: !i.is_completed } : i)),
       }));
+    }
+  };
+
+  const handleAddCustomItem = async (text) => {
+    const res = await api.post(`/api/destinations/${id}/checklist/custom`, { text });
+    setChecklist((c) => ({ ...c, items: [...c.items, res.data] }));
+  };
+
+  const handleDeleteCustomItem = async (itemId) => {
+    setChecklist((c) => ({ ...c, items: c.items.filter((i) => i.id !== itemId) }));
+    try {
+      await api.delete(`/api/destinations/${id}/checklist/custom/${itemId}`);
+    } catch {
+      load();
     }
   };
 
@@ -187,6 +204,7 @@ export default function DestinationDetail() {
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t("destination.checklist")}</h2>
         {checklist?.is_owned ? (
           <>
+            <ChecklistProgress items={checklist.items} />
             <div className="mt-2 rounded-2xl border border-stone-200 p-4 dark:border-stone-800">
               <PrepSection
                 title={t("destination.section_general")}
@@ -199,6 +217,12 @@ export default function DestinationDetail() {
                 items={checklist.items.filter((i) => i.section === "specific")}
                 t={t}
                 onToggle={handleToggleItem}
+              />
+              <CustomChecklistSection
+                items={checklist.items.filter((i) => i.section === "custom")}
+                onToggle={handleToggleItem}
+                onDelete={handleDeleteCustomItem}
+                onAdd={handleAddCustomItem}
               />
             </div>
             <GoodToKnowSection
@@ -345,6 +369,27 @@ function formatChecklistCounts(counts) {
     .join(", ");
 }
 
+function ChecklistProgress({ items }) {
+  // "Good to know" items are informational, not checkable - exclude them.
+  const checkable = items.filter((i) => i.section !== "good_to_know");
+  if (checkable.length === 0) return null;
+  const done = checkable.filter((i) => i.is_completed).length;
+  const percent = Math.round((done / checkable.length) * 100);
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
+        <span>Your progress</span>
+        <span>
+          {done}/{checkable.length} ({percent}%)
+        </span>
+      </div>
+      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800">
+        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function PrepSection({ title, items, t, onToggle }) {
   if (items.length === 0) return null;
   return (
@@ -355,6 +400,71 @@ function PrepSection({ title, items, t, onToggle }) {
           <PrepItem key={item.id} item={item} t={t} onToggle={onToggle} />
         ))}
       </ul>
+    </div>
+  );
+}
+
+function CustomChecklistSection({ items, onToggle, onDelete, onAdd }) {
+  const [draft, setDraft] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!draft.trim()) return;
+    setAdding(true);
+    try {
+      await onAdd(draft.trim());
+      setDraft("");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <div className="mt-3">
+      <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400">Your own items</h3>
+      {items.length > 0 && (
+        <ul className="mt-1 space-y-2">
+          {items.map((item) => (
+            <li key={item.id} className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={item.is_completed}
+                onChange={() => onToggle(item.id, true)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
+              />
+              <span
+                className={`flex-1 ${item.is_completed ? "text-stone-400 line-through dark:text-stone-500" : "text-stone-800 dark:text-stone-300"}`}
+              >
+                {item.text}
+              </span>
+              <button
+                onClick={() => onDelete(item.id)}
+                aria-label="Remove"
+                className="shrink-0 text-stone-400 hover:text-red-600"
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form onSubmit={submit} className="mt-2 flex gap-2">
+        <input
+          type="text"
+          placeholder="Add your own item..."
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="flex-1 rounded-lg border border-stone-300 bg-transparent px-2 py-1 text-sm dark:border-stone-700"
+        />
+        <button
+          type="submit"
+          disabled={adding || !draft.trim()}
+          className="rounded-lg border border-stone-300 px-3 py-1 text-sm font-medium text-stone-700 hover:bg-stone-100 disabled:opacity-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+        >
+          + Add
+        </button>
+      </form>
     </div>
   );
 }

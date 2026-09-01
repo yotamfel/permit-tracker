@@ -15,6 +15,7 @@ from app.models.purchase import Purchase
 from app.models.research_report import DestinationResearchReport
 from app.models.translation import Translation
 from app.models.user import User
+from app.models.user_checklist_item import UserChecklistItem
 
 __all__ = [
     "AdminFollowUp",
@@ -36,4 +37,5 @@ __all__ = [
     "Purchase",
     "Translation",
     "User",
+    "UserChecklistItem",
 ]

@@ -29,6 +29,10 @@ class PrepItemOut(BaseModel):
     link_url: str | None = None
 
 
+class UserChecklistItemIn(BaseModel):
+    text: str
+
+
 class DestinationCardOut(BaseModel):
     id: uuid.UUID
     country: str
