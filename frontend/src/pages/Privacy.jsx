@@ -31,7 +31,7 @@ export default function Privacy() {
             </li>
             <li>
               <span className="font-medium">Purchases:</span> which destinations you've unlocked. Payments are
-              handled entirely by Stripe - we never receive or store your full card number.
+              handled entirely by our third-party payment provider - we never receive or store your full card number.
             </li>
             <li>
               <span className="font-medium">Alerts:</span> the destinations you've set alerts for and your chosen
@@ -68,8 +68,8 @@ export default function Privacy() {
           <p>We do not sell your personal data. We share information only with the service providers we rely on to operate Permit Tracker:</p>
           <ul className="mt-2 list-disc space-y-1 ps-5">
             <li>
-              <span className="font-medium">Stripe</span> - to process payments (they receive your payment details
-              directly; we don't).
+              <span className="font-medium">Our payment provider</span> - to process payments (they receive your
+              payment details directly; we don't).
             </li>
             <li>
               <span className="font-medium">Google</span> - only if you choose to sign in with Google.

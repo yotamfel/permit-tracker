@@ -57,7 +57,7 @@ export default function Terms() {
         <Section title="5. Purchases and payment">
           <p>
             Some destinations require a one-time payment to unlock full checklist details, mechanism explanations,
-            and related tools. Payments are processed by Stripe; we do not receive or store your full card details.
+            and related tools. Payments are processed by a third-party payment provider; we do not receive or store your full card details.
           </p>
           <p className="mt-2 font-medium">
             Because unlocked content is digital and accessible to you immediately upon payment, purchases are
@@ -76,7 +76,7 @@ export default function Terms() {
         <Section title="7. Third-party links and services">
           <p>
             The Service links to official government, park authority, and booking websites, and relies on
-            third-party providers (including Google Sign-In, Stripe, and our email and hosting providers) to
+            third-party providers (including Google Sign-In, our payment provider, and our email and hosting providers) to
             operate. We do not control these third parties, are not responsible for their content, availability, or
             practices, and linking to a site is not an endorsement of it. Your use of any third-party site or
             service is governed by that provider's own terms.
