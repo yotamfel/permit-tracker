@@ -15,7 +15,7 @@ import OnboardingGuide from "./components/OnboardingGuide";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-white dark:bg-stone-950">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <Header />
       <OnboardingGuide />
       <Routes>

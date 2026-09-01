@@ -55,7 +55,7 @@ export default function ReleaseCalendar() {
           >
             ←
           </button>
-          <span className="text-sm font-medium text-stone-700 dark:text-stone-200">
+          <span className="text-sm font-medium text-stone-800 dark:text-stone-200">
             {MONTH_NAMES[month - 1]} {year}
           </span>
           <button

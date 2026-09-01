@@ -21,7 +21,7 @@ export default function Header() {
           {t("app_name")}
         </Link>
 
-        <nav className="flex items-center gap-4 text-sm text-stone-700 dark:text-stone-300">
+        <nav className="flex items-center gap-4 text-sm text-stone-800 dark:text-stone-300">
           <Link to="/catalog" className="hover:text-amber-700 dark:hover:text-amber-400">
             {t("nav.browse")}
           </Link>

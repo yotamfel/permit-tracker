@@ -132,7 +132,7 @@ export default function DestinationDetail() {
       <h1 className="mt-1 text-3xl font-extrabold text-stone-900 dark:text-stone-50">{destination.name}</h1>
       <p className="text-stone-500 dark:text-stone-400">{destination.country}</p>
 
-      {destination.description && <p className="mt-4 text-stone-700 dark:text-stone-300">{destination.description}</p>}
+      {destination.description && <p className="mt-4 text-stone-800 dark:text-stone-300">{destination.description}</p>}
 
       <CompetitivenessNote level={destination.competitiveness_level} />
 
@@ -145,7 +145,7 @@ export default function DestinationDetail() {
 
       <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm dark:bg-amber-900/20">
         <span className="font-semibold text-stone-900 dark:text-stone-100">{t("browse.next_release")}: </span>
-        <span className="text-stone-700 dark:text-stone-300">
+        <span className="text-stone-800 dark:text-stone-300">
           {destination.next_known_release
             ? new Date(destination.next_known_release).toLocaleString()
             : t("browse.not_computable")}
@@ -160,7 +160,7 @@ export default function DestinationDetail() {
         {Object.keys(destination.mechanism_config).length > 0 && (
           <ul className="mt-2 space-y-1.5 rounded-lg bg-white p-3 dark:bg-stone-800">
             {getMechanismStats(destination.mechanism_type, destination.mechanism_config).map((stat, i) => (
-              <li key={i} className="flex items-baseline gap-2 text-sm text-stone-700 dark:text-stone-300">
+              <li key={i} className="flex items-baseline gap-2 text-sm text-stone-800 dark:text-stone-300">
                 <span className="text-amber-600 dark:text-amber-400" aria-hidden="true">
                   ●
                 </span>
@@ -170,7 +170,7 @@ export default function DestinationDetail() {
           </ul>
         )}
         {destination.is_owned ? (
-          <p className="mt-2 text-stone-700 dark:text-stone-300">{destination.mechanism_explanation}</p>
+          <p className="mt-2 text-stone-800 dark:text-stone-300">{destination.mechanism_explanation}</p>
         ) : (
           <div className="relative mt-2 overflow-hidden rounded-lg">
             <p className="select-none blur-sm">
@@ -214,7 +214,7 @@ export default function DestinationDetail() {
               <p>████████ ████</p>
             </div>
             {Object.keys(destination.checklist_item_counts).length > 0 && (
-              <p className="mt-3 text-sm font-medium text-stone-700 dark:text-stone-300">
+              <p className="mt-3 text-sm font-medium text-stone-800 dark:text-stone-300">
                 This permit requires: {formatChecklistCounts(destination.checklist_item_counts)}
               </p>
             )}
@@ -276,7 +276,7 @@ export default function DestinationDetail() {
             <p className="font-semibold text-emerald-600 dark:text-emerald-400">✓ {t("destination.already_owned")}</p>
             <form onSubmit={handleSubscribe} className="mt-4 space-y-3">
               <h3 className="font-semibold text-stone-900 dark:text-stone-100">{t("alert.title")}</h3>
-              <label className="block text-sm text-stone-700 dark:text-stone-300">
+              <label className="block text-sm text-stone-800 dark:text-stone-300">
                 {t("alert.lead_time")}
                 <select
                   value={subscription.lead_time_minutes}
@@ -291,7 +291,7 @@ export default function DestinationDetail() {
                 </select>
               </label>
               {needsTravelDate && (
-                <label className="block text-sm text-stone-700 dark:text-stone-300">
+                <label className="block text-sm text-stone-800 dark:text-stone-300">
                   {t("alert.travel_date")}
                   <input
                     type="date"
@@ -309,7 +309,7 @@ export default function DestinationDetail() {
               >
                 {t("alert.submit")}
               </button>
-              {alertMessage && <p className="text-sm text-stone-700 dark:text-stone-300">{alertMessage}</p>}
+              {alertMessage && <p className="text-sm text-stone-800 dark:text-stone-300">{alertMessage}</p>}
             </form>
           </>
         ) : (
@@ -403,7 +403,7 @@ function PrepItem({ item, t, onToggle }) {
         className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
       />
       <span>
-        <span className={item.is_completed ? "text-stone-400 line-through dark:text-stone-500" : "text-stone-700 dark:text-stone-300"}>
+        <span className={item.is_completed ? "text-stone-400 line-through dark:text-stone-500" : "text-stone-800 dark:text-stone-300"}>
           {item.text}{" "}
           <span className="text-xs text-stone-400">
             ({item.is_required ? t("destination.required") : t("destination.optional")})

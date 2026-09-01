@@ -30,7 +30,7 @@ export default function DestinationCard({ d }) {
       </h2>
       <p className="text-sm text-stone-500 dark:text-stone-400">{d.country}</p>
       <p className="text-sm text-stone-500 dark:text-stone-400">{t(`mechanism_type.${d.mechanism_type}`)}</p>
-      <p className="text-sm text-stone-700 dark:text-stone-300">
+      <p className="text-sm text-stone-800 dark:text-stone-300">
         {t("browse.next_release")}:{" "}
         {d.next_known_release ? new Date(d.next_known_release).toLocaleDateString() : t("browse.not_computable")}
       </p>

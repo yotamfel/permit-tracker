@@ -35,7 +35,7 @@ export default function Browse() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Catalog</h1>
-      <p className="mt-1 text-stone-600 dark:text-stone-400">{t("browse.subtitle")}</p>
+      <p className="mt-1 text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 dark:border-stone-800 dark:bg-stone-900/50">
         <FilterSelect

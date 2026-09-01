@@ -45,7 +45,7 @@ export default function Home() {
           <h1 className="text-4xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl">
             {t("browse.title")}
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-600 dark:text-stone-400">{t("browse.subtitle")}</p>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
           <Link
             to="/catalog"
             className="mt-8 inline-block rounded-full bg-amber-600 px-8 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-700"
@@ -106,7 +106,7 @@ function HowStep({ emoji, title, text }) {
         {emoji}
       </div>
       <h3 className="mt-3 font-semibold text-stone-900 dark:text-stone-100">{title}</h3>
-      <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">{text}</p>
+      <p className="mt-1 text-sm text-stone-700 dark:text-stone-400">{text}</p>
     </div>
   );
 }
