@@ -497,6 +497,7 @@ def list_research_reports(db: Session = Depends(get_db)) -> list[AdminResearchRe
                 researcher_summary=r.researcher_summary,
                 reviewer_summary=r.reviewer_summary,
                 escalations=r.escalations,
+                recommendation=r.recommendation,
                 created_at=r.created_at,
             )
         )
@@ -516,6 +517,7 @@ def get_research_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> 
         researcher_summary=r.researcher_summary,
         reviewer_summary=r.reviewer_summary,
         escalations=r.escalations,
+        recommendation=r.recommendation,
         created_at=r.created_at,
     )
 

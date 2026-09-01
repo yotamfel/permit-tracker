@@ -263,6 +263,7 @@ class AdminResearchReportOut(BaseModel):
     researcher_summary: str
     reviewer_summary: str
     escalations: str | None
+    recommendation: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}

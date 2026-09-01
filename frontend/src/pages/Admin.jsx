@@ -142,6 +142,14 @@ function ResearchReportsTab() {
                       <p className="mt-1 whitespace-pre-wrap">{r.escalations}</p>
                     </div>
                   )}
+                  {r.recommendation && (
+                    <div className="rounded bg-emerald-50 p-2 dark:bg-emerald-900/20">
+                      <h4 className="text-xs font-semibold uppercase text-emerald-800 dark:text-emerald-300">
+                        המלצת הסוכנים
+                      </h4>
+                      <p className="mt-1 whitespace-pre-wrap">{r.recommendation}</p>
+                    </div>
+                  )}
                   <button onClick={() => deleteReport(r.id)} className="text-xs text-red-600 underline">
                     מחק דוח
                   </button>
@@ -211,6 +219,14 @@ function ResearchReportButton({ reportId }) {
                       דברים שהושארו להכרעה שלך
                     </h4>
                     <p className="mt-1 whitespace-pre-wrap">{modalReport.data.escalations}</p>
+                  </div>
+                )}
+                {modalReport.data.recommendation && (
+                  <div className="rounded bg-emerald-50 p-2 dark:bg-emerald-900/20">
+                    <h4 className="text-xs font-semibold uppercase text-emerald-800 dark:text-emerald-300">
+                      המלצת הסוכנים
+                    </h4>
+                    <p className="mt-1 whitespace-pre-wrap">{modalReport.data.recommendation}</p>
                   </div>
                 )}
               </div>

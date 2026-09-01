@@ -22,3 +22,7 @@ class DestinationResearchReport(UUIDPKMixin, TimestampMixin, Base):
     researcher_summary: Mapped[str] = mapped_column(Text, nullable=False)
     reviewer_summary: Mapped[str] = mapped_column(Text, nullable=False)
     escalations: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # The reviewer's closing call: publish now, wait for the admin to chase
+    # down something first, or publish now and backfill the gap later.
+    # Nullable because reports written before this field existed have none.
+    recommendation: Mapped[str | None] = mapped_column(Text, nullable=True)
