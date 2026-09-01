@@ -3,7 +3,7 @@ import { useAuth } from "../lib/AuthContext";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-export default function GoogleSignInButton({ onSuccess, onError }) {
+export default function GoogleSignInButton({ onSuccess, onError, termsAccepted = false }) {
   const { loginWithGoogle } = useAuth();
   const buttonRef = useRef(null);
 
@@ -18,7 +18,7 @@ export default function GoogleSignInButton({ onSuccess, onError }) {
         client_id: CLIENT_ID,
         callback: async (response) => {
           try {
-            await loginWithGoogle(response.credential);
+            await loginWithGoogle(response.credential, termsAccepted);
             onSuccess?.();
           } catch {
             onError?.();
@@ -50,7 +50,7 @@ export default function GoogleSignInButton({ onSuccess, onError }) {
     return () => {
       cancelled = true;
     };
-  }, [loginWithGoogle, onSuccess, onError]);
+  }, [loginWithGoogle, onSuccess, onError, termsAccepted]);
 
   if (!CLIENT_ID) return null;
 

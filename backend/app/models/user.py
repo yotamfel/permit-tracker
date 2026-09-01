@@ -19,3 +19,8 @@ class User(UUIDPKMixin, TimestampMixin, Base):
     )
     password_reset_token: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
     password_reset_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Proof of Terms of Service / Privacy Policy acceptance at signup - kept
+    # for legal recordkeeping. terms_version lets us tell which version of
+    # the terms a given user actually agreed to if they're revised later.
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    terms_version: Mapped[str | None] = mapped_column(String, nullable=True)

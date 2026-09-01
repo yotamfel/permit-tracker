@@ -35,14 +35,14 @@ export function AuthProvider({ children }) {
     await refreshMe();
   };
 
-  const signup = async (email, password) => {
-    const res = await api.post("/api/auth/signup", { email, password });
+  const signup = async (email, password, termsAccepted) => {
+    const res = await api.post("/api/auth/signup", { email, password, terms_accepted: termsAccepted });
     localStorage.setItem("token", res.data.access_token);
     await refreshMe();
   };
 
-  const loginWithGoogle = async (credential) => {
-    const res = await api.post("/api/auth/google", { credential });
+  const loginWithGoogle = async (credential, termsAccepted = false) => {
+    const res = await api.post("/api/auth/google", { credential, terms_accepted: termsAccepted });
     localStorage.setItem("token", res.data.access_token);
     await refreshMe();
   };

@@ -8,6 +8,10 @@ from app.models.enums import ThemePreference
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
+    # Must be true - enforced in the endpoint, not just here, so the error
+    # message can be specific ("please accept the terms") rather than a
+    # generic 422.
+    terms_accepted: bool = False
 
 
 class LoginRequest(BaseModel):
@@ -17,6 +21,9 @@ class LoginRequest(BaseModel):
 
 class GoogleAuthRequest(BaseModel):
     credential: str  # the ID token JWT from Google Identity Services
+    # Only meaningful (and required) when this Google sign-in is creating a
+    # brand-new account; ignored for an existing user logging back in.
+    terms_accepted: bool = False
 
 
 class ForgotPasswordRequest(BaseModel):

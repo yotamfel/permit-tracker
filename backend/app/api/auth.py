@@ -29,14 +29,25 @@ me_router = APIRouter(prefix="/api/me", tags=["me"])
 settings = get_settings()
 logger = logging.getLogger(__name__)
 RESET_TOKEN_TTL = timedelta(hours=1)
+# Bump this (and record the change in the Terms/Privacy pages) whenever the
+# terms materially change, so terms_version tells us which text a given user
+# actually agreed to.
+CURRENT_TERMS_VERSION = "2026-09-01"
 
 
 @router.post("/signup", response_model=TokenResponse)
 def signup(body: SignupRequest, db: Session = Depends(get_db)) -> TokenResponse:
+    if not body.terms_accepted:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "You must accept the Terms of Service and Privacy Policy")
     existing = db.query(User).filter(User.email == body.email).first()
     if existing is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
-    user = User(email=body.email, password_hash=hash_password(body.password))
+    user = User(
+        email=body.email,
+        password_hash=hash_password(body.password),
+        terms_accepted_at=datetime.now(timezone.utc),
+        terms_version=CURRENT_TERMS_VERSION,
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -66,9 +77,19 @@ def google_login(body: GoogleAuthRequest, db: Session = Depends(get_db)) -> Toke
 
     user = db.query(User).filter(User.email == email).first()
     if user is None:
+        if not body.terms_accepted:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                "No account found for this Google account. Please sign up and accept the Terms of Service to create one.",
+            )
         # password_hash stays null - this account can only log in via Google
         # unless/until the user separately sets a password.
-        user = User(email=email, password_hash=None)
+        user = User(
+            email=email,
+            password_hash=None,
+            terms_accepted_at=datetime.now(timezone.utc),
+            terms_version=CURRENT_TERMS_VERSION,
+        )
         db.add(user)
         db.commit()
         db.refresh(user)

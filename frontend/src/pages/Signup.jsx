@@ -10,13 +10,14 @@ export default function Signup() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
-      await signup(email, password);
+      await signup(email, password, termsAccepted);
       navigate("/");
     } catch {
       setError(t("auth.error"));
@@ -31,8 +32,40 @@ export default function Signup() {
         application windows open.
       </p>
 
+      <label className="mt-4 flex items-start gap-2 text-sm text-stone-600 dark:text-stone-400">
+        <input
+          type="checkbox"
+          checked={termsAccepted}
+          onChange={(e) => setTermsAccepted(e.target.checked)}
+          className="mt-0.5"
+        />
+        <span>
+          I agree to the{" "}
+          <Link to="/terms" target="_blank" className="text-amber-700 underline dark:text-amber-400">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link to="/privacy" target="_blank" className="text-amber-700 underline dark:text-amber-400">
+            Privacy Policy
+          </Link>
+        </span>
+      </label>
+
       <div className="mt-4">
-        <GoogleSignInButton onSuccess={() => navigate("/")} onError={() => setError(t("auth.error"))} />
+        {termsAccepted ? (
+          <GoogleSignInButton
+            onSuccess={() => navigate("/")}
+            onError={() => setError(t("auth.error"))}
+            termsAccepted={termsAccepted}
+          />
+        ) : (
+          <div
+            title="Check the box above to continue"
+            className="flex h-10 w-[320px] max-w-full items-center justify-center rounded-lg border border-stone-200 bg-stone-100 text-sm text-stone-400 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-600"
+          >
+            Sign up with Google
+          </div>
+        )}
       </div>
       <div className="my-4 flex items-center gap-2 text-xs text-stone-400">
         <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
@@ -59,7 +92,11 @@ export default function Signup() {
           className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700">
+        <button
+          type="submit"
+          disabled={!termsAccepted}
+          className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
           {t("auth.submit_signup")}
         </button>
       </form>

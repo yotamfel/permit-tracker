@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import DestinationDetail from "./pages/DestinationDetail";
@@ -11,26 +12,33 @@ import Account from "./pages/Account";
 import Admin from "./pages/Admin";
 import AdminDestinationEdit from "./pages/AdminDestinationEdit";
 import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import OnboardingGuide from "./components/OnboardingGuide";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
+    <div className="flex min-h-screen flex-col bg-stone-50 dark:bg-stone-950">
       <Header />
       <OnboardingGuide />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/catalog" element={<Browse />} />
-        <Route path="/destinations/:id" element={<DestinationDetail />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/admin/destinations/:id" element={<AdminDestinationEdit />} />
-      </Routes>
+      <div className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/catalog" element={<Browse />} />
+          <Route path="/destinations/:id" element={<DestinationDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/destinations/:id" element={<AdminDestinationEdit />} />
+        </Routes>
+      </div>
+      <Footer />
     </div>
   );
 }
