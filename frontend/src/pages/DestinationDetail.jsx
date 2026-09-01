@@ -308,9 +308,7 @@ export default function DestinationDetail() {
         ) : (
           <>
             {!user && <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">Log in to unlock this destination.</p>}
-            <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">
-              One wrong date can cost you the whole trip. This costs less than a dinner out.
-            </p>
+            <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">{t("destination.risk_framing")}</p>
             <button
               onClick={handleUnlock}
               disabled={!user}

@@ -23,6 +23,7 @@ Read the destination's current DB state (all fields, checklist items, sources) �
 5. **`specific` checklist is actually complete** — would someone using only this page have everything they need for the real application? Look for commonly-required steps the researcher might have missed (e.g. medical certificates, proof of experience, insurance minimums, permit fees separate from tour cost, blackout dates, group-size rules).
 6. **`good_to_know` items are genuinely optional/informational**, not required items that got miscategorized (or vice versa).
 7. **`application_url` is not steering toward one specific commercial operator** when multiple legitimate operators exist.
+7a. **Every checklist line that requires filling in a specific document or online form has a direct `link_url` to it.** This is a deliberate exception to the general "don't scatter links" instinct — check for this specifically and add a missing `link_url` yourself if you can verify one.
 8. **Nothing was fabricated** — any number, date, or claim in the DB should be traceable to an actual source. If you can't find backing for something the researcher wrote, that's a real problem: either verify it yourself from another source, soften/remove it, or flag it.
 
 ## Fix it yourself vs. escalate to the admin

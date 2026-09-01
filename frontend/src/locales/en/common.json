@@ -66,6 +66,7 @@
     "last_verified": "Last verified",
     "not_yet_verified": "Not yet verified",
     "unlock_cta": "Unlock for ${{price}}",
+    "risk_framing": "One wrong date can cost you the whole trip. This costs less than a dinner out.",
     "unlocking": "Redirecting to checkout...",
     "already_owned": "You've unlocked this destination",
     "set_alert": "Set an alert",
