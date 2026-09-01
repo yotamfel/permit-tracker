@@ -10,17 +10,25 @@ export default function Admin() {
   const { user, loading } = useAuth();
   const [tab, setTab] = useState("destinations");
   const [forbidden, setForbidden] = useState(false);
+  const [destCount, setDestCount] = useState(null);
+  const [reviewCount, setReviewCount] = useState(null);
 
   useEffect(() => {
     if (!user) return;
-    api.get("/admin/api/destinations").catch((e) => {
-      if (e.response?.status === 403) setForbidden(true);
-    });
+    api
+      .get("/admin/api/destinations")
+      .then((res) => setDestCount(res.data.filter((d) => d.is_published).length))
+      .catch((e) => {
+        if (e.response?.status === 403) setForbidden(true);
+      });
+    api.get("/admin/api/review-queue").then((res) => setReviewCount(res.data.length));
   }, [user]);
 
   if (loading) return null;
   if (!user) return <div className="mx-auto max-w-3xl px-4 py-8">Log in as an admin to continue.</div>;
   if (forbidden) return <div className="mx-auto max-w-3xl px-4 py-8">Admin access required for this account.</div>;
+
+  const counts = { destinations: destCount, review: reviewCount };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -30,22 +38,23 @@ export default function Admin() {
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`pb-2 ${tab === key ? "border-b-2 border-slate-900 font-medium dark:border-slate-100" : "text-slate-500"}`}
+            className={`pb-2 ${tab === key ? "border-b-2 border-slate-900 font-medium dark:border-slate-100" : "text-slate-500 dark:text-slate-300"}`}
           >
             {label}
+            {counts[key] != null && <span className="ml-1 text-xs">({counts[key]})</span>}
           </button>
         ))}
       </div>
 
-      {tab === "destinations" && <DestinationsTab />}
-      {tab === "review" && <ReviewQueueTab />}
+      {tab === "destinations" && <DestinationsTab onCountChange={setDestCount} />}
+      {tab === "review" && <ReviewQueueTab onCountChange={setReviewCount} />}
       {tab === "monitoring" && <MonitoringTab t={t} />}
       {tab === "stats" && <StatsTab />}
       {tab === "feedback" && <FeedbackStatsTab />}
       {tab === "inquiries" && <InquiriesTab />}
       {tab === "follow-ups" && (
         <div className="mt-6">
-          <p className="mb-4 text-sm text-slate-500">
+          <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
             Schedule a reminder to manually re-check something about a destination on a specific date - e.g.
             official prices that only publish in October. Click a marked day to see what's due.
           </p>
@@ -85,10 +94,10 @@ function ResearchReportsTab() {
 
   return (
     <div className="mt-6">
-      <p className="mb-4 text-sm text-slate-500">
+      <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
         דוח לכל יעד שעבר את תהליך המילוי והבדיקה הדו-שלבי (חוקר + בודק). לוחצים על יעד כדי לפתוח את הדוח המלא.
       </p>
-      {reports.length === 0 && <p className="text-sm text-slate-500">אין עדיין דוחות.</p>}
+      {reports.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">אין עדיין דוחות.</p>}
       <ul className="space-y-2">
         {reports.map((r) => {
           const expanded = expandedId === r.id;
@@ -106,23 +115,23 @@ function ResearchReportsTab() {
                   >
                     {r.destination_name}
                   </Link>{" "}
-                  <span className="text-xs text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-300">{new Date(r.created_at).toLocaleString()}</span>
                   {r.escalations && (
                     <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                       דורש הכרעה
                     </span>
                   )}
                 </span>
-                <span className="text-xs text-slate-500">{expanded ? "כווץ" : "פתח"}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-300">{expanded ? "כווץ" : "פתח"}</span>
               </button>
               {expanded && (
                 <div className="space-y-3 border-t border-slate-200 p-3 text-sm dark:border-slate-800" dir="rtl">
                   <div>
-                    <h4 className="text-xs font-semibold uppercase text-slate-500">מה נעשה (חוקר)</h4>
+                    <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נעשה (חוקר)</h4>
                     <p className="mt-1 whitespace-pre-wrap">{r.researcher_summary}</p>
                   </div>
                   <div>
-                    <h4 className="text-xs font-semibold uppercase text-slate-500">מה נמצא ותוקן (בודק)</h4>
+                    <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בודק)</h4>
                     <p className="mt-1 whitespace-pre-wrap">{r.reviewer_summary}</p>
                   </div>
                   {r.escalations && (
@@ -146,10 +155,14 @@ function ResearchReportsTab() {
   );
 }
 
-function DestinationsTab() {
+function DestinationsTab({ onCountChange }) {
   const [destinations, setDestinations] = useState([]);
 
-  const load = () => api.get("/admin/api/destinations").then((res) => setDestinations(res.data));
+  const load = () =>
+    api.get("/admin/api/destinations").then((res) => {
+      setDestinations(res.data);
+      onCountChange?.(res.data.filter((d) => d.is_published).length);
+    });
 
   useEffect(() => {
     load();
@@ -164,14 +177,14 @@ function DestinationsTab() {
 
   return (
     <div className="mt-6">
-      <p className="mb-4 text-sm text-slate-500">
+      <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
         Published destinations only - unpublished ones are in the Review Queue tab.
       </p>
       <ul className="space-y-2">
         {published.map((d) => (
           <li key={d.id} className="flex items-center justify-between rounded border border-slate-200 p-2 text-sm dark:border-slate-800">
             <Link to={`/admin/destinations/${d.id}`} className="flex-1">
-              <span className="font-medium">{d.name}</span> <span className="text-slate-500">({d.country})</span>
+              <span className="font-medium">{d.name}</span> <span className="text-slate-500 dark:text-slate-300">({d.country})</span>
             </Link>
             <div className="flex gap-2">
               <Link to={`/admin/destinations/${d.id}`} className="underline">
@@ -232,12 +245,12 @@ function MonitoringTab({ t }) {
           </ul>
         </div>
       )}
-      {diffs.length === 0 && <p className="text-sm text-slate-500">No diffs yet.</p>}
+      {diffs.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">No diffs yet.</p>}
       {diffs.map((d) => (
         <div key={d.id} className="rounded border border-slate-200 p-3 text-sm dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="font-medium">{d.destination_name}</span>
-            <span className="text-xs uppercase text-slate-500">{t(`admin.${d.review_status}`)}</span>
+            <span className="text-xs uppercase text-slate-500 dark:text-slate-300">{t(`admin.${d.review_status}`)}</span>
           </div>
           <pre className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap rounded bg-slate-100 p-2 text-xs dark:bg-slate-800">
             {d.diff_summary}
@@ -258,10 +271,14 @@ function MonitoringTab({ t }) {
   );
 }
 
-function ReviewQueueTab() {
+function ReviewQueueTab({ onCountChange }) {
   const [items, setItems] = useState([]);
 
-  const load = () => api.get("/admin/api/review-queue").then((res) => setItems(res.data));
+  const load = () =>
+    api.get("/admin/api/review-queue").then((res) => {
+      setItems(res.data);
+      onCountChange?.(res.data.length);
+    });
 
   useEffect(() => {
     load();
@@ -269,20 +286,20 @@ function ReviewQueueTab() {
 
   return (
     <div className="mt-6">
-      <p className="mb-4 text-sm text-slate-500">
+      <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
         Everything here is unpublished and invisible on the live site. Click a destination to open it as it
         will appear on the site, with every field editable, then Approve &amp; Publish to send it live, or
         discard it.
       </p>
-      {items.length === 0 && <p className="text-sm text-slate-500">Nothing pending review.</p>}
+      {items.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">Nothing pending review.</p>}
       <ul className="space-y-2">
         {items.map((item) => (
           <li key={item.id} className="rounded border border-slate-200 dark:border-slate-800">
             <Link to={`/admin/destinations/${item.id}`} className="flex items-center justify-between p-3 text-sm">
               <span className="font-medium">
-                {item.name} <span className="font-normal text-slate-500">({item.country})</span>
+                {item.name} <span className="font-normal text-slate-500 dark:text-slate-300">({item.country})</span>
               </span>
-              <span className="text-xs text-slate-500">review</span>
+              <span className="text-xs text-slate-500 dark:text-slate-300">review</span>
             </Link>
           </li>
         ))}
@@ -305,28 +322,28 @@ function StatsTab() {
       <div className="mb-6 flex gap-8">
         <div>
           <div className="text-2xl font-bold">{stats.total_purchases}</div>
-          <div className="text-sm text-slate-500">Total purchases</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Total purchases</div>
         </div>
         <div>
           <div className="text-2xl font-bold">${stats.total_revenue_usd}</div>
-          <div className="text-sm text-slate-500">Total revenue</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Total revenue</div>
         </div>
         <div>
           <div className="text-2xl font-bold">{stats.total_accounts}</div>
-          <div className="text-sm text-slate-500">Accounts created</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Accounts created</div>
         </div>
         <div>
           <div className="text-2xl font-bold">{stats.accounts_created_last_7_days}</div>
-          <div className="text-sm text-slate-500">New accounts (7 days)</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">New accounts (7 days)</div>
         </div>
       </div>
 
       {stats.by_destination.length === 0 ? (
-        <p className="text-sm text-slate-500">No purchases yet.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-300">No purchases yet.</p>
       ) : (
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800">
+            <tr className="border-b border-slate-200 text-slate-500 dark:text-slate-300 dark:border-slate-800">
               <th className="pb-2">Destination</th>
               <th className="pb-2">Purchases</th>
               <th className="pb-2">Revenue</th>
@@ -366,27 +383,27 @@ function FeedbackStatsTab() {
 
   return (
     <div className="mt-6">
-      <p className="mb-4 text-sm text-slate-500">
+      <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
         Private user responses to the post-release "did you get in / did the site help" follow-up email.
         Never shown to regular users or aggregated anywhere public.
       </p>
       <div className="mb-6 flex gap-8">
         <div>
           <div className="text-2xl font-bold">{stats.total_responses}</div>
-          <div className="text-sm text-slate-500">Total responses</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Total responses</div>
         </div>
         <div>
           <div className="text-2xl font-bold">{stats.overall_succeeded_pct ?? "-"}%</div>
-          <div className="text-sm text-slate-500">Succeeded</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Succeeded</div>
         </div>
         <div>
           <div className="text-2xl font-bold">{stats.overall_helpful_pct ?? "-"}%</div>
-          <div className="text-sm text-slate-500">Found site helpful</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Found site helpful</div>
         </div>
       </div>
 
       {stats.by_destination.length === 0 ? (
-        <p className="text-sm text-slate-500">No responses yet.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-300">No responses yet.</p>
       ) : (
         <>
           <div className="mb-3 flex items-center gap-3 text-sm">
@@ -420,7 +437,7 @@ function FeedbackStatsTab() {
           </div>
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800">
+              <tr className="border-b border-slate-200 text-slate-500 dark:text-slate-300 dark:border-slate-800">
                 <th className="pb-2">Destination</th>
                 <th className="pb-2">Category</th>
                 <th className="pb-2">Responses</th>
@@ -433,15 +450,15 @@ function FeedbackStatsTab() {
               {rows.map((row) => (
                 <tr key={row.destination_id} className="border-b border-slate-100 align-top dark:border-slate-900">
                   <td className="py-2">{row.destination_name}</td>
-                  <td className="py-2 text-xs text-slate-500">{row.category}</td>
+                  <td className="py-2 text-xs text-slate-500 dark:text-slate-300">{row.category}</td>
                   <td className="py-2">{row.response_count}</td>
                   <td className="py-2">{row.succeeded_pct ?? "-"}%</td>
                   <td className="py-2">{row.helpful_pct ?? "-"}%</td>
                   <td className="py-2">
                     {row.comments.length === 0 ? (
-                      <span className="text-slate-400">-</span>
+                      <span className="text-slate-400 dark:text-slate-300">-</span>
                     ) : (
-                      <ul className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
+                      <ul className="space-y-1 text-xs text-slate-600 dark:text-slate-300">
                         {row.comments.map((c, i) => (
                           <li key={i}>"{c}"</li>
                         ))}
@@ -485,11 +502,11 @@ function InquiriesTab() {
 
   return (
     <div className="mt-6">
-      {messages.length === 0 && <p className="text-sm text-slate-500">No messages yet.</p>}
+      {messages.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">No messages yet.</p>}
       {messages.length > 0 && (
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800">
+            <tr className="border-b border-slate-200 text-slate-500 dark:text-slate-300 dark:border-slate-800">
               <th className="pb-2 pr-3">From</th>
               <th className="pb-2 pr-3">Message</th>
               <th className="pb-2 pr-3">Received</th>
@@ -503,11 +520,11 @@ function InquiriesTab() {
                 <tr className="border-b border-slate-100 align-top dark:border-slate-900">
                   <td className="py-2 pr-3">
                     <div className="font-medium">{m.name}</div>
-                    <div className="text-xs text-slate-500">{m.email}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-300">{m.email}</div>
                   </td>
                   <td className="max-w-sm py-2 pr-3 whitespace-pre-wrap">{m.message}</td>
-                  <td className="py-2 pr-3 text-xs text-slate-400">{new Date(m.created_at).toLocaleString()}</td>
-                  <td className="py-2 pr-3 text-xs uppercase text-slate-500">{m.status}</td>
+                  <td className="py-2 pr-3 text-xs text-slate-400 dark:text-slate-300">{new Date(m.created_at).toLocaleString()}</td>
+                  <td className="py-2 pr-3 text-xs uppercase text-slate-500 dark:text-slate-300">{m.status}</td>
                   <td className="py-2">
                     <div className="flex flex-wrap gap-2">
                       {m.status !== "read" && (

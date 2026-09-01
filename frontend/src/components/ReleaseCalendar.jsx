@@ -89,7 +89,7 @@ export default function ReleaseCalendar() {
                     ? "border-amber-600 bg-amber-200 font-semibold text-amber-950 dark:border-amber-400 dark:bg-amber-800 dark:text-amber-50"
                     : hasRelease
                       ? "border-amber-400 bg-amber-100 font-medium text-amber-900 hover:bg-amber-200 dark:border-amber-500 dark:bg-amber-900/40 dark:text-amber-200 dark:hover:bg-amber-900/70"
-                      : "border-stone-200 text-stone-500 dark:border-stone-700 dark:text-stone-500"
+                      : "border-stone-200 text-stone-500 dark:border-stone-700 dark:text-stone-300"
                 }`}
               >
                 {day}

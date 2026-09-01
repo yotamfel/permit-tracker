@@ -79,7 +79,7 @@ export default function AdminFollowUpCalendar() {
           >
             ←
           </button>
-          <span className="text-sm font-medium">
+          <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
             {MONTH_NAMES[month - 1]} {year}
           </span>
           <button
@@ -115,7 +115,7 @@ export default function AdminFollowUpCalendar() {
                       ? allDone
                         ? "border-emerald-400 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:border-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200"
                         : "border-blue-400 bg-blue-100 font-medium text-blue-900 hover:bg-blue-200 dark:border-blue-500 dark:bg-blue-900/40 dark:text-blue-200 dark:hover:bg-blue-900/70"
-                      : "border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-500"
+                      : "border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-300"
                 }`}
               >
                 {day}
