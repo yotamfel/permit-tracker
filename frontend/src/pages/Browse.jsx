@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { useAuth } from "../lib/AuthContext";
 import DestinationCard from "../components/DestinationCard";
 
 const CATEGORIES = [
@@ -16,11 +18,22 @@ const CATEGORIES = [
 ];
 export default function Browse() {
   const { t, i18n } = useTranslation();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ country: "", category: "" });
 
   useEffect(() => {
+    // The full catalog is an account perk - guests get a small taste on the
+    // login page instead (see Login.jsx) and are sent there to sign up.
+    if (!authLoading && !user) {
+      navigate("/login", { replace: true });
+    }
+  }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
     setLoading(true);
     const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
     params.locale = i18n.language;
@@ -28,9 +41,11 @@ export default function Browse() {
       .get("/api/destinations", { params })
       .then((res) => setDestinations(res.data))
       .finally(() => setLoading(false));
-  }, [filters, i18n.language]);
+  }, [filters, i18n.language, user]);
 
   const countries = useMemo(() => [...new Set(destinations.map((d) => d.country))].sort(), [destinations]);
+
+  if (authLoading || !user) return null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">

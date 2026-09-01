@@ -6,6 +6,7 @@ import { useAuth } from "../lib/AuthContext";
 import { useOnboarding } from "../lib/OnboardingContext";
 import DestinationCard from "../components/DestinationCard";
 import ReleaseCalendar from "../components/ReleaseCalendar";
+import { pickFeatured } from "../lib/pickFeatured";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -111,28 +112,3 @@ function HowStep({ emoji, title, text }) {
   );
 }
 
-function pickFeatured(destinations) {
-  // A little variety instead of just the alphabetically-first few: prefer
-  // higher-competitiveness destinations (the ones people are most likely to
-  // search for) and spread across categories rather than piling up one type.
-  const seenCategories = new Set();
-  const ranked = [...destinations].sort((a, b) => {
-    const order = { very_high: 0, high: 1, medium: 2, low: 3 };
-    return (order[a.competitiveness_level] ?? 4) - (order[b.competitiveness_level] ?? 4);
-  });
-
-  const picked = [];
-  for (const d of ranked) {
-    if (picked.length >= 6) break;
-    if (seenCategories.has(d.category)) continue;
-    seenCategories.add(d.category);
-    picked.push(d);
-  }
-  if (picked.length < 6) {
-    for (const d of ranked) {
-      if (picked.length >= 6) break;
-      if (!picked.includes(d)) picked.push(d);
-    }
-  }
-  return picked;
-}
