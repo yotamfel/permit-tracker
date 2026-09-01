@@ -76,10 +76,26 @@ def _upsert_en_translation(db: Session, entity_type: str, entity_id: uuid.UUID, 
         db.add(Translation(entity_type=entity_type, entity_id=entity_id, locale="en", value=value))
 
 
+def _latest_report_ids(db: Session, destination_ids: list[uuid.UUID]) -> dict[uuid.UUID, uuid.UUID]:
+    """Newest DestinationResearchReport.id per destination_id (a destination can
+    have more than one report if it was re-run through the pipeline)."""
+    latest: dict[uuid.UUID, uuid.UUID] = {}
+    reports = (
+        db.query(DestinationResearchReport)
+        .filter(DestinationResearchReport.destination_id.in_(destination_ids))
+        .order_by(DestinationResearchReport.created_at.desc())
+        .all()
+    )
+    for r in reports:
+        latest.setdefault(r.destination_id, r.id)
+    return latest
+
+
 def _destination_out(db: Session, d: Destination) -> AdminDestinationOut:
     out = AdminDestinationOut.model_validate(d)
     out.description = translate(db, "destination.description", d.id, "en")
     out.mechanism_explanation = translate(db, "destination.mechanism_explanation", d.id, "en")
+    out.research_report_id = _latest_report_ids(db, [d.id]).get(d.id)
     return out
 
 
@@ -89,11 +105,13 @@ def _destinations_out(db: Session, destinations: list[Destination]) -> list[Admi
     ids = [d.id for d in destinations]
     descriptions = translate_bulk(db, "destination.description", ids, "en")
     explanations = translate_bulk(db, "destination.mechanism_explanation", ids, "en")
+    report_ids = _latest_report_ids(db, ids)
     out = []
     for d in destinations:
         item = AdminDestinationOut.model_validate(d)
         item.description = descriptions.get(d.id)
         item.mechanism_explanation = explanations.get(d.id)
+        item.research_report_id = report_ids.get(d.id)
         out.append(item)
     return out
 
@@ -806,17 +824,7 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
     for s in db.query(DestinationSource).filter(DestinationSource.destination_id.in_([d.id for d in pending])).all():
         sources_by_destination.setdefault(s.destination_id, []).append(s.note or s.url or "")
 
-    # Latest research report per destination (there can be more than one if a
-    # destination was re-run through the pipeline) - keep only the newest.
-    latest_report_by_destination: dict[uuid.UUID, uuid.UUID] = {}
-    reports = (
-        db.query(DestinationResearchReport)
-        .filter(DestinationResearchReport.destination_id.in_([d.id for d in pending]))
-        .order_by(DestinationResearchReport.created_at.desc())
-        .all()
-    )
-    for r in reports:
-        latest_report_by_destination.setdefault(r.destination_id, r.id)
+    latest_report_by_destination = _latest_report_ids(db, [d.id for d in pending])
 
     items = []
     for d in pending:

@@ -155,6 +155,73 @@ function ResearchReportsTab() {
   );
 }
 
+function ResearchReportButton({ reportId }) {
+  const [modalReport, setModalReport] = useState(null); // { loading, data }
+
+  if (!reportId) return null;
+
+  const openReport = async () => {
+    setModalReport({ loading: true, data: null });
+    const res = await api.get(`/admin/api/research-reports/${reportId}`);
+    setModalReport({ loading: false, data: res.data });
+  };
+
+  return (
+    <>
+      <button
+        onClick={openReport}
+        className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+      >
+        דוח מחקר
+      </button>
+      {modalReport && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setModalReport(null)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-5 shadow-xl dark:bg-slate-900"
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold">דוח מחקר</h3>
+              <button
+                onClick={() => setModalReport(null)}
+                className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                סגור ✕
+              </button>
+            </div>
+            {modalReport.loading ? (
+              <p className="text-xs text-slate-500 dark:text-slate-300">טוען...</p>
+            ) : (
+              <div className="space-y-3 text-sm">
+                <div>
+                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נעשה (חוקר)</h4>
+                  <p className="mt-1 whitespace-pre-wrap">{modalReport.data.researcher_summary}</p>
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בודק)</h4>
+                  <p className="mt-1 whitespace-pre-wrap">{modalReport.data.reviewer_summary}</p>
+                </div>
+                {modalReport.data.escalations && (
+                  <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
+                    <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
+                      דברים שהושארו להכרעה שלך
+                    </h4>
+                    <p className="mt-1 whitespace-pre-wrap">{modalReport.data.escalations}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function DestinationsTab({ onCountChange }) {
   const [destinations, setDestinations] = useState([]);
 
@@ -186,7 +253,8 @@ function DestinationsTab({ onCountChange }) {
             <Link to={`/admin/destinations/${d.id}`} className="flex-1">
               <span className="font-medium">{d.name}</span> <span className="text-slate-500 dark:text-slate-300">({d.country})</span>
             </Link>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <ResearchReportButton reportId={d.research_report_id} />
               <Link to={`/admin/destinations/${d.id}`} className="underline">
                 edit
               </Link>
@@ -273,7 +341,6 @@ function MonitoringTab({ t }) {
 
 function ReviewQueueTab({ onCountChange }) {
   const [items, setItems] = useState([]);
-  const [modalReport, setModalReport] = useState(null); // { loading, data }
 
   const load = () =>
     api.get("/admin/api/review-queue").then((res) => {
@@ -284,12 +351,6 @@ function ReviewQueueTab({ onCountChange }) {
   useEffect(() => {
     load();
   }, []);
-
-  const openReport = async (item) => {
-    setModalReport({ loading: true, data: null });
-    const res = await api.get(`/admin/api/research-reports/${item.research_report_id}`);
-    setModalReport({ loading: false, data: res.data });
-  };
 
   return (
     <div className="mt-6">
@@ -309,14 +370,7 @@ function ReviewQueueTab({ onCountChange }) {
                 </span>
               </Link>
               <div className="flex items-center gap-3">
-                {item.research_report_id && (
-                  <button
-                    onClick={() => openReport(item)}
-                    className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
-                  >
-                    דוח מחקר
-                  </button>
-                )}
+                <ResearchReportButton reportId={item.research_report_id} />
                 <Link to={`/admin/destinations/${item.id}`} className="text-xs text-slate-500 dark:text-slate-300">
                   review
                 </Link>
@@ -325,51 +379,6 @@ function ReviewQueueTab({ onCountChange }) {
           </li>
         ))}
       </ul>
-
-      {modalReport && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setModalReport(null)}
-        >
-          <div
-            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-5 shadow-xl dark:bg-slate-900"
-            onClick={(e) => e.stopPropagation()}
-            dir="rtl"
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">דוח מחקר</h3>
-              <button
-                onClick={() => setModalReport(null)}
-                className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-              >
-                סגור ✕
-              </button>
-            </div>
-            {modalReport.loading ? (
-              <p className="text-xs text-slate-500 dark:text-slate-300">טוען...</p>
-            ) : (
-              <div className="space-y-3 text-sm">
-                <div>
-                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נעשה (חוקר)</h4>
-                  <p className="mt-1 whitespace-pre-wrap">{modalReport.data.researcher_summary}</p>
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בודק)</h4>
-                  <p className="mt-1 whitespace-pre-wrap">{modalReport.data.reviewer_summary}</p>
-                </div>
-                {modalReport.data.escalations && (
-                  <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
-                    <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
-                      דברים שהושארו להכרעה שלך
-                    </h4>
-                    <p className="mt-1 whitespace-pre-wrap">{modalReport.data.escalations}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

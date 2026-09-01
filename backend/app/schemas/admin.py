@@ -119,6 +119,9 @@ class AdminDestinationOut(BaseModel):
     source_fetch_failing: bool = False
     source_fetch_error: str | None = None
     source_fetch_failing_since: datetime | None = None
+    # Most recent researcher+reviewer pipeline report for this destination, if
+    # any. See AdminResearchReportOut.
+    research_report_id: uuid.UUID | None = None
 
     model_config = {"from_attributes": True}
 
