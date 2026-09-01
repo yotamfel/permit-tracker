@@ -69,6 +69,22 @@ export default function DestinationDetail() {
     }
   };
 
+  const handleAddToCalendar = async () => {
+    try {
+      const res = await api.get(`/api/destinations/${id}/calendar.ics`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${destination.name.toLowerCase().replace(/\s+/g, "-")}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setError(t("auth.error"));
+    }
+  };
+
   const handleToggleItem = async (prepItemId) => {
     // Optimistic update, then reconcile with the server response.
     setChecklist((c) => ({
@@ -120,6 +136,13 @@ export default function DestinationDetail() {
 
       <CompetitivenessNote level={destination.competitiveness_level} />
 
+      {destination.last_verified_at && (
+        <p className="mt-2 flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
+          <span aria-hidden="true">✓</span>
+          Verified {new Date(destination.last_verified_at).toLocaleDateString()}
+        </p>
+      )}
+
       <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm dark:bg-amber-900/20">
         <span className="font-semibold text-stone-900 dark:text-stone-100">{t("browse.next_release")}: </span>
         <span className="text-stone-700 dark:text-stone-300">
@@ -134,15 +157,13 @@ export default function DestinationDetail() {
         <p className="mt-1 text-sm font-medium text-amber-700 dark:text-amber-400">
           {t(`mechanism_type.${destination.mechanism_type}`)}
         </p>
+        {Object.keys(destination.mechanism_config).length > 0 && (
+          <p className="mt-2 rounded-lg bg-white p-3 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+            {formatMechanismConfig(destination.mechanism_type, destination.mechanism_config)}
+          </p>
+        )}
         {destination.is_owned ? (
-          <>
-            <p className="mt-2 text-stone-700 dark:text-stone-300">{destination.mechanism_explanation}</p>
-            {destination.mechanism_config && (
-              <p className="mt-3 rounded-lg bg-white p-3 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-300">
-                {formatMechanismConfig(destination.mechanism_type, destination.mechanism_config)}
-              </p>
-            )}
-          </>
+          <p className="mt-2 text-stone-700 dark:text-stone-300">{destination.mechanism_explanation}</p>
         ) : (
           <div className="relative mt-2 overflow-hidden rounded-lg">
             <p className="select-none blur-sm">
@@ -185,7 +206,12 @@ export default function DestinationDetail() {
               <p>████ ████████████</p>
               <p>████████ ████</p>
             </div>
-            <p className="mt-4 text-sm text-stone-500 dark:text-stone-400">{t("destination.checklist_locked")}</p>
+            {Object.keys(destination.checklist_item_counts).length > 0 && (
+              <p className="mt-3 text-sm font-medium text-stone-700 dark:text-stone-300">
+                This permit requires: {formatChecklistCounts(destination.checklist_item_counts)}
+              </p>
+            )}
+            <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">{t("destination.checklist_locked")}</p>
           </div>
         )}
       </section>
@@ -207,12 +233,35 @@ export default function DestinationDetail() {
         </section>
       )}
 
-      <section className="mt-6 text-sm text-stone-500 dark:text-stone-400">
-        <p>
-          {t("destination.last_verified")}:{" "}
-          {destination.last_verified_at ? new Date(destination.last_verified_at).toLocaleDateString() : t("destination.not_yet_verified")}
-        </p>
-      </section>
+      {destination.is_owned && destination.next_known_release && (
+        <section className="mt-4">
+          <button
+            onClick={handleAddToCalendar}
+            className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 px-4 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+          >
+            <span aria-hidden="true">📅</span> Add to calendar
+          </button>
+        </section>
+      )}
+
+      {destination.is_owned && destination.alternatives.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-stone-200 p-5 dark:border-stone-800">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">If you don't get in</h2>
+          <ul className="mt-2 space-y-2">
+            {destination.alternatives.map((alt) => (
+              <li key={alt.destination_id}>
+                <Link
+                  to={`/destinations/${alt.destination_id}`}
+                  className="font-medium text-amber-700 hover:underline dark:text-amber-400"
+                >
+                  {alt.name}
+                </Link>
+                {alt.note && <span className="text-sm text-stone-500 dark:text-stone-400"> - {alt.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-8 rounded-2xl border border-stone-200 p-5 dark:border-stone-800">
         {destination.is_owned ? (
@@ -259,6 +308,9 @@ export default function DestinationDetail() {
         ) : (
           <>
             {!user && <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">Log in to unlock this destination.</p>}
+            <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">
+              One wrong date can cost you the whole trip. This costs less than a dinner out.
+            </p>
             <button
               onClick={handleUnlock}
               disabled={!user}
@@ -272,6 +324,20 @@ export default function DestinationDetail() {
       </section>
     </div>
   );
+}
+
+const CHECKLIST_COUNT_LABELS = {
+  document: (n) => `${n} document${n === 1 ? "" : "s"}`,
+  action: (n) => `${n} registration step${n === 1 ? "" : "s"}`,
+  gear: (n) => `${n} gear item${n === 1 ? "" : "s"}`,
+  payment: (n) => `${n} payment${n === 1 ? "" : "s"}`,
+  general_requirement: (n) => `${n} general requirement${n === 1 ? "" : "s"}`,
+};
+
+function formatChecklistCounts(counts) {
+  return Object.entries(counts)
+    .map(([type, n]) => (CHECKLIST_COUNT_LABELS[type] ? CHECKLIST_COUNT_LABELS[type](n) : `${n} ${type}`))
+    .join(", ");
 }
 
 function PrepSection({ title, items, t, onToggle }) {

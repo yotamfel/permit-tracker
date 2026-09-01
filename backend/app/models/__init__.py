@@ -5,6 +5,7 @@ from app.models.checklist_completion import ChecklistCompletion
 from app.models.checklist_item import ChecklistItem
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
+from app.models.destination_alternative import DestinationAlternative
 from app.models.destination_source import DestinationSource
 from app.models.general_requirement import DestinationRequirement, GeneralRequirement
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
@@ -22,6 +23,7 @@ __all__ = [
     "ChecklistItem",
     "ContactMessage",
     "Destination",
+    "DestinationAlternative",
     "DestinationRequirement",
     "DestinationSource",
     "GeneralRequirement",

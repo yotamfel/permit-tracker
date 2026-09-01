@@ -112,6 +112,25 @@ def send_follow_up_reminder_email(admin_emails: list[str], items: list[dict]) ->
     )
 
 
+def send_destination_updated_email(to_email: str, destination_name: str, diff_summary: str) -> None:
+    body = (
+        f"<p>Something changed on <strong>{destination_name}</strong>, a destination you've unlocked - "
+        f"here's what's new:</p>"
+        f"<pre style='white-space:pre-wrap;font-size:13px;background:#f5f5f5;padding:8px;border-radius:6px'>"
+        f"{diff_summary}</pre>"
+        f"<p style='color:#777;font-size:12px'>This is a one-off update notice, separate from your regular "
+        f"pre-release alert.</p>"
+    )
+    resend.Emails.send(
+        {
+            "from": settings.email_from,
+            "to": [to_email],
+            "subject": f"Permit Tracker: {destination_name} was updated",
+            "html": body,
+        }
+    )
+
+
 def send_contact_reply(to_email: str, to_name: str, original_message: str, reply_message: str) -> None:
     body = (
         f"<p>Hi {to_name},</p>"

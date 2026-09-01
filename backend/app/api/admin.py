@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -9,6 +10,7 @@ from app.models.admin_follow_up import AdminFollowUp
 from app.models.checklist_item import ChecklistItem
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
+from app.models.destination_alternative import DestinationAlternative
 from app.models.destination_source import DestinationSource
 from app.models.enums import Category, ContactMessageStatus, PurchaseStatus, ReviewStatus
 from app.models.general_requirement import DestinationRequirement, GeneralRequirement
@@ -18,6 +20,8 @@ from app.models.purchase import Purchase
 from app.models.translation import Translation
 from app.models.user import User
 from app.schemas.admin import (
+    AdminAlternativeIn,
+    AdminAlternativeOut,
     AdminChecklistItemIn,
     AdminChecklistItemOut,
     AdminDestinationIn,
@@ -42,7 +46,7 @@ from app.schemas.admin import (
 )
 from app.schemas.contact import AdminContactMessageOut, AdminContactMessageReplyIn, AdminContactMessageStatusUpdate
 from app.schemas.mechanism_config import validate_mechanism_config
-from app.services.email_service import send_contact_reply
+from app.services.email_service import send_contact_reply, send_destination_updated_email
 from app.services.i18n import translate, translate_bulk
 
 router = APIRouter(prefix="/admin/api", tags=["admin"], dependencies=[Depends(get_current_admin)])
@@ -240,6 +244,49 @@ def delete_source(source_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
     if source is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Source not found")
     db.delete(source)
+    db.commit()
+
+
+# --- Alternatives ("if you don't get in" suggestions) ------------------------
+
+
+def _alternative_out(db: Session, a: DestinationAlternative) -> AdminAlternativeOut:
+    alt_d = db.get(Destination, a.alternative_destination_id)
+    return AdminAlternativeOut(
+        id=a.id,
+        destination_id=a.destination_id,
+        alternative_destination_id=a.alternative_destination_id,
+        alternative_destination_name=alt_d.name if alt_d else "(deleted destination)",
+        order_index=a.order_index,
+        note=a.note,
+    )
+
+
+@router.get("/alternatives", response_model=list[AdminAlternativeOut])
+def list_alternatives(destination_id: uuid.UUID | None = None, db: Session = Depends(get_db)) -> list[AdminAlternativeOut]:
+    query = db.query(DestinationAlternative)
+    if destination_id:
+        query = query.filter(DestinationAlternative.destination_id == destination_id)
+    return [_alternative_out(db, a) for a in query.order_by(DestinationAlternative.order_index).all()]
+
+
+@router.post("/alternatives", response_model=AdminAlternativeOut)
+def create_alternative(body: AdminAlternativeIn, db: Session = Depends(get_db)) -> AdminAlternativeOut:
+    if body.destination_id == body.alternative_destination_id:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "A destination can't be its own alternative")
+    a = DestinationAlternative(**body.model_dump())
+    db.add(a)
+    db.commit()
+    db.refresh(a)
+    return _alternative_out(db, a)
+
+
+@router.delete("/alternatives/{alternative_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_alternative(alternative_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
+    a = db.get(DestinationAlternative, alternative_id)
+    if a is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Alternative not found")
+    db.delete(a)
     db.commit()
 
 
@@ -495,6 +542,24 @@ def approve_diff(diff_id: uuid.UUID, db: Session = Depends(get_db)) -> AdminMoni
     db.add(diff)
     db.commit()
     db.refresh(diff)
+
+    # Spec addendum §2.5 - notify existing owners that something changed,
+    # separate from the regular pre-release alert email.
+    d = db.get(Destination, diff.destination_id)
+    if d is not None:
+        owner_emails = [
+            u.email
+            for u in db.query(User)
+            .join(Purchase, Purchase.user_id == User.id)
+            .filter(Purchase.destination_id == diff.destination_id, Purchase.status == PurchaseStatus.completed)
+            .all()
+        ]
+        for email in owner_emails:
+            try:
+                send_destination_updated_email(email, d.name, diff.diff_summary)
+            except Exception:
+                logging.exception("Failed to send destination-updated email to %s for diff %s", email, diff_id)
+
     return _resolve_diff(diff, db)
 
 

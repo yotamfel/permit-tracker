@@ -190,10 +190,25 @@ class AdminDestinationRequirementIn(BaseModel):
     general_requirement_id: uuid.UUID
     destination_specific_note_key: str | None = None
     order_index: int = 0
+    action_url: str | None = None
 
 
 class AdminDestinationRequirementOut(AdminDestinationRequirementIn):
     id: uuid.UUID
+
+    model_config = {"from_attributes": True}
+
+
+class AdminAlternativeIn(BaseModel):
+    destination_id: uuid.UUID
+    alternative_destination_id: uuid.UUID
+    order_index: int = 0
+    note: str | None = None
+
+
+class AdminAlternativeOut(AdminAlternativeIn):
+    id: uuid.UUID
+    alternative_destination_name: str
 
     model_config = {"from_attributes": True}
 

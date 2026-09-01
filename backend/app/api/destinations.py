@@ -1,14 +1,18 @@
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.deps import get_current_user, get_db, get_locale, get_optional_current_user
 from app.models.destination import Destination
+from app.models.destination_alternative import DestinationAlternative
 from app.models.enums import Category, CompetitivenessLevel, MechanismType
 from app.models.general_requirement import DestinationRequirement
 from app.models.user import User
 from app.schemas.destination import (
+    AlternativeOut,
     CalendarEntryOut,
     DestinationCardOut,
     DestinationChecklistOut,
@@ -120,6 +124,45 @@ def get_destination(
     description = texts.get("destination.description")
     explanation = texts.get("destination.mechanism_explanation") if is_owned else None
 
+    # Checklist "shape" teaser (spec addendum §1.2) - counts only, general +
+    # specific (not good_to_know, which isn't required for the permit).
+    checklist_item_counts: dict[str, int] = {}
+    for item in d.checklist_items:
+        if item.section.value == "specific":
+            checklist_item_counts[item.item_type.value] = checklist_item_counts.get(item.item_type.value, 0) + 1
+    general_count = (
+        db.query(DestinationRequirement).filter(DestinationRequirement.destination_id == destination_id).count()
+    )
+    if general_count:
+        checklist_item_counts["general_requirement"] = general_count
+
+    alternatives: list[AlternativeOut] = []
+    if is_owned:
+        alt_rows = (
+            db.query(DestinationAlternative)
+            .filter(DestinationAlternative.destination_id == destination_id)
+            .order_by(DestinationAlternative.order_index)
+            .all()
+        )
+        alt_dest_ids = [r.alternative_destination_id for r in alt_rows]
+        alt_destinations = {
+            dd.id: dd
+            for dd in db.query(Destination).filter(Destination.id.in_(alt_dest_ids), Destination.is_published.is_(True)).all()
+        }
+        alt_names = translate_bulk(db, "destination.name", list(alt_destinations.keys()), locale)
+        for r in alt_rows:
+            alt_d = alt_destinations.get(r.alternative_destination_id)
+            if alt_d is None:
+                continue
+            alternatives.append(
+                AlternativeOut(
+                    destination_id=alt_d.id,
+                    name=alt_names.get(alt_d.id, alt_d.name),
+                    category=alt_d.category,
+                    note=r.note,
+                )
+            )
+
     return DestinationDetailOut(
         id=d.id,
         country=d.country,
@@ -134,8 +177,72 @@ def get_destination(
         price_usd=float(d.price_usd),
         is_owned=is_owned,
         next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
-        mechanism_config=d.mechanism_config if is_owned else None,
+        mechanism_config=d.mechanism_config,
+        checklist_item_counts=checklist_item_counts,
         application_url=d.application_url if is_owned else None,
+        alternatives=alternatives,
+    )
+
+
+_ICS_WEEKDAY = {
+    "monday": "MO", "tuesday": "TU", "wednesday": "WE", "thursday": "TH",
+    "friday": "FR", "saturday": "SA", "sunday": "SU",
+}
+
+
+def _ics_escape(text: str) -> str:
+    return text.replace("\\", "\\\\").replace(",", "\\,").replace(";", "\\;").replace("\n", "\\n")
+
+
+@router.get("/{destination_id}/calendar.ics")
+def get_calendar_ics(
+    destination_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Response:
+    """Spec addendum: Pre-Purchase Trust Signals + Post-Purchase Tool Features
+    §2.2 - owners only, an .ics file for the next computed release date.
+    weekly_release destinations get a recurring event (RRULE); everything
+    else is a single one-off event, since an annual date can shift slightly
+    year to year and a naive yearly recurrence could mislead."""
+    d = db.get(Destination, destination_id)
+    if d is None or not d.is_published:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
+    if not user_owns_destination(db, user, destination_id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Unlock this destination first")
+
+    start = compute_next_release(d.mechanism_type.value, d.mechanism_config)
+    if start is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No fixed release date to add to a calendar")
+
+    dtstamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    dtstart = start.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    summary = _ics_escape(f"{d.name} - application window opens")
+
+    rrule_line = ""
+    if d.mechanism_type.value == "weekly_release":
+        byday = _ICS_WEEKDAY[d.mechanism_config["release_weekday"]]
+        rrule_line = f"RRULE:FREQ=WEEKLY;BYDAY={byday}\r\n"
+
+    ics = (
+        "BEGIN:VCALENDAR\r\n"
+        "VERSION:2.0\r\n"
+        "PRODID:-//Permit Tracker//EN\r\n"
+        "CALSCALE:GREGORIAN\r\n"
+        "BEGIN:VEVENT\r\n"
+        f"UID:{d.id}@permit-tracker\r\n"
+        f"DTSTAMP:{dtstamp}\r\n"
+        f"DTSTART:{dtstart}\r\n"
+        f"SUMMARY:{summary}\r\n"
+        f"{rrule_line}"
+        "END:VEVENT\r\n"
+        "END:VCALENDAR\r\n"
+    )
+    filename = f"{d.name.lower().replace(' ', '-')}.ics"
+    return Response(
+        content=ics,
+        media_type="text/calendar",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
@@ -183,6 +290,7 @@ def get_checklist(
                 is_required=True,
                 text=text,
                 is_completed=dr.id in completed_ids,
+                link_url=dr.action_url,
             )
         )
 

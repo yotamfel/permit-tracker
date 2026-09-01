@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -42,5 +42,9 @@ class DestinationRequirement(UUIDPKMixin, TimestampMixin, Base):
     )
     destination_specific_note_key: Mapped[str | None] = mapped_column(String, nullable=True)
     order_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # The exact official page for this specific step (e.g. a visa application
+    # form), not just the destination's general source_url - shown as a link
+    # next to this item, same idea as ChecklistItem.link_url.
+    action_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     general_requirement: Mapped["GeneralRequirement"] = relationship()

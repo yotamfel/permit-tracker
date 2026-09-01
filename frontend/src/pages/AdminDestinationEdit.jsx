@@ -22,6 +22,10 @@ export default function AdminDestinationEdit() {
   const [form, setForm] = useState(null);
   const [checklistItems, setChecklistItems] = useState([]);
   const [sources, setSources] = useState([]);
+  const [alternatives, setAlternatives] = useState([]);
+  const [allDestinations, setAllDestinations] = useState([]);
+  const [newAltId, setNewAltId] = useState("");
+  const [newAltNote, setNewAltNote] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -31,6 +35,8 @@ export default function AdminDestinationEdit() {
     );
     api.get("/admin/api/checklist-items", { params: { destination_id: id } }).then((res) => setChecklistItems(res.data));
     api.get("/admin/api/sources", { params: { destination_id: id } }).then((res) => setSources(res.data));
+    api.get("/admin/api/alternatives", { params: { destination_id: id } }).then((res) => setAlternatives(res.data));
+    api.get("/admin/api/destinations").then((res) => setAllDestinations(res.data));
   }, [id]);
 
   useEffect(() => {
@@ -129,6 +135,24 @@ export default function AdminDestinationEdit() {
 
   const addSource = async () => {
     await api.post("/admin/api/sources", { destination_id: id, order_index: sources.length, url: "", note: "" });
+    load();
+  };
+
+  const addAlternative = async () => {
+    if (!newAltId) return;
+    await api.post("/admin/api/alternatives", {
+      destination_id: id,
+      alternative_destination_id: newAltId,
+      order_index: alternatives.length,
+      note: newAltNote,
+    });
+    setNewAltId("");
+    setNewAltNote("");
+    load();
+  };
+
+  const deleteAlternative = async (altId) => {
+    await api.delete(`/admin/api/alternatives/${altId}`);
     load();
   };
 
@@ -333,6 +357,50 @@ export default function AdminDestinationEdit() {
           onDelete={deleteChecklistItem}
           onAdd={(itemType, text) => addChecklistItem("good_to_know", itemType, text)}
         />
+      </section>
+
+      <section className="mt-6">
+        <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+          "If you don't get in" alternatives
+        </h2>
+        <ul className="mt-2 space-y-1">
+          {alternatives.map((alt) => (
+            <li key={alt.id} className="flex items-center gap-2 text-sm">
+              <span className="flex-1">
+                {alt.alternative_destination_name}
+                {alt.note && <span className="text-stone-500 dark:text-stone-400"> - {alt.note}</span>}
+              </span>
+              <button onClick={() => deleteAlternative(alt.id)} className="text-xs text-red-600 underline">
+                remove
+              </button>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-2 flex items-center gap-2 text-sm">
+          <select
+            value={newAltId}
+            onChange={(e) => setNewAltId(e.target.value)}
+            className="rounded border border-stone-300 bg-white px-2 py-1 text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+          >
+            <option value="">Select destination...</option>
+            {allDestinations
+              .filter((d) => d.id !== id)
+              .map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name} ({d.country})
+                </option>
+              ))}
+          </select>
+          <input
+            placeholder="Why it's a good alternative (optional)"
+            value={newAltNote}
+            onChange={(e) => setNewAltNote(e.target.value)}
+            className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
+          />
+          <button onClick={addAlternative} className="rounded bg-stone-700 px-3 py-1 text-xs text-white">
+            + add
+          </button>
+        </div>
       </section>
 
       <section className="mt-6">

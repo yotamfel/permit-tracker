@@ -24,8 +24,8 @@ class PrepItemOut(BaseModel):
     text: str  # resolved via translations table for the active locale
     is_completed: bool = False
     # Optional link shown under this item (e.g. a form, a directory of
-    # registered operators, an insurance provider) - only "specific"/
-    # "good_to_know" items can have one; "general" ones never do.
+    # registered operators, an insurance provider, the exact official page for
+    # this specific step) - any section can have one.
     link_url: str | None = None
 
 
@@ -42,6 +42,13 @@ class DestinationCardOut(BaseModel):
     is_owned: bool
 
 
+class AlternativeOut(BaseModel):
+    destination_id: uuid.UUID
+    name: str
+    category: Category
+    note: str | None = None
+
+
 class DestinationDetailOut(BaseModel):
     id: uuid.UUID
     country: str
@@ -50,8 +57,9 @@ class DestinationDetailOut(BaseModel):
     description: str | None
     mechanism_type: MechanismType
     # Only populated when is_owned is True - gated server-side (same pattern as
-    # mechanism_config/application_url below). Only the description paragraph
-    # is free to read before unlocking.
+    # application_url below). Only the description paragraph and the concrete
+    # mechanism_config numbers (below) are free to read before unlocking - the
+    # prose explanation of how it works is part of what unlocking pays for.
     mechanism_explanation: str | None
     issuing_authority: IssuingAuthority
     competitiveness_level: CompetitivenessLevel
@@ -59,12 +67,22 @@ class DestinationDetailOut(BaseModel):
     price_usd: float
     is_owned: bool
     next_known_release: datetime | None
+    # Free to everyone (spec addendum: Pre-Purchase Trust Signals §1.3) - shows
+    # concrete numbers (quota size, lottery odds, etc.) as a trust/urgency
+    # signal, even though the prose mechanism_explanation stays locked above.
+    mechanism_config: dict
+    # Counts only, not the item text itself (spec addendum §1.2) - e.g. "3
+    # documents, 2 registration steps" - computed from "general" + "specific"
+    # checklist sections (not "good_to_know", which isn't required for the permit).
+    checklist_item_counts: dict[str, int] = {}
     # Only populated when is_owned is True - gated server-side, not just hidden in
     # the UI. source_url is intentionally never exposed here - we don't want to
     # send unlocked users elsewhere; application_url is the "apply here" action
     # link, which is part of what unlocking pays for.
-    mechanism_config: dict | None = None
     application_url: str | None = None
+    # Only populated when is_owned is True (spec addendum §2.4) - only
+    # suggested when the user already has skin in the game.
+    alternatives: list[AlternativeOut] = []
 
 
 class DestinationChecklistOut(BaseModel):
