@@ -91,6 +91,11 @@ class AdminDestinationIn(BaseModel):
     application_url: str | None = None
     price_usd: float = 4.99
     is_published: bool = False
+    # The typical months (1-12) this experience actually happens, distinct
+    # from the application/release dates in mechanism_config. end < start
+    # means the season wraps the new year (e.g. 11 -> 3 for Nov-Mar).
+    season_start_month: int | None = None
+    season_end_month: int | None = None
     # Not Destination model columns - these live in the translations table
     # (locale="en") and are upserted there by the endpoint, not written
     # directly onto the Destination row.
@@ -119,6 +124,8 @@ class AdminDestinationOut(BaseModel):
     source_fetch_failing: bool = False
     source_fetch_error: str | None = None
     source_fetch_failing_since: datetime | None = None
+    season_start_month: int | None = None
+    season_end_month: int | None = None
     # Most recent researcher+reviewer pipeline report for this destination, if
     # any. See AdminResearchReportOut.
     research_report_id: uuid.UUID | None = None

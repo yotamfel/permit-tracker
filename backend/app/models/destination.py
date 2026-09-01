@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, Enum, Numeric, String, Text
+from sqlalchemy import Boolean, Enum, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -47,6 +47,12 @@ class Destination(UUIDPKMixin, TimestampMixin, Base):
     source_fetch_failing: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     source_fetch_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     source_fetch_failing_since: Mapped[datetime | None] = mapped_column(nullable=True)
+    # The typical months (1-12) this experience actually happens/is open to
+    # visitors - distinct from mechanism_config's application/release dates.
+    # Nullable (not backfilled for every destination yet); when end < start it
+    # means the season wraps the new year (e.g. 11 -> 3 for a Nov-Mar season).
+    season_start_month: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    season_end_month: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     checklist_items: Mapped[list["ChecklistItem"]] = relationship(
         back_populates="destination", cascade="all, delete-orphan", order_by="ChecklistItem.order_index"

@@ -44,6 +44,8 @@ class DestinationCardOut(BaseModel):
     price_usd: float
     next_known_release: datetime | None
     is_owned: bool
+    season_start_month: int | None = None
+    season_end_month: int | None = None
 
 
 class AlternativeOut(BaseModel):

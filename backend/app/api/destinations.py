@@ -67,6 +67,8 @@ def list_destinations(
                 price_usd=float(d.price_usd),
                 next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
                 is_owned=d.id in owned_ids,
+                season_start_month=d.season_start_month,
+                season_end_month=d.season_end_month,
             )
         )
     return out

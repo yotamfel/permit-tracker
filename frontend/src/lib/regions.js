@@ -1,0 +1,50 @@
+// Static country -> region mapping for the catalog's region filter. Add new
+// entries here whenever a destination is added with a country not yet listed
+// (falls back to the raw country name if missing, so nothing breaks silently).
+const COUNTRY_REGION = {
+  Argentina: "South America",
+  Australia: "Oceania",
+  Brazil: "South America",
+  Canada: "North America",
+  Chile: "South America",
+  China: "Asia",
+  "Costa Rica": "North America",
+  "Dominican Republic": "North America",
+  Ethiopia: "Africa",
+  France: "Europe",
+  "France/Italy/Switzerland": "Europe",
+  Germany: "Europe",
+  Iceland: "Europe",
+  India: "Asia",
+  Indonesia: "Asia",
+  Ireland: "Europe",
+  Italy: "Europe",
+  Japan: "Asia",
+  Jordan: "Middle East",
+  Kenya: "Africa",
+  Malaysia: "Asia",
+  Mexico: "North America",
+  Nepal: "Asia",
+  Netherlands: "Europe",
+  "New Zealand": "Oceania",
+  Pakistan: "Asia",
+  Palau: "Oceania",
+  Peru: "South America",
+  Rwanda: "Africa",
+  Scotland: "Europe",
+  "South Africa": "Africa",
+  Spain: "Europe",
+  "Spain/France": "Europe",
+  Tanzania: "Africa",
+  "Tanzania/Kenya": "Africa",
+  "Tibet/China": "Asia",
+  USA: "North America",
+  Uganda: "Africa",
+  "Uganda/Tanzania": "Africa",
+  "United Kingdom": "Europe",
+  Vietnam: "Asia",
+};
+
+export function regionFor(country) {
+  return COUNTRY_REGION[country] || country;
+}

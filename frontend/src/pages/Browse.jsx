@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
+import { regionFor } from "../lib/regions";
+import { MONTH_NAMES, monthInSeason } from "../lib/months";
 import DestinationCard from "../components/DestinationCard";
 
 const CATEGORIES = [
@@ -16,13 +18,20 @@ const CATEGORIES = [
   "seasonal_nature_event",
   "endurance_event",
 ];
+
+const OPENS_SOON_OPTIONS = [
+  ["30", "Within 30 days"],
+  ["60", "Within 60 days"],
+  ["90", "Within 90 days"],
+];
+
 export default function Browse() {
   const { t, i18n } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ country: "", category: "" });
+  const [filters, setFilters] = useState({ country: "", category: "", region: "", opensSoon: "", season: "" });
 
   useEffect(() => {
     // The full catalog is an account perk - guests get a small taste on the
@@ -35,15 +44,37 @@ export default function Browse() {
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v));
-    params.locale = i18n.language;
+    // Fetch everything once and filter client-side - the catalog is small
+    // (~100s of rows) and several filters (region, opens-soon, season) are
+    // derived/computed rather than plain DB columns, so there's nothing to
+    // gain from round-tripping to the server per filter change.
     api
-      .get("/api/destinations", { params })
+      .get("/api/destinations", { params: { locale: i18n.language } })
       .then((res) => setDestinations(res.data))
       .finally(() => setLoading(false));
-  }, [filters, i18n.language, user]);
+  }, [i18n.language, user]);
 
   const countries = useMemo(() => [...new Set(destinations.map((d) => d.country))].sort(), [destinations]);
+  const regions = useMemo(() => [...new Set(destinations.map((d) => regionFor(d.country)))].sort(), [destinations]);
+
+  const filtered = useMemo(() => {
+    const now = Date.now();
+    const opensSoonMs = filters.opensSoon ? Number(filters.opensSoon) * 24 * 60 * 60 * 1000 : null;
+    return destinations.filter((d) => {
+      if (filters.country && d.country !== filters.country) return false;
+      if (filters.category && d.category !== filters.category) return false;
+      if (filters.region && regionFor(d.country) !== filters.region) return false;
+      if (opensSoonMs) {
+        if (!d.next_known_release) return false;
+        const diff = new Date(d.next_known_release).getTime() - now;
+        if (diff < 0 || diff > opensSoonMs) return false;
+      }
+      if (filters.season) {
+        if (!monthInSeason(Number(filters.season), d.season_start_month, d.season_end_month)) return false;
+      }
+      return true;
+    });
+  }, [destinations, filters]);
 
   if (authLoading || !user) return null;
 
@@ -67,15 +98,36 @@ export default function Browse() {
           options={CATEGORIES.map((c) => [c, t(`category.${c}`)])}
           allLabel={t("browse.all")}
         />
+        <FilterChip
+          label="Region"
+          value={filters.region}
+          onChange={(v) => setFilters((f) => ({ ...f, region: v }))}
+          options={regions.map((r) => [r, r])}
+          allLabel={t("browse.all")}
+        />
+        <FilterChip
+          label="Opens soon"
+          value={filters.opensSoon}
+          onChange={(v) => setFilters((f) => ({ ...f, opensSoon: v }))}
+          options={OPENS_SOON_OPTIONS}
+          allLabel="Any time"
+        />
+        <FilterChip
+          label="Season"
+          value={filters.season}
+          onChange={(v) => setFilters((f) => ({ ...f, season: v }))}
+          options={MONTH_NAMES.map((m, i) => [String(i + 1), m])}
+          allLabel={t("browse.all")}
+        />
       </div>
 
       {loading ? (
         <p className="mt-8 text-stone-500">...</p>
-      ) : destinations.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <p className="mt-8 text-stone-500">{t("browse.no_results")}</p>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {destinations.map((d) => (
+          {filtered.map((d) => (
             <DestinationCard key={d.id} d={d} />
           ))}
         </div>

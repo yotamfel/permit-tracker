@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { formatMechanismConfig } from "../lib/mechanismConfig";
 import { COMPETITIVENESS_INFO } from "../components/CompetitivenessNote";
+import { MONTH_NAMES } from "../lib/months";
 
 const CATEGORIES = [
   "trek", "national_park_entry", "camping", "diving", "wildlife_safari",
@@ -313,6 +314,35 @@ export default function AdminDestinationEdit() {
           {COMPETITIVENESS.map((c) => (
             <option key={c} value={c}>
               {COMPETITIVENESS_INFO[c].label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2 text-xs">
+        <span className="text-stone-500 dark:text-stone-400">Season (when it's actually open/happens, not when applications open):</span>
+        <select
+          value={form.season_start_month ?? ""}
+          onChange={(e) => set("season_start_month", e.target.value ? Number(e.target.value) : null)}
+          className="rounded border border-stone-300 bg-white px-1 py-0.5 text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+        >
+          <option value="">Not set</option>
+          {MONTH_NAMES.map((m, i) => (
+            <option key={m} value={i + 1}>
+              {m}
+            </option>
+          ))}
+        </select>
+        <span className="text-stone-400">to</span>
+        <select
+          value={form.season_end_month ?? ""}
+          onChange={(e) => set("season_end_month", e.target.value ? Number(e.target.value) : null)}
+          className="rounded border border-stone-300 bg-white px-1 py-0.5 text-stone-900 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+        >
+          <option value="">Not set</option>
+          {MONTH_NAMES.map((m, i) => (
+            <option key={m} value={i + 1}>
+              {m}
             </option>
           ))}
         </select>

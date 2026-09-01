@@ -24,6 +24,7 @@ Read the destination's current DB state (all fields, checklist items, sources) �
 6. **`good_to_know` items are genuinely optional/informational**, not required items that got miscategorized (or vice versa).
 7. **`application_url` is not steering toward one specific commercial operator** when multiple legitimate operators exist.
 7a. **Every checklist line that requires filling in a specific document or online form has a direct `link_url` to it.** This is a deliberate exception to the general "don't scatter links" instinct — check for this specifically and add a missing `link_url` yourself if you can verify one.
+7b. **`season_start_month`/`season_end_month`** (int 1-12, nullable) are set when the operating/visiting season is verifiable, and are NOT confused with the application/release window — a lottery that opens in March for a June-September trek should have `season_start_month=6, season_end_month=9`, not March. Fill these in yourself if the researcher left them null but you can verify the season from your own sources.
 8. **Nothing was fabricated** — any number, date, or claim in the DB should be traceable to an actual source. If you can't find backing for something the researcher wrote, that's a real problem: either verify it yourself from another source, soften/remove it, or flag it.
 
 ## Fix it yourself vs. escalate to the admin
