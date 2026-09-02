@@ -28,8 +28,8 @@ export default function Login() {
     try {
       await login(email, password);
       navigate("/");
-    } catch {
-      setError(t("auth.error"));
+    } catch (err) {
+      setError(err.response?.data?.detail || t("auth.error"));
     }
   };
 

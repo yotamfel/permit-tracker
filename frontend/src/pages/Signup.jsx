@@ -19,8 +19,8 @@ export default function Signup() {
     try {
       await signup(email, password, termsAccepted);
       navigate("/");
-    } catch {
-      setError(t("auth.error"));
+    } catch (err) {
+      setError(err.response?.data?.detail || t("auth.error"));
     }
   };
 
@@ -28,8 +28,8 @@ export default function Signup() {
     <div className="mx-auto max-w-sm px-4 py-8">
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("auth.signup_title")}</h1>
       <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-        Free to browse. Create an account to unlock full prep checklists and get alerts before
-        application windows open.
+        Create a free account to browse permits worldwide, unlock full prep checklists, and get
+        alerts before application windows open.
       </p>
 
       <label className="mt-4 flex items-start gap-2 text-sm text-stone-600 dark:text-stone-400">
