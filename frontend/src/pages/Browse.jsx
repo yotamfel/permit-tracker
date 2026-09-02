@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import { regionFor } from "../lib/regions";
 import { MONTH_NAMES, monthInSeason } from "../lib/months";
+import { CATEGORY_INFO, DEFAULT_CATEGORY } from "../lib/categoryInfo";
 import DestinationCard from "../components/DestinationCard";
 
 const CATEGORIES = [
@@ -123,7 +124,29 @@ export default function Browse() {
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Catalog</h1>
       <p className="mt-1 text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
 
-      <div className="sticky top-0 z-30 -mx-4 mt-6 bg-stone-50/95 px-4 py-3 backdrop-blur dark:bg-stone-950/95">
+      <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+        {CATEGORIES.map((c) => {
+          const info = CATEGORY_INFO[c] || DEFAULT_CATEGORY;
+          const active = filters.category === c;
+          return (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setFilters((cur) => ({ ...cur, category: active ? "" : c }))}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                active
+                  ? "border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                  : `border-stone-200 bg-white hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-900 dark:hover:bg-stone-800 ${info.text}`
+              }`}
+            >
+              <span aria-hidden="true">{info.icon}</span>
+              {t(`category.${c}`)}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="sticky top-0 z-30 -mx-4 mt-4 bg-stone-50/95 px-4 py-3 backdrop-blur dark:bg-stone-950/95">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
