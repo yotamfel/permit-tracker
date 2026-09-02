@@ -1,4 +1,6 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { trackPageView } from "./lib/analytics";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -17,6 +19,12 @@ import Privacy from "./pages/Privacy";
 import OnboardingGuide from "./components/OnboardingGuide";
 
 export default function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
+
   return (
     <div className="flex min-h-screen flex-col bg-stone-50 dark:bg-stone-950">
       <Header />
