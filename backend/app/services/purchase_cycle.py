@@ -40,7 +40,24 @@ def purchase_cycle_anchor(destination, purchase_created_at: datetime, travel_dat
     return purchase_created_at
 
 
-def purchase_still_active(destination, purchase_created_at: datetime, travel_date=None, now: datetime | None = None) -> bool:
+def purchase_active_until(destination, purchase_created_at: datetime, travel_date=None, admin_override_until: datetime | None = None) -> datetime:
+    """The moment access actually lapses - the admin override if it's set
+    and later than the normal cycle end, otherwise the normal cycle end."""
+    cycle_end = purchase_cycle_anchor(destination, purchase_created_at, travel_date) + timedelta(days=CYCLE_BUFFER_DAYS)
+    if admin_override_until is not None and admin_override_until > cycle_end:
+        return admin_override_until
+    return cycle_end
+
+
+def purchase_still_active(
+    destination,
+    purchase_created_at: datetime,
+    travel_date=None,
+    now: datetime | None = None,
+    admin_override_until: datetime | None = None,
+) -> bool:
     now = now or datetime.now(timezone.utc)
+    if admin_override_until is not None and now < admin_override_until:
+        return True
     anchor = purchase_cycle_anchor(destination, purchase_created_at, travel_date)
     return now < anchor + timedelta(days=CYCLE_BUFFER_DAYS)

@@ -45,7 +45,7 @@ def user_owns_destination(db: Session, user: User | None, destination_id: uuid.U
         .first()
     )
     travel_date = subscription.travel_date if subscription else None
-    return purchase_still_active(destination, purchase.created_at, travel_date)
+    return purchase_still_active(destination, purchase.created_at, travel_date, admin_override_until=purchase.admin_override_until)
 
 
 def owned_destination_ids(db: Session, user: User | None, all_destination_ids: list[uuid.UUID]) -> set[uuid.UUID]:
@@ -88,6 +88,6 @@ def owned_destination_ids(db: Session, user: User | None, all_destination_ids: l
             continue
         subscription = subscriptions.get(destination_id)
         travel_date = subscription.travel_date if subscription else None
-        if purchase_still_active(destination, purchase.created_at, travel_date):
+        if purchase_still_active(destination, purchase.created_at, travel_date, admin_override_until=purchase.admin_override_until):
             owned.add(destination_id)
     return owned

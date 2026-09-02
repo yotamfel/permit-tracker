@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_admin, get_db
 from app.models.admin_follow_up import AdminFollowUp
 from app.models.agent_report import AgentReport
+from app.models.alert_subscription import AlertSubscription
 from app.models.checklist_item import ChecklistItem
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
@@ -38,10 +39,12 @@ from app.schemas.admin import (
     AdminMonitoringDiffOut,
     AdminOperatorIn,
     AdminOperatorOut,
+    AdminPurchaseOverrideIn,
     AdminSourceIn,
     AdminSourceOut,
     AdminTranslationIn,
     AdminTranslationOut,
+    AdminUserPurchaseOut,
     DestinationFeedbackStatsOut,
     DestinationPurchaseStatsOut,
     FeedbackStatsOut,
@@ -53,6 +56,7 @@ from app.schemas.contact import AdminContactMessageOut, AdminContactMessageReply
 from app.schemas.mechanism_config import validate_mechanism_config
 from app.services.email_service import send_contact_reply, send_destination_updated_email
 from app.services.i18n import translate, translate_bulk
+from app.services.purchase_cycle import purchase_active_until, purchase_still_active
 
 router = APIRouter(prefix="/admin/api", tags=["admin"], dependencies=[Depends(get_current_admin)])
 
@@ -597,6 +601,86 @@ def delete_operator(operator_id: uuid.UUID, db: Session = Depends(get_db)) -> No
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Operator not found")
     db.delete(o)
     db.commit()
+
+
+# --- User purchase lookup / manual access override --------------------------
+# Support tool for mistakes/edge cases: purchases now expire 60 days after
+# their application cycle (see app/services/purchase_cycle.py) instead of
+# lasting forever, so an admin needs a way to reopen access for a specific
+# user if that was wrong for them.
+
+
+@router.get("/purchases/lookup", response_model=list[AdminUserPurchaseOut])
+def lookup_user_purchases(email: str, db: Session = Depends(get_db)) -> list[AdminUserPurchaseOut]:
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        return []
+    purchases = (
+        db.query(Purchase)
+        .filter(Purchase.user_id == user.id, Purchase.status == PurchaseStatus.completed)
+        .order_by(Purchase.created_at.desc())
+        .all()
+    )
+    out = []
+    for p in purchases:
+        destination = db.get(Destination, p.destination_id)
+        if destination is None:
+            continue
+        subscription = (
+            db.query(AlertSubscription)
+            .filter(AlertSubscription.user_id == user.id, AlertSubscription.destination_id == p.destination_id)
+            .first()
+        )
+        travel_date = subscription.travel_date if subscription else None
+        out.append(
+            AdminUserPurchaseOut(
+                purchase_id=p.id,
+                destination_id=destination.id,
+                destination_name=destination.name,
+                purchased_at=p.created_at,
+                amount_usd=float(p.amount_usd),
+                currently_active=purchase_still_active(
+                    destination, p.created_at, travel_date, admin_override_until=p.admin_override_until
+                ),
+                active_until=purchase_active_until(
+                    destination, p.created_at, travel_date, admin_override_until=p.admin_override_until
+                ),
+                admin_override_until=p.admin_override_until,
+                admin_override_note=p.admin_override_note,
+            )
+        )
+    return out
+
+
+@router.post("/purchases/{purchase_id}/override", response_model=AdminUserPurchaseOut)
+def override_purchase_access(purchase_id: uuid.UUID, body: AdminPurchaseOverrideIn, db: Session = Depends(get_db)) -> AdminUserPurchaseOut:
+    p = db.get(Purchase, purchase_id)
+    if p is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Purchase not found")
+    p.admin_override_until = body.until
+    p.admin_override_note = body.note
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+
+    destination = db.get(Destination, p.destination_id)
+    subscription = (
+        db.query(AlertSubscription)
+        .filter(AlertSubscription.user_id == p.user_id, AlertSubscription.destination_id == p.destination_id)
+        .first()
+    )
+    travel_date = subscription.travel_date if subscription else None
+    return AdminUserPurchaseOut(
+        purchase_id=p.id,
+        destination_id=destination.id,
+        destination_name=destination.name,
+        purchased_at=p.created_at,
+        amount_usd=float(p.amount_usd),
+        currently_active=purchase_still_active(destination, p.created_at, travel_date, admin_override_until=p.admin_override_until),
+        active_until=purchase_active_until(destination, p.created_at, travel_date, admin_override_until=p.admin_override_until),
+        admin_override_until=p.admin_override_until,
+        admin_override_note=p.admin_override_note,
+    )
 
 
 # --- Admin follow-up calendar ------------------------------------------------

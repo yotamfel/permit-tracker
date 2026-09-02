@@ -292,3 +292,22 @@ class AdminOperatorOut(AdminOperatorIn):
     id: uuid.UUID
 
     model_config = {"from_attributes": True}
+
+
+class AdminUserPurchaseOut(BaseModel):
+    purchase_id: uuid.UUID
+    destination_id: uuid.UUID
+    destination_name: str
+    purchased_at: datetime
+    amount_usd: float
+    currently_active: bool
+    active_until: datetime | None
+    admin_override_until: datetime | None
+    admin_override_note: str | None
+
+
+class AdminPurchaseOverrideIn(BaseModel):
+    # Set until=null to clear an existing override and fall back to the
+    # normal cycle-expiry calculation.
+    until: datetime | None
+    note: str | None = None

@@ -50,6 +50,7 @@ export default function Admin() {
       {tab === "review" && <ReviewQueueTab onCountChange={setReviewCount} />}
       {tab === "monitoring" && <MonitoringTab t={t} />}
       {tab === "stats" && <StatsTab />}
+      {tab === "users" && <UsersTab />}
       {tab === "feedback" && <FeedbackStatsTab />}
       {tab === "inquiries" && <InquiriesTab />}
       {tab === "follow-ups" && (
@@ -71,6 +72,7 @@ const TABS = [
   { key: "destinations", label: "Destinations" },
   { key: "monitoring", label: "Monitoring diffs" },
   { key: "stats", label: "Stats" },
+  { key: "users", label: "Users" },
   { key: "feedback", label: "Feedback" },
   { key: "inquiries", label: "Inquiries" },
   { key: "follow-ups", label: "Follow-ups" },
@@ -481,6 +483,149 @@ function ReviewQueueTab({ onCountChange }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function UsersTab() {
+  const [email, setEmail] = useState("");
+  const [purchases, setPurchases] = useState(null);
+  const [searched, setSearched] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [untilInput, setUntilInput] = useState("");
+  const [noteInput, setNoteInput] = useState("");
+
+  const search = async (e) => {
+    e?.preventDefault();
+    if (!email.trim()) return;
+    const res = await api.get("/admin/api/purchases/lookup", { params: { email: email.trim() } });
+    setPurchases(res.data);
+    setSearched(true);
+  };
+
+  const startEdit = (p) => {
+    setEditingId(p.purchase_id);
+    setUntilInput(p.admin_override_until ? p.admin_override_until.slice(0, 10) : "");
+    setNoteInput(p.admin_override_note || "");
+  };
+
+  const saveOverride = async (purchaseId) => {
+    // A blank date means "reopen indefinitely" in this form - the backend
+    // treats until=null as "no override" (falls back to normal cycle rules),
+    // so an empty field is sent as a far-future date instead of null.
+    const until = untilInput ? new Date(untilInput).toISOString() : new Date("2100-01-01").toISOString();
+    const res = await api.post(`/admin/api/purchases/${purchaseId}/override`, {
+      until,
+      note: noteInput || null,
+    });
+    setPurchases((cur) => cur.map((p) => (p.purchase_id === purchaseId ? res.data : p)));
+    setEditingId(null);
+  };
+
+  const clearOverride = async (purchaseId) => {
+    const res = await api.post(`/admin/api/purchases/${purchaseId}/override`, { until: null, note: null });
+    setPurchases((cur) => cur.map((p) => (p.purchase_id === purchaseId ? res.data : p)));
+    setEditingId(null);
+  };
+
+  return (
+    <div className="mt-6">
+      <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
+        Look up a user's purchases and, if a destination locked again for them by mistake (or any other reason),
+        manually reopen it - either until a specific date, or leave the date blank to reopen indefinitely.
+      </p>
+      <form onSubmit={search} className="flex gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="user@example.com"
+          className="w-64 rounded border border-slate-300 bg-transparent px-2 py-1 text-sm dark:border-slate-700"
+        />
+        <button type="submit" className="rounded bg-slate-700 px-3 py-1 text-xs text-white">
+          Search
+        </button>
+      </form>
+
+      {searched && purchases.length === 0 && (
+        <p className="mt-4 text-sm text-slate-500 dark:text-slate-300">No completed purchases found for this email.</p>
+      )}
+
+      {purchases && purchases.length > 0 && (
+        <table className="mt-4 w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-300">
+              <th className="pb-2">Destination</th>
+              <th className="pb-2">Purchased</th>
+              <th className="pb-2">Status</th>
+              <th className="pb-2">Active until</th>
+              <th className="pb-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {purchases.map((p) => (
+              <tr key={p.purchase_id} className="border-b border-slate-100 align-top dark:border-slate-900">
+                <td className="py-2">{p.destination_name}</td>
+                <td className="py-2">{new Date(p.purchased_at).toLocaleDateString()}</td>
+                <td className="py-2">
+                  {p.currently_active ? (
+                    <span className="text-emerald-600 dark:text-emerald-400">Unlocked</span>
+                  ) : (
+                    <span className="text-red-600 dark:text-red-400">Locked</span>
+                  )}
+                </td>
+                <td className="py-2">
+                  {p.active_until
+                    ? new Date(p.active_until).getFullYear() >= 2100
+                      ? "Indefinite"
+                      : new Date(p.active_until).toLocaleDateString()
+                    : "-"}
+                  {p.admin_override_note && (
+                    <div className="text-xs text-slate-500 dark:text-slate-400">Override note: {p.admin_override_note}</div>
+                  )}
+                </td>
+                <td className="py-2">
+                  {editingId === p.purchase_id ? (
+                    <div className="flex flex-col gap-1">
+                      <input
+                        type="date"
+                        value={untilInput}
+                        onChange={(e) => setUntilInput(e.target.value)}
+                        className="rounded border border-slate-300 bg-transparent px-1.5 py-0.5 text-xs dark:border-slate-700"
+                      />
+                      <input
+                        value={noteInput}
+                        onChange={(e) => setNoteInput(e.target.value)}
+                        placeholder="Reason (optional)"
+                        className="rounded border border-slate-300 bg-transparent px-1.5 py-0.5 text-xs dark:border-slate-700"
+                      />
+                      <div className="flex gap-2">
+                        <button onClick={() => saveOverride(p.purchase_id)} className="text-xs text-amber-700 underline dark:text-amber-400">
+                          Save (blank date = reopen indefinitely)
+                        </button>
+                        <button onClick={() => setEditingId(null)} className="text-xs text-slate-500 underline">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button onClick={() => startEdit(p)} className="text-xs text-amber-700 underline dark:text-amber-400">
+                        {p.admin_override_until || (!p.currently_active && p.admin_override_note) ? "Edit override" : "Reopen access"}
+                      </button>
+                      {(p.admin_override_until || p.admin_override_note) && (
+                        <button onClick={() => clearOverride(p.purchase_id)} className="text-xs text-red-600 underline">
+                          Clear override
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
