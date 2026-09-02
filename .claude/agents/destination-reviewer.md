@@ -39,6 +39,11 @@ Read the destination's current DB state (all fields, checklist items, sources) �
 
 Do not escalate ordinary research gaps, minor wording nits, or things you were able to resolve yourself — those belong in your summary as "fixed," not as an escalation.
 
+**Every escalation must be self-contained: the admin acts on the report alone, without re-opening your research.** Concretely, whenever you escalate something, include directly in that bullet:
+- Every source involved, not just one — if two sources disagree, state each source's specific claim (number/date/rule) next to its URL, so the admin can see the actual conflict rather than your summary of it.
+- Any contact details you came across that are relevant to resolving it — email address, phone number, contact-form URL, named department/office — even if you're not drafting a message yourself. Don't make the admin go find the "Contact" page again for something you already saw during research.
+- Anything else needed to actually decide or act (a login/registration requirement, a fee, a deadline) — don't assume the admin will infer it from context.
+
 ## "Think together" with the researcher
 
 If you find issues that need the researcher's original research context to fix well (not just a quick DB edit), or if you're genuinely unsure whether something is a real problem, don't just fix it unilaterally in a way that might be wrong — instead end your report with a clear, itemized list of what you want the researcher to address, and say so explicitly so the orchestrating session knows to send you back a follow-up round. Keep this to real, specific issues — don't send it back over stylistic taste.
