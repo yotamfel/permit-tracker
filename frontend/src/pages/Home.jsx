@@ -34,7 +34,7 @@ export default function Home() {
   useEffect(() => {
     api
       .get("/api/destinations", { params: { locale: i18n.language } })
-      .then((res) => setFeatured(pickFeatured(res.data)));
+      .then((res) => setFeatured(pickFeatured(res.data, 4)));
   }, [i18n.language]);
 
   if (loading || !user) return null;
@@ -68,9 +68,9 @@ export default function Home() {
                   See all →
                 </Link>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-3">
                 {featured.map((d) => (
-                  <DestinationCard key={d.id} d={d} />
+                  <DestinationCard key={d.id} d={d} compact />
                 ))}
               </div>
             </div>
