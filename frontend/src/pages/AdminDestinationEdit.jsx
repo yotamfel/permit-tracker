@@ -102,6 +102,10 @@ export default function AdminDestinationEdit() {
   };
 
   const discard = async () => {
+    const warning = form.is_published
+      ? `"${form.name}" is LIVE and PUBLISHED right now. Deleting it removes it from the site permanently and cannot be undone. Are you sure?`
+      : `Permanently delete "${form.name}"? This cannot be undone.`;
+    if (!window.confirm(warning)) return;
     await api.delete(`/admin/api/destinations/${id}`);
     navigate("/admin");
   };

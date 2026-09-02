@@ -33,11 +33,9 @@ export default function Header() {
               {t("nav.account")}
             </Link>
           )}
-          {user && (
-            <button onClick={openGuide} className="hover:text-amber-700 dark:hover:text-amber-400">
-              How it works
-            </button>
-          )}
+          <button onClick={openGuide} className="hover:text-amber-700 dark:hover:text-amber-400">
+            How it works
+          </button>
           {user?.is_admin && (
             <Link to="/admin" className="hover:text-amber-700 dark:hover:text-amber-400">
               {t("nav.admin")}

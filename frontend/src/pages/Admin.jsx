@@ -330,7 +330,8 @@ function DestinationsTab({ onCountChange }) {
     load();
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`"${name}" is LIVE and PUBLISHED right now. Deleting it removes it from the site permanently and cannot be undone. Are you sure?`)) return;
     await api.delete(`/admin/api/destinations/${id}`);
     load();
   };
@@ -355,7 +356,7 @@ function DestinationsTab({ onCountChange }) {
               <Link to={`/admin/destinations/${d.id}`} className="underline">
                 edit
               </Link>
-              <button onClick={() => handleDelete(d.id)} className="text-red-600 underline">
+              <button onClick={() => handleDelete(d.id, d.name)} className="text-red-600 underline">
                 delete
               </button>
             </div>
