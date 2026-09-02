@@ -328,25 +328,6 @@ export default function DestinationDetail() {
         </section>
       )}
 
-      {destination.is_owned && destination.alternatives.length > 0 && (
-        <section className="mt-6 rounded-2xl border border-stone-200 p-5 dark:border-stone-800">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">If you don't get in</h2>
-          <ul className="mt-2 space-y-2">
-            {destination.alternatives.map((alt) => (
-              <li key={alt.destination_id}>
-                <Link
-                  to={`/destinations/${alt.destination_id}`}
-                  className="font-medium text-amber-700 hover:underline dark:text-amber-400"
-                >
-                  {alt.name}
-                </Link>
-                {alt.note && <span className="text-sm text-stone-500 dark:text-stone-400"> - {alt.note}</span>}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section className="mt-8 rounded-2xl border border-stone-200 p-5 dark:border-stone-800">
         {destination.is_owned ? (
           <>
