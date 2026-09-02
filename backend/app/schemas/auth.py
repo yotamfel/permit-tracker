@@ -46,6 +46,7 @@ class MeOut(BaseModel):
     email: str
     preferred_locale: str
     theme_preference: ThemePreference
+    country: str | None = None
     is_admin: bool = False
 
     model_config = {"from_attributes": True}
@@ -54,3 +55,8 @@ class MeOut(BaseModel):
 class MeUpdateRequest(BaseModel):
     preferred_locale: str | None = None
     theme_preference: ThemePreference | None = None
+    country: str | None = None
+
+
+class DeleteAccountRequest(BaseModel):
+    reason: str | None = None

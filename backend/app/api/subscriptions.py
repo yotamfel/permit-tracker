@@ -8,10 +8,29 @@ from app.models.alert_subscription import AlertSubscription
 from app.models.destination import Destination
 from app.models.enums import MechanismType
 from app.models.user import User
-from app.schemas.subscription import LEAD_TIME_PRESET_MINUTES, SubscriptionCreateRequest, SubscriptionOut
+from app.schemas.subscription import LEAD_TIME_PRESET_MINUTES, SubscriptionCreateRequest, SubscriptionListOut, SubscriptionOut
 from app.services.ownership import user_owns_destination
 
 router = APIRouter(prefix="/api/subscriptions", tags=["subscriptions"])
+
+
+@router.get("", response_model=list[SubscriptionListOut])
+def list_my_subscriptions(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[SubscriptionListOut]:
+    subs = db.query(AlertSubscription).filter(AlertSubscription.user_id == user.id).all()
+    out = []
+    for s in subs:
+        d = db.get(Destination, s.destination_id)
+        out.append(
+            SubscriptionListOut(
+                id=s.id,
+                destination_id=s.destination_id,
+                destination_name=d.name if d else "(deleted destination)",
+                lead_time_minutes=s.lead_time_minutes,
+                is_active=s.is_active,
+                travel_date=s.travel_date,
+            )
+        )
+    return out
 
 # Mechanism types with no fixed calendar release date - alerting for these requires
 # a user-supplied travel_date to compute "book early" reminders against.

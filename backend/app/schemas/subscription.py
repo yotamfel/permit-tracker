@@ -21,3 +21,7 @@ class SubscriptionOut(BaseModel):
     travel_date: date | None
 
     model_config = {"from_attributes": True}
+
+
+class SubscriptionListOut(SubscriptionOut):
+    destination_name: str

@@ -541,16 +541,22 @@ function PrepSection({ title, items, t, onToggle, files, onFilesChange }) {
   );
 }
 
-// Small attach/view control shown under a checklist row. `files` is the
-// user's full file library (fetched once at the page level) - filtered here
-// to whatever's already attached to this specific row via checklistItemId/
+// Attach/view control shown under a checklist row. `files` is the user's
+// full file library (fetched once at the page level, each with its
+// `attachments` list) - a file can be attached to several rows at once (e.g.
+// one passport scan relevant to several destinations), so "attached here"
+// means it has an attachment entry matching this row's checklistItemId/
 // userChecklistItemId (exactly one of which is set by the caller).
 function FileAttachRow({ files, checklistItemId, userChecklistItemId, onFilesChange }) {
   const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState("");
-  const attached = files.filter((f) =>
-    checklistItemId ? f.checklist_item_id === checklistItemId : f.user_checklist_item_id === userChecklistItemId
-  );
+
+  const matchesRow = (a) => (checklistItemId ? a.checklist_item_id === checklistItemId : a.user_checklist_item_id === userChecklistItemId);
+  const attachedHere = files
+    .map((f) => ({ file: f, attachment: f.attachments.find(matchesRow) }))
+    .filter((x) => x.attachment);
+  const pickable = files.filter((f) => !f.attachments.some(matchesRow));
 
   const upload = async (e) => {
     const file = e.target.files?.[0];
@@ -572,25 +578,35 @@ function FileAttachRow({ files, checklistItemId, userChecklistItemId, onFilesCha
     }
   };
 
-  const remove = async (fileId) => {
-    await api.delete(`/api/me/files/${fileId}`);
+  const linkExisting = async (fileId) => {
+    setPickerOpen(false);
+    await api.post(`/api/me/files/${fileId}/attach`, {
+      checklist_item_id: checklistItemId || null,
+      user_checklist_item_id: userChecklistItemId || null,
+    });
+    onFilesChange();
+  };
+
+  const unlink = async (attachmentId) => {
+    await api.delete(`/api/me/files/attachments/${attachmentId}`);
     onFilesChange();
   };
 
   return (
     <div className="mt-1 flex flex-wrap items-center gap-2 ps-6">
-      {attached.map((f) => (
-        <span key={f.id} className="flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600 dark:bg-stone-800 dark:text-stone-400">
+      {attachedHere.map(({ file: f, attachment }) => (
+        <span key={attachment.id} className="flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600 dark:bg-stone-800 dark:text-stone-400">
           <a href={`${api.defaults.baseURL}/api/me/files/${f.id}/download`} target="_blank" rel="noreferrer" className="hover:underline">
             {f.content_type === "application/pdf" ? "📄" : "🖼️"} {f.filename}
           </a>
-          <button onClick={() => remove(f.id)} aria-label="Remove attachment" className="text-stone-400 hover:text-red-600">
+          <button onClick={() => unlink(attachment.id)} aria-label="Remove attachment" className="text-stone-400 hover:text-red-600">
             ✕
           </button>
         </span>
       ))}
+
       <label className="cursor-pointer text-xs text-amber-700 hover:underline dark:text-amber-400">
-        {uploading ? "Uploading..." : "📎 Attach file"}
+        {uploading ? "Uploading..." : "📎 Upload new"}
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
@@ -599,6 +615,31 @@ function FileAttachRow({ files, checklistItemId, userChecklistItemId, onFilesCha
           className="hidden"
         />
       </label>
+
+      {pickable.length > 0 && (
+        <div className="relative">
+          <button type="button" onClick={() => setPickerOpen((o) => !o)} className="text-xs text-amber-700 hover:underline dark:text-amber-400">
+            Choose from your files
+          </button>
+          {pickerOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
+              <div className="absolute z-20 mt-1 max-h-48 w-56 overflow-y-auto rounded-lg border border-stone-200 bg-white shadow-lg dark:border-stone-800 dark:bg-stone-900">
+                {pickable.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => linkExisting(f.id)}
+                    className="block w-full truncate px-2 py-1.5 text-left text-xs hover:bg-stone-100 dark:hover:bg-stone-800"
+                  >
+                    {f.content_type === "application/pdf" ? "📄" : "🖼️"} {f.filename}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
       {error && <span className="text-xs text-red-600">{error}</span>}
     </div>
   );

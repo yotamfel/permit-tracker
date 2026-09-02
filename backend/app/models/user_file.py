@@ -19,10 +19,10 @@ class UserFile(UUIDPKMixin, TimestampMixin, Base):
     volume (a handful of personal documents per user) makes this simpler than
     standing up a separate object-storage provider; revisit if that changes.
 
-    Always visible in the user's general "My files" library. Optionally also
-    attached to one specific checklist row (admin-authored or the user's own
-    custom item) so it shows inline there too - at most one of the two FKs
-    is set, never both."""
+    Always visible in the user's general "My files" library, independent of
+    whether it's linked to any checklist row - see UserFileAttachment for
+    that (a many-to-many relationship: one file, e.g. a passport scan, can
+    usefully attach to several checklist rows across different destinations)."""
 
     __tablename__ = "user_files"
 
@@ -34,6 +34,17 @@ class UserFile(UUIDPKMixin, TimestampMixin, Base):
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
 
+
+class UserFileAttachment(UUIDPKMixin, TimestampMixin, Base):
+    """Links one UserFile to one checklist row (admin-authored or the user's
+    own custom item - exactly one of the two FKs is set). A file can have
+    any number of these (including zero, if it just sits in the library)."""
+
+    __tablename__ = "user_file_attachments"
+
+    file_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("user_files.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     checklist_item_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("checklist_items.id", ondelete="CASCADE"), nullable=True, index=True
     )

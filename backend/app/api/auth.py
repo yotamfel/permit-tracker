@@ -11,8 +11,11 @@ from app.core.config import get_settings
 from app.core.deps import get_current_user, get_db
 from app.core.rate_limit import limiter
 from app.core.security import create_access_token, hash_password, verify_password
+from app.models.admin_user import AdminUser
+from app.models.contact_message import ContactMessage
 from app.models.user import User
 from app.schemas.auth import (
+    DeleteAccountRequest,
     ForgotPasswordRequest,
     GoogleAuthRequest,
     LoginRequest,
@@ -22,7 +25,7 @@ from app.schemas.auth import (
     SignupRequest,
     TokenResponse,
 )
-from app.services.email_service import send_password_reset_email
+from app.services.email_service import send_contact_notification, send_password_reset_email
 from app.services.ownership import is_admin
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -156,7 +159,36 @@ def update_me(body: MeUpdateRequest, user: User = Depends(get_current_user), db:
         user.preferred_locale = body.preferred_locale
     if body.theme_preference is not None:
         user.theme_preference = body.theme_preference
+    if body.country is not None:
+        user.country = body.country
     db.add(user)
     db.commit()
     db.refresh(user)
-    return MeOut.model_validate(user)
+    out = MeOut.model_validate(user)
+    out.is_admin = is_admin(db, user)
+    return out
+
+
+@me_router.post("/delete-account-request", status_code=status.HTTP_201_CREATED)
+def request_account_deletion(
+    body: DeleteAccountRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> dict:
+    """Self-service deletion is deliberately NOT instant - purchases carry
+    financial/accounting records the business needs to keep, and User has
+    several ondelete=CASCADE relationships that would silently wipe them.
+    This raises a flagged request for the admin to process by hand (matches
+    what the Privacy Policy already tells users to expect)."""
+    message = f"ACCOUNT DELETION REQUEST from {user.email} (user_id={user.id})."
+    if body.reason:
+        message += f"\n\nReason given: {body.reason}"
+    msg = ContactMessage(name=user.email, email=user.email, message=message, user_id=user.id)
+    db.add(msg)
+    db.commit()
+
+    try:
+        admin_emails = [a.email for a in db.query(AdminUser).all()]
+        send_contact_notification(admin_emails, user.email, user.email, message)
+    except Exception:
+        logger.exception("Failed to send account-deletion-request notification for %s", user.id)
+
+    return {"status": "received"}
