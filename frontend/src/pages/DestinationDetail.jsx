@@ -33,6 +33,7 @@ export default function DestinationDetail() {
   const [subscription, setSubscription] = useState({ lead_time_minutes: 10080, travel_date: "" });
   const [alertMessage, setAlertMessage] = useState("");
   const [calendarStatus, setCalendarStatus] = useState("");
+  const [files, setFiles] = useState([]);
 
   const load = useCallback(() => {
     api.get(`/api/destinations/${id}`, { params: { locale: i18n.language } }).then((res) => setDestination(res.data));
@@ -41,9 +42,15 @@ export default function DestinationDetail() {
       .then((res) => setChecklist(res.data));
   }, [id, i18n.language]);
 
+  const refreshFiles = useCallback(() => {
+    if (!user) return;
+    api.get("/api/me/files").then((res) => setFiles(res.data));
+  }, [user]);
+
   useEffect(() => {
     load();
-  }, [load]);
+    refreshFiles();
+  }, [load, refreshFiles]);
 
   const handleUnlock = async () => {
     setError("");
@@ -228,12 +235,16 @@ export default function DestinationDetail() {
                 items={checklist.items.filter((i) => i.section === "specific")}
                 t={t}
                 onToggle={handleToggleItem}
+                files={files}
+                onFilesChange={refreshFiles}
               />
               <CustomChecklistSection
                 items={checklist.items.filter((i) => i.section === "custom")}
                 onToggle={handleToggleItem}
                 onDelete={handleDeleteCustomItem}
                 onAdd={handleAddCustomItem}
+                files={files}
+                onFilesChange={refreshFiles}
               />
             </div>
             <GoodToKnowSection
@@ -516,21 +527,84 @@ function ChecklistProgress({ items }) {
   );
 }
 
-function PrepSection({ title, items, t, onToggle }) {
+function PrepSection({ title, items, t, onToggle, files, onFilesChange }) {
   if (items.length === 0) return null;
   return (
     <div className="mt-3">
       <h3 className="text-sm font-semibold text-stone-500 dark:text-stone-400">{title}</h3>
       <ul className="mt-1 space-y-2">
         {items.map((item) => (
-          <PrepItem key={item.id} item={item} t={t} onToggle={onToggle} />
+          <PrepItem key={item.id} item={item} t={t} onToggle={onToggle} files={files} onFilesChange={onFilesChange} />
         ))}
       </ul>
     </div>
   );
 }
 
-function CustomChecklistSection({ items, onToggle, onDelete, onAdd }) {
+// Small attach/view control shown under a checklist row. `files` is the
+// user's full file library (fetched once at the page level) - filtered here
+// to whatever's already attached to this specific row via checklistItemId/
+// userChecklistItemId (exactly one of which is set by the caller).
+function FileAttachRow({ files, checklistItemId, userChecklistItemId, onFilesChange }) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const attached = files.filter((f) =>
+    checklistItemId ? f.checklist_item_id === checklistItemId : f.user_checklist_item_id === userChecklistItemId
+  );
+
+  const upload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setError("");
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (checklistItemId) formData.append("checklist_item_id", checklistItemId);
+      if (userChecklistItemId) formData.append("user_checklist_item_id", userChecklistItemId);
+      await api.post("/api/me/files", formData);
+      onFilesChange();
+    } catch (err) {
+      setError(err.response?.data?.detail || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const remove = async (fileId) => {
+    await api.delete(`/api/me/files/${fileId}`);
+    onFilesChange();
+  };
+
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-2 ps-6">
+      {attached.map((f) => (
+        <span key={f.id} className="flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600 dark:bg-stone-800 dark:text-stone-400">
+          <a href={`${api.defaults.baseURL}/api/me/files/${f.id}/download`} target="_blank" rel="noreferrer" className="hover:underline">
+            {f.content_type === "application/pdf" ? "📄" : "🖼️"} {f.filename}
+          </a>
+          <button onClick={() => remove(f.id)} aria-label="Remove attachment" className="text-stone-400 hover:text-red-600">
+            ✕
+          </button>
+        </span>
+      ))}
+      <label className="cursor-pointer text-xs text-amber-700 hover:underline dark:text-amber-400">
+        {uploading ? "Uploading..." : "📎 Attach file"}
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+          onChange={upload}
+          disabled={uploading}
+          className="hidden"
+        />
+      </label>
+      {error && <span className="text-xs text-red-600">{error}</span>}
+    </div>
+  );
+}
+
+function CustomChecklistSection({ items, onToggle, onDelete, onAdd, files, onFilesChange }) {
   const [draft, setDraft] = useState("");
   const [adding, setAdding] = useState(false);
 
@@ -554,22 +628,25 @@ function CustomChecklistSection({ items, onToggle, onDelete, onAdd }) {
           {items.map((item) => (
             <li
               key={item.id}
-              className={`flex items-start gap-2 rounded-lg px-2 py-1 text-sm ${item.is_completed ? "border border-emerald-300 dark:border-emerald-800" : ""}`}
+              className={`rounded-lg px-2 py-1 text-sm ${item.is_completed ? "border border-emerald-300 dark:border-emerald-800" : ""}`}
             >
-              <input
-                type="checkbox"
-                checked={item.is_completed}
-                onChange={() => onToggle(item.id, true)}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
-              />
-              <span className="flex-1 text-stone-800 dark:text-stone-300">{item.text}</span>
-              <button
-                onClick={() => onDelete(item.id)}
-                aria-label="Remove"
-                className="shrink-0 text-stone-400 hover:text-red-600"
-              >
-                ✕
-              </button>
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={item.is_completed}
+                  onChange={() => onToggle(item.id, true)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
+                />
+                <span className="flex-1 text-stone-800 dark:text-stone-300">{item.text}</span>
+                <button
+                  onClick={() => onDelete(item.id)}
+                  aria-label="Remove"
+                  className="shrink-0 text-stone-400 hover:text-red-600"
+                >
+                  ✕
+                </button>
+              </div>
+              {files && <FileAttachRow files={files} userChecklistItemId={item.id} onFilesChange={onFilesChange} />}
             </li>
           ))}
         </ul>
@@ -628,35 +705,38 @@ function GoodToKnowSection({ title, items }) {
   );
 }
 
-function PrepItem({ item, t, onToggle }) {
+function PrepItem({ item, t, onToggle, files, onFilesChange }) {
   return (
     <li
-      className={`flex items-start gap-2 rounded-lg px-2 py-1 text-sm ${item.is_completed ? "border border-emerald-300 dark:border-emerald-800" : ""}`}
+      className={`rounded-lg px-2 py-1 text-sm ${item.is_completed ? "border border-emerald-300 dark:border-emerald-800" : ""}`}
     >
-      <input
-        type="checkbox"
-        checked={item.is_completed}
-        onChange={() => onToggle(item.id)}
-        className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
-      />
-      <span>
-        <span className="text-stone-800 dark:text-stone-300">
-          {item.text}{" "}
-          <span className="text-xs text-stone-400">
-            ({item.is_required ? t("destination.required") : t("destination.optional")})
+      <div className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          checked={item.is_completed}
+          onChange={() => onToggle(item.id)}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-amber-600"
+        />
+        <span>
+          <span className="text-stone-800 dark:text-stone-300">
+            {item.text}{" "}
+            <span className="text-xs text-stone-400">
+              ({item.is_required ? t("destination.required") : t("destination.optional")})
+            </span>
           </span>
+          {item.link_url && (
+            <a
+              href={item.link_url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-0.5 block text-xs text-amber-700 hover:underline dark:text-amber-400"
+            >
+              {item.link_url} ↗
+            </a>
+          )}
         </span>
-        {item.link_url && (
-          <a
-            href={item.link_url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-0.5 block text-xs text-amber-700 hover:underline dark:text-amber-400"
-          >
-            {item.link_url} ↗
-          </a>
-        )}
-      </span>
+      </div>
+      {files && <FileAttachRow files={files} checklistItemId={item.id} onFilesChange={onFilesChange} />}
     </li>
   );
 }

@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
+from app.models.alert_subscription import AlertSubscription
 from app.models.destination import Destination
 from app.models.enums import Platform, PurchaseStatus
 from app.models.purchase import Purchase
 from app.models.user import User
 from app.schemas.purchase import CheckoutSessionOut, PurchaseOut
+from app.services.purchase_cycle import purchase_still_active
 from app.services.stripe_service import create_checkout_session
 
 router = APIRouter(tags=["checkout"])
@@ -22,17 +24,30 @@ def create_checkout(
     if d is None or not d.is_published:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
 
-    already_owned = (
+    # Only block re-purchase if a completed purchase is still within its
+    # cycle - a lapsed one must NOT block buying again for the next cycle
+    # (see app/services/purchase_cycle.py).
+    latest_purchase = (
         db.query(Purchase)
         .filter(
             Purchase.user_id == user.id,
             Purchase.destination_id == destination_id,
             Purchase.status == PurchaseStatus.completed,
         )
+        .order_by(Purchase.created_at.desc())
         .first()
     )
-    if already_owned is not None:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Destination already unlocked")
+    if latest_purchase is not None:
+        subscription = (
+            db.query(AlertSubscription)
+            .filter(AlertSubscription.user_id == user.id, AlertSubscription.destination_id == destination_id)
+            .first()
+        )
+        travel_date = subscription.travel_date if subscription else None
+        if purchase_still_active(
+            d, latest_purchase.created_at, travel_date, admin_override_until=latest_purchase.admin_override_until
+        ):
+            raise HTTPException(status.HTTP_409_CONFLICT, "Destination already unlocked")
 
     checkout_url = create_checkout_session(
         destination_id=str(d.id),
@@ -60,11 +75,23 @@ def list_my_purchases(user: User = Depends(get_current_user), db: Session = Depe
     purchases = (
         db.query(Purchase)
         .filter(Purchase.user_id == user.id, Purchase.status == PurchaseStatus.completed)
+        .order_by(Purchase.created_at.desc())
         .all()
     )
     out = []
     for p in purchases:
         d = db.get(Destination, p.destination_id)
+        subscription = (
+            db.query(AlertSubscription)
+            .filter(AlertSubscription.user_id == user.id, AlertSubscription.destination_id == p.destination_id)
+            .first()
+        )
+        travel_date = subscription.travel_date if subscription else None
+        is_active = (
+            purchase_still_active(d, p.created_at, travel_date, admin_override_until=p.admin_override_until)
+            if d is not None
+            else False
+        )
         out.append(
             PurchaseOut(
                 id=p.id,
@@ -72,6 +99,7 @@ def list_my_purchases(user: User = Depends(get_current_user), db: Session = Depe
                 destination_name=d.name if d else "",
                 amount_usd=float(p.amount_usd),
                 status=p.status,
+                is_active=is_active,
             )
         )
     return out

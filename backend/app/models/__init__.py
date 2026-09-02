@@ -17,6 +17,7 @@ from app.models.purchase import Purchase
 from app.models.translation import Translation
 from app.models.user import User
 from app.models.user_checklist_item import UserChecklistItem
+from app.models.user_file import UserFile
 
 __all__ = [
     "AdminFollowUp",
@@ -40,4 +41,5 @@ __all__ = [
     "Translation",
     "User",
     "UserChecklistItem",
+    "UserFile",
 ]
