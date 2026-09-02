@@ -149,10 +149,12 @@ export default function DestinationDetail() {
       <span className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
         {t(`category.${destination.category}`)}
       </span>
-      <h1 className="mt-1 text-3xl font-extrabold text-stone-900 dark:text-stone-50">{destination.name}</h1>
+      <h1 className="mt-1 font-display text-3xl font-bold text-stone-900 dark:text-stone-50">{destination.name}</h1>
       <p className="text-stone-500 dark:text-stone-400">{destination.country}</p>
 
-      {destination.description && <p className="mt-4 text-stone-800 dark:text-stone-300">{destination.description}</p>}
+      {destination.description && (
+        <p className="mt-4 max-w-prose text-stone-800 leading-relaxed dark:text-stone-300">{destination.description}</p>
+      )}
 
       <CompetitivenessNote level={destination.competitiveness_level} />
 
@@ -262,7 +264,7 @@ export default function DestinationDetail() {
             href={destination.application_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+            className="inline-block rounded-full bg-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-700"
           >
             Continue to the official application site ↗
           </a>

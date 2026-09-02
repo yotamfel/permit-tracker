@@ -25,13 +25,16 @@ const OPENS_SOON_OPTIONS = [
   ["90", "Within 90 days"],
 ];
 
+const EMPTY_FILTERS = { country: "", category: "", region: "", opensSoon: "", season: "" };
+
 export default function Browse() {
   const { t, i18n } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ country: "", category: "", region: "", opensSoon: "", season: "" });
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
     // The full catalog is an account perk - guests get a small taste on the
@@ -56,6 +59,15 @@ export default function Browse() {
 
   const countries = useMemo(() => [...new Set(destinations.map((d) => d.country))].sort(), [destinations]);
   const regions = useMemo(() => [...new Set(destinations.map((d) => regionFor(d.country)))].sort(), [destinations]);
+
+  const filterDefs = [
+    { key: "country", label: t("browse.filter_country"), allLabel: t("browse.all"), options: countries.map((c) => [c, c]) },
+    { key: "category", label: t("browse.filter_category"), allLabel: t("browse.all"), options: CATEGORIES.map((c) => [c, t(`category.${c}`)]) },
+    { key: "region", label: "Region", allLabel: t("browse.all"), options: regions.map((r) => [r, r]) },
+    { key: "opensSoon", label: "Opens soon", allLabel: "Any time", options: OPENS_SOON_OPTIONS },
+    { key: "season", label: "Season", allLabel: t("browse.all"), options: MONTH_NAMES.map((m, i) => [String(i + 1), m]) },
+  ];
+  const activeFilters = filterDefs.filter((f) => filters[f.key]);
 
   const filtered = useMemo(() => {
     const now = Date.now();
@@ -83,42 +95,79 @@ export default function Browse() {
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Catalog</h1>
       <p className="mt-1 text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        <FilterChip
-          label={t("browse.filter_country")}
-          value={filters.country}
-          onChange={(v) => setFilters((f) => ({ ...f, country: v }))}
-          options={countries.map((c) => [c, c])}
-          allLabel={t("browse.all")}
-        />
-        <FilterChip
-          label={t("browse.filter_category")}
-          value={filters.category}
-          onChange={(v) => setFilters((f) => ({ ...f, category: v }))}
-          options={CATEGORIES.map((c) => [c, t(`category.${c}`)])}
-          allLabel={t("browse.all")}
-        />
-        <FilterChip
-          label="Region"
-          value={filters.region}
-          onChange={(v) => setFilters((f) => ({ ...f, region: v }))}
-          options={regions.map((r) => [r, r])}
-          allLabel={t("browse.all")}
-        />
-        <FilterChip
-          label="Opens soon"
-          value={filters.opensSoon}
-          onChange={(v) => setFilters((f) => ({ ...f, opensSoon: v }))}
-          options={OPENS_SOON_OPTIONS}
-          allLabel="Any time"
-        />
-        <FilterChip
-          label="Season"
-          value={filters.season}
-          onChange={(v) => setFilters((f) => ({ ...f, season: v }))}
-          options={MONTH_NAMES.map((m, i) => [String(i + 1), m])}
-          allLabel={t("browse.all")}
-        />
+      <div className="relative mt-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPanelOpen((o) => !o)}
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${
+              activeFilters.length > 0
+                ? "border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                : "border-stone-300 text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+            }`}
+          >
+            <span aria-hidden="true">⚙</span>
+            Filters{activeFilters.length > 0 ? ` (${activeFilters.length})` : ""}
+            <span aria-hidden="true" className="text-xs">
+              {panelOpen ? "▴" : "▾"}
+            </span>
+          </button>
+
+          {activeFilters.map((f) => {
+            const selectedLabel = f.options.find(([v]) => v === filters[f.key])?.[1] ?? filters[f.key];
+            return (
+              <span
+                key={f.key}
+                className="flex items-center gap-1.5 rounded-full border border-amber-400 bg-amber-50 px-3 py-1.5 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+              >
+                {f.label}: {selectedLabel}
+                <button
+                  type="button"
+                  aria-label={`Clear ${f.label} filter`}
+                  onClick={() => setFilters((cur) => ({ ...cur, [f.key]: "" }))}
+                  className="text-amber-600 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-100"
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
+
+          {activeFilters.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setFilters(EMPTY_FILTERS)}
+              className="text-sm text-stone-500 underline hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+
+        {panelOpen && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setPanelOpen(false)} />
+            <div className="absolute z-20 mt-2 grid w-full grid-cols-1 gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-lg sm:grid-cols-2 lg:grid-cols-3 dark:border-stone-800 dark:bg-stone-900">
+              {filterDefs.map((f) => (
+                <label key={f.key} className="block text-sm">
+                  <span className="mb-1 block font-medium text-stone-700 dark:text-stone-300">{f.label}</span>
+                  <select
+                    value={filters[f.key]}
+                    onChange={(e) => setFilters((cur) => ({ ...cur, [f.key]: e.target.value }))}
+                    className="block w-full rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+                  >
+                    <option value="">{f.allLabel}</option>
+                    {f.options.map(([v, label]) => (
+                      <option key={v} value={v}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {loading ? (
@@ -131,63 +180,6 @@ export default function Browse() {
             <DestinationCard key={d.id} d={d} />
           ))}
         </div>
-      )}
-    </div>
-  );
-}
-
-function FilterChip({ label, value, onChange, options, allLabel }) {
-  const [open, setOpen] = useState(false);
-  const selectedLabel = value ? options.find(([v]) => v === value)?.[1] ?? value : null;
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${
-          value
-            ? "border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-            : "border-stone-300 text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
-        }`}
-      >
-        {selectedLabel ? `${label}: ${selectedLabel}` : label}
-        <span aria-hidden="true" className="text-xs">
-          ▾
-        </span>
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute z-20 mt-1 max-h-64 w-56 overflow-y-auto rounded-xl border border-stone-200 bg-white p-1 shadow-lg dark:border-stone-800 dark:bg-stone-900">
-            <button
-              type="button"
-              onClick={() => {
-                onChange("");
-                setOpen(false);
-              }}
-              className={`block w-full rounded-lg px-3 py-1.5 text-left text-sm ${!value ? "bg-amber-100 font-medium dark:bg-amber-900/40" : "hover:bg-stone-100 dark:hover:bg-stone-800"}`}
-            >
-              {allLabel}
-            </button>
-            {options.map(([value_, labelText]) => (
-              <button
-                type="button"
-                key={value_}
-                onClick={() => {
-                  onChange(value_);
-                  setOpen(false);
-                }}
-                className={`block w-full rounded-lg px-3 py-1.5 text-left text-sm ${
-                  value === value_ ? "bg-amber-100 font-medium dark:bg-amber-900/40" : "hover:bg-stone-100 dark:hover:bg-stone-800"
-                }`}
-              >
-                {labelText}
-              </button>
-            ))}
-          </div>
-        </>
       )}
     </div>
   );
