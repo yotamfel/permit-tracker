@@ -45,6 +45,7 @@ from app.schemas.admin import (
     AdminTranslationIn,
     AdminTranslationOut,
     AdminUserPurchaseOut,
+    CountryStatsOut,
     DestinationFeedbackStatsOut,
     DestinationPurchaseStatsOut,
     FeedbackStatsOut,
@@ -869,12 +870,19 @@ def purchase_stats(db: Session = Depends(get_db)) -> PurchaseStatsOut:
     total_accounts = db.query(User).count()
     recent_accounts = db.query(User).filter(User.created_at >= seven_days_ago).count()
 
+    country_counts: dict[str, int] = {}
+    for (country,) in db.query(User.country).all():
+        country_counts[country or "Not specified"] = country_counts.get(country or "Not specified", 0) + 1
+    country_rows = [CountryStatsOut(country=c, count=n) for c, n in country_counts.items()]
+    country_rows.sort(key=lambda r: r.count, reverse=True)
+
     return PurchaseStatsOut(
         total_purchases=len(completed),
         total_revenue_usd=round(sum(float(p.amount_usd) for p in completed), 2),
         total_accounts=total_accounts,
         accounts_created_last_7_days=recent_accounts,
         by_destination=rows,
+        by_country=country_rows,
     )
 
 

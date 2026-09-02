@@ -35,8 +35,13 @@ export function AuthProvider({ children }) {
     await refreshMe();
   };
 
-  const signup = async (email, password, termsAccepted) => {
-    const res = await api.post("/api/auth/signup", { email, password, terms_accepted: termsAccepted });
+  const signup = async (email, password, termsAccepted, country) => {
+    const res = await api.post("/api/auth/signup", {
+      email,
+      password,
+      terms_accepted: termsAccepted,
+      country: country || null,
+    });
     localStorage.setItem("token", res.data.access_token);
     await refreshMe();
   };

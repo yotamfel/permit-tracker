@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../lib/AuthContext";
 import GoogleSignInButton from "../components/GoogleSignInButton";
+import CountryPicker from "../components/CountryPicker";
 
 export default function Signup() {
   const { t } = useTranslation();
@@ -10,6 +11,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [country, setCountry] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,7 +19,7 @@ export default function Signup() {
     e.preventDefault();
     setError("");
     try {
-      await signup(email, password, termsAccepted);
+      await signup(email, password, termsAccepted, country);
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.detail || t("auth.error"));
@@ -91,6 +93,7 @@ export default function Signup() {
           onChange={(e) => setPassword(e.target.value)}
           className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
         />
+        <CountryPicker value={country} onChange={setCountry} />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"

@@ -24,3 +24,6 @@ class User(UUIDPKMixin, TimestampMixin, Base):
     # the terms a given user actually agreed to if they're revised later.
     terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     terms_version: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Self-reported at signup (optional) - shown back to the admin as a
+    # breakdown in the Stats tab, not used anywhere else.
+    country: Mapped[str | None] = mapped_column(String, nullable=True)

@@ -22,12 +22,18 @@ class DestinationPurchaseStatsOut(BaseModel):
     revenue_usd: float
 
 
+class CountryStatsOut(BaseModel):
+    country: str
+    count: int
+
+
 class PurchaseStatsOut(BaseModel):
     total_purchases: int
     total_revenue_usd: float
     total_accounts: int
     accounts_created_last_7_days: int
     by_destination: list[DestinationPurchaseStatsOut]
+    by_country: list[CountryStatsOut]
 
 
 class DestinationFeedbackStatsOut(BaseModel):

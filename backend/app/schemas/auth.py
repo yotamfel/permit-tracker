@@ -12,6 +12,7 @@ class SignupRequest(BaseModel):
     # message can be specific ("please accept the terms") rather than a
     # generic 422.
     terms_accepted: bool = False
+    country: str | None = None
 
 
 class LoginRequest(BaseModel):

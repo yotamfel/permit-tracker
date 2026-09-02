@@ -49,6 +49,7 @@ def signup(request: Request, body: SignupRequest, db: Session = Depends(get_db))
         password_hash=hash_password(body.password),
         terms_accepted_at=datetime.now(timezone.utc),
         terms_version=CURRENT_TERMS_VERSION,
+        country=body.country,
     )
     db.add(user)
     db.commit()

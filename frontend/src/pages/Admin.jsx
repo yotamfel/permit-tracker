@@ -711,6 +711,28 @@ function StatsTab() {
           </tbody>
         </table>
       )}
+
+      <h2 className="mb-3 mt-8 text-lg font-semibold">Accounts by country</h2>
+      {stats.by_country.length === 0 ? (
+        <p className="text-sm text-slate-500 dark:text-slate-300">No accounts yet.</p>
+      ) : (
+        <table className="w-full max-w-sm text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-300">
+              <th className="pb-2">Country</th>
+              <th className="pb-2">Accounts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.by_country.map((row) => (
+              <tr key={row.country} className="border-b border-slate-100 dark:border-slate-900">
+                <td className="py-2">{row.country}</td>
+                <td className="py-2">{row.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
