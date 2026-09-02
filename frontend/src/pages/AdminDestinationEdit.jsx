@@ -25,6 +25,7 @@ export default function AdminDestinationEdit() {
   const [checklistItems, setChecklistItems] = useState([]);
   const [sources, setSources] = useState([]);
   const [alternatives, setAlternatives] = useState([]);
+  const [operators, setOperators] = useState([]);
   const [allDestinations, setAllDestinations] = useState([]);
   const [destRequirements, setDestRequirements] = useState([]);
   const [generalRequirements, setGeneralRequirements] = useState([]);
@@ -40,6 +41,7 @@ export default function AdminDestinationEdit() {
     api.get("/admin/api/checklist-items", { params: { destination_id: id } }).then((res) => setChecklistItems(res.data));
     api.get("/admin/api/sources", { params: { destination_id: id } }).then((res) => setSources(res.data));
     api.get("/admin/api/alternatives", { params: { destination_id: id } }).then((res) => setAlternatives(res.data));
+    api.get("/admin/api/operators", { params: { destination_id: id } }).then((res) => setOperators(res.data));
     api.get("/admin/api/destinations").then((res) => setAllDestinations(res.data));
     api.get("/admin/api/destination-requirements", { params: { destination_id: id } }).then((res) => setDestRequirements(res.data));
     api.get("/admin/api/general-requirements").then((res) => setGeneralRequirements(res.data));
@@ -159,6 +161,22 @@ export default function AdminDestinationEdit() {
 
   const deleteAlternative = async (altId) => {
     await api.delete(`/admin/api/alternatives/${altId}`);
+    load();
+  };
+
+  const addOperator = async () => {
+    await api.post("/admin/api/operators", { destination_id: id, name: "", url: "", note: "", order_index: operators.length });
+    load();
+  };
+
+  const updateOperator = async (opId, patch) => {
+    const op = operators.find((o) => o.id === opId);
+    await api.put(`/admin/api/operators/${opId}`, { ...op, ...patch, destination_id: id });
+    load();
+  };
+
+  const deleteOperator = async (opId) => {
+    await api.delete(`/admin/api/operators/${opId}`);
     load();
   };
 
@@ -488,6 +506,45 @@ export default function AdminDestinationEdit() {
           placeholder="https://..."
           className="mt-1 block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1 text-sm dark:border-stone-700"
         />
+      </section>
+
+      <section className="mt-6">
+        <label className="block text-sm font-semibold text-stone-900 dark:text-stone-100">
+          Operators (shown to owners only when Apply URL above is empty - the neutral fallback for destinations with
+          multiple legitimate operators or no online booking at all)
+        </label>
+        <ul className="mt-2 space-y-2">
+          {operators.map((op) => (
+            <li key={op.id} className="rounded border border-stone-200 p-2 dark:border-stone-700">
+              <div className="flex items-center gap-2 text-sm">
+                <input
+                  value={op.name}
+                  onChange={(e) => updateOperator(op.id, { name: e.target.value })}
+                  placeholder="Operator name"
+                  className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
+                />
+                <button onClick={() => deleteOperator(op.id)} className="text-xs text-red-600 underline">
+                  remove
+                </button>
+              </div>
+              <input
+                value={op.url ?? ""}
+                onChange={(e) => updateOperator(op.id, { url: e.target.value })}
+                placeholder="https://... (optional - verified live link only)"
+                className="mt-1.5 block w-full rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+              />
+              <input
+                value={op.note ?? ""}
+                onChange={(e) => updateOperator(op.id, { note: e.target.value })}
+                placeholder="Note (optional)"
+                className="mt-1.5 block w-full rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+              />
+            </li>
+          ))}
+        </ul>
+        <button onClick={addOperator} className="mt-2 rounded bg-stone-700 px-3 py-1 text-xs text-white">
+          + add operator
+        </button>
       </section>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}

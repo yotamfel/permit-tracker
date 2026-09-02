@@ -264,6 +264,30 @@ export default function DestinationDetail() {
         </section>
       )}
 
+      {destination.is_owned && !destination.application_url && destination.operators.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-stone-200 p-5 dark:border-stone-800">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Book through one of these operators</h2>
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+            There's no single official booking site for {destination.name} - these are the legitimate operators.
+            We don't favor any one of them.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {destination.operators.map((op, i) => (
+              <li key={i} className="text-sm">
+                {op.url ? (
+                  <a href={op.url} target="_blank" rel="noreferrer" className="font-medium text-amber-700 hover:underline dark:text-amber-400">
+                    {op.name} ↗
+                  </a>
+                ) : (
+                  <span className="font-medium text-stone-800 dark:text-stone-200">{op.name}</span>
+                )}
+                {op.note && <span className="text-stone-500 dark:text-stone-400"> - {op.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {destination.is_owned && destination.next_known_release && (
         <section className="mt-4">
           <button
@@ -351,7 +375,82 @@ export default function DestinationDetail() {
           </>
         )}
       </section>
+
+      <DestinationContactSection destinationId={id} destinationName={destination.name} userEmail={user?.email} />
     </div>
+  );
+}
+
+function DestinationContactSection({ destinationId, destinationName, userEmail }) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", email: userEmail || "", message: "" });
+  const [status, setStatus] = useState("idle");
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setStatus("sending");
+    try {
+      await api.post("/api/contact", { ...form, destination_id: destinationId });
+      setStatus("sent");
+      setForm((f) => ({ ...f, message: "" }));
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  return (
+    <section className="mt-8 border-t border-stone-200 pt-6 dark:border-stone-800">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="text-sm text-stone-500 underline hover:text-amber-700 dark:text-stone-400 dark:hover:text-amber-400"
+        >
+          Something wrong or missing on this page? Let us know
+        </button>
+      ) : status === "sent" ? (
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">Thanks - we received your message about {destinationName}.</p>
+      ) : (
+        <form onSubmit={submit} className="max-w-md space-y-2">
+          <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Report an issue with {destinationName}</h3>
+          <input
+            required
+            placeholder="Your name"
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 text-sm dark:border-stone-700"
+          />
+          <input
+            required
+            type="email"
+            placeholder="Your email"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 text-sm dark:border-stone-700"
+          />
+          <textarea
+            required
+            rows={3}
+            placeholder="What's wrong or missing?"
+            value={form.message}
+            onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+            className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 text-sm dark:border-stone-700"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              disabled={status === "sending"}
+              className="rounded-full bg-amber-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              {status === "sending" ? "Sending..." : "Send"}
+            </button>
+            <button type="button" onClick={() => setOpen(false)} className="text-sm text-stone-500 dark:text-stone-400">
+              Cancel
+            </button>
+          </div>
+          {status === "error" && <p className="text-sm text-red-600">Something went wrong. Try again.</p>}
+        </form>
+      )}
+    </section>
   );
 }
 
