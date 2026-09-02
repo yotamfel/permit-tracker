@@ -1,4 +1,4 @@
-const EFFECTIVE_DATE = "September 1, 2026";
+const EFFECTIVE_DATE = "September 2, 2026";
 
 export default function Terms() {
   return (
@@ -56,12 +56,24 @@ export default function Terms() {
 
         <Section title="5. Purchases and payment">
           <p>
-            Some destinations require a one-time payment to unlock full checklist details, mechanism explanations,
-            and related tools. Payments are processed by a third-party payment provider; we do not receive or store your full card details.
+            Some destinations require a payment to unlock full checklist details, mechanism explanations, and
+            related tools. Payments are processed by a third-party payment provider; we do not receive or store your
+            full card details.
           </p>
           <p className="mt-2 font-medium">
             Because unlocked content is digital and accessible to you immediately upon payment, purchases are
             non-refundable, except where a refund is required by applicable consumer protection law.
+          </p>
+          <p className="mt-2">
+            A payment unlocks a destination for its current application cycle - broadly, the upcoming release,
+            lottery, or travel window the destination is being tracked for - plus a grace period afterward (normally
+            60 days) to give you time to act on the outcome. Once that period ends, the destination locks again and
+            a new payment is required to unlock the next cycle. If you believe a destination locked in error, contact
+            us via the destination page or the{" "}
+            <a href="/contact" className="text-amber-700 underline dark:text-amber-400">
+              Contact page
+            </a>{" "}
+            and we will review it.
           </p>
         </Section>
 

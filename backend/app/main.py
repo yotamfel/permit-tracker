@@ -1,16 +1,26 @@
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy.orm import Session
 
 import app.models  # noqa: F401 - registers every model so cross-model relationships resolve regardless of route import order
 from app.api import admin, auth, checkout, contact, destinations, feedback, subscriptions, webhooks
 from app.core.config import get_settings
 from app.core.deps import get_db
+from app.core.monitoring import init_sentry
+from app.core.rate_limit import limiter
 from app.models.destination import Destination
 
+init_sentry()
 settings = get_settings()
 
 app = FastAPI(title="Permit Tracker API")
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,10 +1,11 @@
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.deps import get_db, get_optional_current_user
+from app.core.rate_limit import limiter
 from app.models.admin_user import AdminUser
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
@@ -18,7 +19,9 @@ settings = get_settings()
 
 
 @router.post("", status_code=201)
+@limiter.limit("5/minute")
 def submit_contact_message(
+    request: Request,
     body: ContactMessageCreate,
     db: Session = Depends(get_db),
     user: User | None = Depends(get_optional_current_user),

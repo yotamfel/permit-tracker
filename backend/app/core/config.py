@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     default_locale: str = "en"
     supported_locales: list[str] = ["en"]
 
+    # Error monitoring - unset by default, so nothing is sent anywhere until a
+    # real Sentry DSN is configured (see app/core/monitoring.py).
+    sentry_dsn: str = ""
+    environment: str = "production"
+
 
 @lru_cache
 def get_settings() -> Settings:

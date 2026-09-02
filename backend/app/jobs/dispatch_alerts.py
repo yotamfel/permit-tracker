@@ -128,5 +128,8 @@ def _format_lead_time(minutes: int) -> str:
 
 
 if __name__ == "__main__":
+    from app.core.monitoring import init_sentry
+
+    init_sentry()
     logging.basicConfig(level=logging.INFO)
     run()

@@ -2,13 +2,14 @@ import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.deps import get_current_user, get_db
+from app.core.rate_limit import limiter
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import (
@@ -36,7 +37,8 @@ CURRENT_TERMS_VERSION = "2026-09-01"
 
 
 @router.post("/signup", response_model=TokenResponse)
-def signup(body: SignupRequest, db: Session = Depends(get_db)) -> TokenResponse:
+@limiter.limit("5/minute")
+def signup(request: Request, body: SignupRequest, db: Session = Depends(get_db)) -> TokenResponse:
     if not body.terms_accepted:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "You must accept the Terms of Service and Privacy Policy")
     existing = db.query(User).filter(User.email == body.email).first()
@@ -55,7 +57,8 @@ def signup(body: SignupRequest, db: Session = Depends(get_db)) -> TokenResponse:
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
+@limiter.limit("10/minute")
+def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
     user = db.query(User).filter(User.email == body.email).first()
     if user is None or user.password_hash is None or not verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
@@ -63,7 +66,8 @@ def login(body: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
 
 
 @router.post("/google", response_model=TokenResponse)
-def google_login(body: GoogleAuthRequest, db: Session = Depends(get_db)) -> TokenResponse:
+@limiter.limit("10/minute")
+def google_login(request: Request, body: GoogleAuthRequest, db: Session = Depends(get_db)) -> TokenResponse:
     try:
         payload = google_id_token.verify_oauth2_token(
             body.credential, google_requests.Request(), settings.google_client_id
@@ -98,7 +102,8 @@ def google_login(body: GoogleAuthRequest, db: Session = Depends(get_db)) -> Toke
 
 
 @router.post("/forgot-password")
-def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)) -> dict:
+@limiter.limit("5/minute")
+def forgot_password(request: Request, body: ForgotPasswordRequest, db: Session = Depends(get_db)) -> dict:
     user = db.query(User).filter(User.email == body.email).first()
     if user is not None:
         token = secrets.token_urlsafe(32)

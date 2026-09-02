@@ -25,9 +25,15 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)) -> dic
     except (ValueError, stripe.error.SignatureVerificationError) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Invalid webhook signature: {exc}") from exc
 
-    if event["type"] != "checkout.session.completed":
-        return {"status": "ignored"}
+    if event["type"] == "checkout.session.completed":
+        return _handle_checkout_completed(event, db)
+    if event["type"] in ("charge.refunded", "charge.dispute.created"):
+        return _handle_refund_or_dispute(event, db)
 
+    return {"status": "ignored"}
+
+
+def _handle_checkout_completed(event: dict, db: Session) -> dict:
     session = event["data"]["object"]
     payment_intent_id = session.get("payment_intent")
     metadata = session.get("metadata", {})
@@ -73,3 +79,29 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)) -> dic
         return {"status": "already_processed"}
 
     return {"status": "completed"}
+
+
+def _handle_refund_or_dispute(event: dict, db: Session) -> dict:
+    """A refund or a won chargeback dispute both mean the money came back -
+    revoke access by marking the purchase refunded. It just needs to stop
+    being PurchaseStatus.completed; the ownership checks (see
+    app/services/ownership.py) only ever consider completed purchases, so
+    this takes effect immediately without any other code change."""
+    obj = event["data"]["object"]
+    payment_intent_id = obj.get("payment_intent")
+    if not payment_intent_id:
+        return {"status": "ignored_missing_payment_intent"}
+
+    purchase = db.query(Purchase).filter(Purchase.stripe_payment_intent_id == payment_intent_id).first()
+    if purchase is None:
+        logger.warning("Stripe %s for unknown payment_intent %s", event["type"], payment_intent_id)
+        return {"status": "ignored_unknown_purchase"}
+
+    if purchase.status == PurchaseStatus.refunded:
+        return {"status": "already_processed"}
+
+    purchase.status = PurchaseStatus.refunded
+    db.add(purchase)
+    db.commit()
+    logger.info("Purchase %s marked refunded (Stripe event %s)", purchase.id, event["type"])
+    return {"status": "refunded"}
