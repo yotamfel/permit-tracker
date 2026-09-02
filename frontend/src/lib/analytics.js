@@ -1,10 +1,22 @@
-// Google Analytics (GA4) - only loads if VITE_GA_MEASUREMENT_ID is set, so
-// local dev and any deploy without the env var configured never sends data.
-// Set the measurement ID (from the GA4 property's Data Streams page, looks
-// like "G-XXXXXXXXXX") as VITE_GA_MEASUREMENT_ID in Vercel's env vars.
+// Google Analytics (GA4) - only loads if VITE_GA_MEASUREMENT_ID is set (so
+// local dev and any deploy without the env var configured never sends data)
+// AND the visitor has accepted the cookie consent banner (see
+// components/CookieConsent.jsx) - GA sets cookies, so it must not load
+// before consent, not just be disclosed after the fact.
+export const CONSENT_KEY = "cookie_consent"; // "accepted" | "declined"
+
+export function hasAnalyticsConsent() {
+  try {
+    return localStorage.getItem(CONSENT_KEY) === "accepted";
+  } catch {
+    return false;
+  }
+}
+
 export function initAnalytics() {
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
-  if (!measurementId) return;
+  if (!measurementId || !hasAnalyticsConsent()) return;
+  if (window.gtag) return; // already loaded this session
 
   const script = document.createElement("script");
   script.async = true;
@@ -24,6 +36,6 @@ export function initAnalytics() {
 }
 
 export function trackPageView(path) {
-  if (!import.meta.env.VITE_GA_MEASUREMENT_ID || typeof window.gtag !== "function") return;
+  if (typeof window.gtag !== "function") return;
   window.gtag("event", "page_view", { page_path: path });
 }

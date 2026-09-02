@@ -16,7 +16,9 @@ import AdminDestinationEdit from "./pages/AdminDestinationEdit";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import NotFound from "./pages/NotFound";
 import OnboardingGuide from "./components/OnboardingGuide";
+import CookieConsent from "./components/CookieConsent";
 
 export default function App() {
   const location = useLocation();
@@ -44,9 +46,11 @@ export default function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/destinations/:id" element={<AdminDestinationEdit />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
       <Footer />
+      <CookieConsent />
     </div>
   );
 }
