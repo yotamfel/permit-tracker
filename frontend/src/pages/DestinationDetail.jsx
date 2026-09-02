@@ -32,6 +32,7 @@ export default function DestinationDetail() {
   const [error, setError] = useState("");
   const [subscription, setSubscription] = useState({ lead_time_minutes: 10080, travel_date: "" });
   const [alertMessage, setAlertMessage] = useState("");
+  const [calendarStatus, setCalendarStatus] = useState("");
 
   const load = useCallback(() => {
     api.get(`/api/destinations/${id}`, { params: { locale: i18n.language } }).then((res) => setDestination(res.data));
@@ -80,6 +81,8 @@ export default function DestinationDetail() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      setCalendarStatus(t("destination.calendar_downloaded"));
+      setTimeout(() => setCalendarStatus(""), 4000);
     } catch {
       setError(t("auth.error"));
     }
@@ -164,9 +167,15 @@ export default function DestinationDetail() {
         <span className="font-semibold text-stone-900 dark:text-stone-100">{t("browse.next_release")}: </span>
         <span className="text-stone-800 dark:text-stone-300">
           {destination.next_known_release
-            ? new Date(destination.next_known_release).toLocaleString()
+            ? new Date(destination.next_known_release).toLocaleString(undefined, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })
             : t("browse.not_computable")}
         </span>
+        {destination.next_known_release && (
+          <span className="ml-1 text-xs text-stone-500 dark:text-stone-400">(your local time)</span>
+        )}
       </div>
 
       <section className="mt-8 rounded-2xl border border-stone-200 bg-stone-50 p-5 dark:border-stone-800 dark:bg-stone-900/50">
@@ -296,6 +305,7 @@ export default function DestinationDetail() {
           >
             <span aria-hidden="true">📅</span> Add to calendar
           </button>
+          {calendarStatus && <p className="mt-1.5 text-xs text-emerald-700 dark:text-emerald-400">{calendarStatus}</p>}
         </section>
       )}
 
