@@ -56,23 +56,27 @@ export default function Home() {
         </div>
       </section>
 
-      <ReleaseCalendar />
+      <section className="mx-auto max-w-5xl px-4 py-14">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[320px_1fr]">
+          <ReleaseCalendar />
 
-      {featured.length > 0 && (
-        <section className="mx-auto max-w-5xl px-4 py-14">
-          <div className="mb-6 flex items-baseline justify-between">
-            <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Popular right now</h2>
-            <Link to="/catalog" className="text-sm font-medium text-amber-700 hover:underline dark:text-amber-400">
-              See all →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((d) => (
-              <DestinationCard key={d.id} d={d} />
-            ))}
-          </div>
-        </section>
-      )}
+          {featured.length > 0 && (
+            <div>
+              <div className="mb-6 flex items-baseline justify-between">
+                <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Popular right now</h2>
+                <Link to="/catalog" className="text-sm font-medium text-amber-700 hover:underline dark:text-amber-400">
+                  See all →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {featured.map((d) => (
+                  <DestinationCard key={d.id} d={d} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
       <section className="border-t border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-900/50">
         <div className="mx-auto max-w-5xl px-4 py-14">

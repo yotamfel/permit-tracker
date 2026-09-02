@@ -124,7 +124,7 @@ export default function Browse() {
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Catalog</h1>
       <p className="mt-1 text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
 
-      <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-4 flex gap-1.5 overflow-x-auto pb-1">
         {CATEGORIES.map((c) => {
           const info = CATEGORY_INFO[c] || DEFAULT_CATEGORY;
           const active = filters.category === c;
@@ -133,7 +133,7 @@ export default function Browse() {
               key={c}
               type="button"
               onClick={() => setFilters((cur) => ({ ...cur, category: active ? "" : c }))}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+              className={`flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
                 active
                   ? "border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
                   : `border-stone-200 bg-white hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-900 dark:hover:bg-stone-800 ${info.text}`

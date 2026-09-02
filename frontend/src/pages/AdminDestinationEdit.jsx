@@ -537,6 +537,20 @@ export default function AdminDestinationEdit() {
                 placeholder="https://... (optional - verified live link only)"
                 className="mt-1.5 block w-full rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
               />
+              <div className="mt-1.5 flex gap-1.5">
+                <input
+                  value={op.phone ?? ""}
+                  onChange={(e) => updateOperator(op.id, { phone: e.target.value })}
+                  placeholder="Phone (optional - verified only)"
+                  className="flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+                />
+                <input
+                  value={op.email ?? ""}
+                  onChange={(e) => updateOperator(op.id, { email: e.target.value })}
+                  placeholder="Email (optional - verified only)"
+                  className="flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+                />
+              </div>
               <input
                 value={op.note ?? ""}
                 onChange={(e) => updateOperator(op.id, { note: e.target.value })}

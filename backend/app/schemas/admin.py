@@ -282,6 +282,8 @@ class AdminOperatorIn(BaseModel):
     destination_id: uuid.UUID
     name: str
     url: str | None = None
+    phone: str | None = None
+    email: str | None = None
     note: str | None = None
     order_index: int = 0
 

@@ -43,10 +43,10 @@ export default function ReleaseCalendar() {
   const cells = [...Array(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-14">
-      <h2 className="mb-6 text-center text-2xl font-bold text-stone-900 dark:text-stone-100">What opens this month</h2>
+    <div>
+      <h2 className="mb-6 text-2xl font-bold text-stone-900 dark:text-stone-100">What opens this month</h2>
 
-      <div className="mx-auto max-w-xs">
+      <div className="max-w-xs">
         <div className="mb-3 flex items-center justify-between">
           <button
             onClick={() => setMonthOffset((o) => o - 1)}
@@ -122,6 +122,6 @@ export default function ReleaseCalendar() {
           <p className="mt-3 text-center text-xs text-stone-500 dark:text-stone-400">Nothing with a known opening date this month.</p>
         )}
       </div>
-    </section>
+    </div>
   );
 }

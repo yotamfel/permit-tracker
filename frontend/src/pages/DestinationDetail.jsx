@@ -293,6 +293,12 @@ export default function DestinationDetail() {
                   <span className="font-medium text-stone-800 dark:text-stone-200">{op.name}</span>
                 )}
                 {op.note && <span className="text-stone-500 dark:text-stone-400"> - {op.note}</span>}
+                {(op.phone || op.email) && (
+                  <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-stone-500 dark:text-stone-400">
+                    {op.phone && <a href={`tel:${op.phone}`} className="hover:underline">{op.phone}</a>}
+                    {op.email && <a href={`mailto:${op.email}`} className="hover:underline">{op.email}</a>}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

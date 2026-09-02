@@ -145,7 +145,7 @@ def get_destination(
     operators: list[OperatorOut] = []
     if is_owned:
         operators = [
-            OperatorOut(name=o.name, url=o.url, note=o.note)
+            OperatorOut(name=o.name, url=o.url, phone=o.phone, email=o.email, note=o.note)
             for o in db.query(DestinationOperator)
             .filter(DestinationOperator.destination_id == destination_id)
             .order_by(DestinationOperator.order_index)

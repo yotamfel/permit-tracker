@@ -36,6 +36,8 @@ class UserChecklistItemIn(BaseModel):
 class OperatorOut(BaseModel):
     name: str
     url: str | None
+    phone: str | None
+    email: str | None
     note: str | None
 
 

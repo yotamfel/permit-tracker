@@ -549,7 +549,14 @@ def delete_agent_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> 
 
 def _operator_out(o: DestinationOperator) -> AdminOperatorOut:
     return AdminOperatorOut(
-        id=o.id, destination_id=o.destination_id, name=o.name, url=o.url, note=o.note, order_index=o.order_index
+        id=o.id,
+        destination_id=o.destination_id,
+        name=o.name,
+        url=o.url,
+        phone=o.phone,
+        email=o.email,
+        note=o.note,
+        order_index=o.order_index,
     )
 
 
