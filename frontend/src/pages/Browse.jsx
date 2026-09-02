@@ -27,6 +27,31 @@ const OPENS_SOON_OPTIONS = [
 
 const EMPTY_FILTERS = { country: "", category: "", region: "", opensSoon: "", season: "" };
 
+const COMPETITIVENESS_RANK = { very_high: 3, high: 2, medium: 1, low: 0 };
+
+const SORT_OPTIONS = [
+  ["soonest", "Opening soonest"],
+  ["competitiveness", "Most competitive first"],
+  ["name", "Name (A-Z)"],
+];
+
+function sortDestinations(list, sortBy) {
+  const sorted = [...list];
+  if (sortBy === "soonest") {
+    sorted.sort((a, b) => {
+      if (!a.next_known_release && !b.next_known_release) return 0;
+      if (!a.next_known_release) return 1;
+      if (!b.next_known_release) return -1;
+      return new Date(a.next_known_release) - new Date(b.next_known_release);
+    });
+  } else if (sortBy === "competitiveness") {
+    sorted.sort((a, b) => (COMPETITIVENESS_RANK[b.competitiveness_level] ?? -1) - (COMPETITIVENESS_RANK[a.competitiveness_level] ?? -1));
+  } else {
+    sorted.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  return sorted;
+}
+
 export default function Browse() {
   const { t, i18n } = useTranslation();
   const { user, loading: authLoading } = useAuth();
@@ -35,6 +60,7 @@ export default function Browse() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [sortBy, setSortBy] = useState("soonest");
 
   useEffect(() => {
     // The full catalog is an account perk - guests get a small taste on the
@@ -88,6 +114,8 @@ export default function Browse() {
     });
   }, [destinations, filters]);
 
+  const sorted = useMemo(() => sortDestinations(filtered, sortBy), [filtered, sortBy]);
+
   if (authLoading || !user) return null;
 
   return (
@@ -95,7 +123,7 @@ export default function Browse() {
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Catalog</h1>
       <p className="mt-1 text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
 
-      <div className="relative mt-6">
+      <div className="sticky top-0 z-30 -mx-4 mt-6 bg-stone-50/95 px-4 py-3 backdrop-blur dark:bg-stone-950/95">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -142,7 +170,28 @@ export default function Browse() {
               Clear all
             </button>
           )}
+
+          <label className="ms-auto flex items-center gap-1.5 text-sm text-stone-600 dark:text-stone-400">
+            Sort:
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-sm text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
+            >
+              {SORT_OPTIONS.map(([v, label]) => (
+                <option key={v} value={v}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
+
+        {!loading && (
+          <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">
+            Showing {sorted.length} of {destinations.length} destinations
+          </p>
+        )}
 
         {panelOpen && (
           <>
@@ -172,11 +221,11 @@ export default function Browse() {
 
       {loading ? (
         <p className="mt-8 text-stone-500">...</p>
-      ) : filtered.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <p className="mt-8 text-stone-500">{t("browse.no_results")}</p>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((d) => (
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {sorted.map((d) => (
             <DestinationCard key={d.id} d={d} />
           ))}
         </div>
