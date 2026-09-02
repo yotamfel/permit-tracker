@@ -1,5 +1,8 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "https://permit-tracker-production-d4cf.up.railway.app/sitemap.xml" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
