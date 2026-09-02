@@ -33,6 +33,12 @@ class UserChecklistItemIn(BaseModel):
     text: str
 
 
+class OperatorOut(BaseModel):
+    name: str
+    url: str | None
+    note: str | None
+
+
 class DestinationCardOut(BaseModel):
     id: uuid.UUID
     country: str
@@ -86,6 +92,10 @@ class DestinationDetailOut(BaseModel):
     # send unlocked users elsewhere; application_url is the "apply here" action
     # link, which is part of what unlocking pays for.
     application_url: str | None = None
+    # Only populated when is_owned is True - the neutral fallback when there's
+    # no single application_url (multiple legitimate operators, or no online
+    # booking system at all): a plain contact list instead of picking one.
+    operators: list[OperatorOut] = []
     # Only populated when is_owned is True (spec addendum §2.4) - only
     # suggested when the user already has skin in the game.
     alternatives: list[AlternativeOut] = []

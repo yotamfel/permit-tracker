@@ -7,20 +7,22 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_admin, get_db
 from app.models.admin_follow_up import AdminFollowUp
+from app.models.agent_report import AgentReport
 from app.models.checklist_item import ChecklistItem
 from app.models.contact_message import ContactMessage
 from app.models.destination import Destination
 from app.models.destination_alternative import DestinationAlternative
+from app.models.destination_operator import DestinationOperator
 from app.models.destination_source import DestinationSource
 from app.models.enums import Category, ContactMessageStatus, PurchaseStatus, ReviewStatus
 from app.models.general_requirement import DestinationRequirement, GeneralRequirement
 from app.models.monitoring import MonitoringDiff, MonitoringSnapshot
 from app.models.post_release_feedback import PostReleaseFeedback
 from app.models.purchase import Purchase
-from app.models.research_report import DestinationResearchReport
 from app.models.translation import Translation
 from app.models.user import User
 from app.schemas.admin import (
+    AdminAgentReportOut,
     AdminAlternativeIn,
     AdminAlternativeOut,
     AdminChecklistItemIn,
@@ -34,7 +36,8 @@ from app.schemas.admin import (
     AdminGeneralRequirementIn,
     AdminGeneralRequirementOut,
     AdminMonitoringDiffOut,
-    AdminResearchReportOut,
+    AdminOperatorIn,
+    AdminOperatorOut,
     AdminSourceIn,
     AdminSourceOut,
     AdminTranslationIn,
@@ -77,13 +80,14 @@ def _upsert_en_translation(db: Session, entity_type: str, entity_id: uuid.UUID, 
 
 
 def _latest_report_ids(db: Session, destination_ids: list[uuid.UUID]) -> dict[uuid.UUID, uuid.UUID]:
-    """Newest DestinationResearchReport.id per destination_id (a destination can
-    have more than one report if it was re-run through the pipeline)."""
+    """Newest AgentReport.id per destination_id, across all agent_types (a
+    destination can have more than one report, e.g. re-run through the
+    pipeline, or also visited by the visitor-tester agent)."""
     latest: dict[uuid.UUID, uuid.UUID] = {}
     reports = (
-        db.query(DestinationResearchReport)
-        .filter(DestinationResearchReport.destination_id.in_(destination_ids))
-        .order_by(DestinationResearchReport.created_at.desc())
+        db.query(AgentReport)
+        .filter(AgentReport.destination_id.in_(destination_ids))
+        .order_by(AgentReport.created_at.desc())
         .all()
     )
     for r in reports:
@@ -95,7 +99,7 @@ def _destination_out(db: Session, d: Destination) -> AdminDestinationOut:
     out = AdminDestinationOut.model_validate(d)
     out.description = translate(db, "destination.description", d.id, "en")
     out.mechanism_explanation = translate(db, "destination.mechanism_explanation", d.id, "en")
-    out.research_report_id = _latest_report_ids(db, [d.id]).get(d.id)
+    out.latest_report_id = _latest_report_ids(db, [d.id]).get(d.id)
     return out
 
 
@@ -111,7 +115,7 @@ def _destinations_out(db: Session, destinations: list[Destination]) -> list[Admi
         item = AdminDestinationOut.model_validate(d)
         item.description = descriptions.get(d.id)
         item.mechanism_explanation = explanations.get(d.id)
-        item.research_report_id = report_ids.get(d.id)
+        item.latest_report_id = report_ids.get(d.id)
         out.append(item)
     return out
 
@@ -478,57 +482,113 @@ def delete_translation(translation_id: uuid.UUID, db: Session = Depends(get_db))
     db.commit()
 
 
-# --- Research reports (two-agent fill-in-and-verify workflow) ---------------
-# Written directly to the DB by the orchestrating session after each
-# destination's researcher+reviewer pass - no POST here on purpose, this is
-# a record of what already happened, not something the admin authors.
+# --- Agent reports (any orchestrated agent pass) -----------------------------
+# Written directly to the DB by the orchestrating session after each agent
+# pass (destination researcher+reviewer, visitor/tester, site-wide UX
+# reviewer, ...) - no POST here on purpose, this is a record of what already
+# happened, not something the admin authors. Grouped by agent_type in the
+# admin UI so the admin can look at one agent's reports at a time.
 
 
-@router.get("/research-reports", response_model=list[AdminResearchReportOut])
-def list_research_reports(db: Session = Depends(get_db)) -> list[AdminResearchReportOut]:
-    reports = db.query(DestinationResearchReport).order_by(DestinationResearchReport.created_at.desc()).all()
-    out = []
-    for r in reports:
+def _agent_report_out(db: Session, r: AgentReport) -> AdminAgentReportOut:
+    destination_name = None
+    if r.destination_id is not None:
         d = db.get(Destination, r.destination_id)
-        out.append(
-            AdminResearchReportOut(
-                id=r.id,
-                destination_id=r.destination_id,
-                destination_name=d.name if d else "(deleted destination)",
-                researcher_summary=r.researcher_summary,
-                reviewer_summary=r.reviewer_summary,
-                escalations=r.escalations,
-                recommendation=r.recommendation,
-                created_at=r.created_at,
-            )
-        )
-    return out
-
-
-@router.get("/research-reports/{report_id}", response_model=AdminResearchReportOut)
-def get_research_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> AdminResearchReportOut:
-    r = db.get(DestinationResearchReport, report_id)
-    if r is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Report not found")
-    d = db.get(Destination, r.destination_id)
-    return AdminResearchReportOut(
+        destination_name = d.name if d else "(deleted destination)"
+    return AdminAgentReportOut(
         id=r.id,
+        agent_type=r.agent_type,
         destination_id=r.destination_id,
-        destination_name=d.name if d else "(deleted destination)",
-        researcher_summary=r.researcher_summary,
-        reviewer_summary=r.reviewer_summary,
+        destination_name=destination_name,
+        title=r.title,
+        summary=r.summary,
+        secondary_summary=r.secondary_summary,
         escalations=r.escalations,
         recommendation=r.recommendation,
         created_at=r.created_at,
     )
 
 
-@router.delete("/research-reports/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_research_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
-    r = db.get(DestinationResearchReport, report_id)
+@router.get("/reports/agent-types", response_model=list[str])
+def list_report_agent_types(db: Session = Depends(get_db)) -> list[str]:
+    rows = db.query(AgentReport.agent_type).distinct().all()
+    return sorted(r[0] for r in rows)
+
+
+@router.get("/reports", response_model=list[AdminAgentReportOut])
+def list_agent_reports(agent_type: str | None = None, db: Session = Depends(get_db)) -> list[AdminAgentReportOut]:
+    query = db.query(AgentReport)
+    if agent_type:
+        query = query.filter(AgentReport.agent_type == agent_type)
+    reports = query.order_by(AgentReport.created_at.desc()).all()
+    return [_agent_report_out(db, r) for r in reports]
+
+
+@router.get("/reports/{report_id}", response_model=AdminAgentReportOut)
+def get_agent_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> AdminAgentReportOut:
+    r = db.get(AgentReport, report_id)
+    if r is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Report not found")
+    return _agent_report_out(db, r)
+
+
+@router.delete("/reports/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_agent_report(report_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
+    r = db.get(AgentReport, report_id)
     if r is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Report not found")
     db.delete(r)
+    db.commit()
+
+
+# --- Destination operators ----------------------------------------------------
+# Licensed/legitimate operators for a destination with no single neutral
+# application_url (multiple commercial operators, or no online booking system
+# at all) - shown to owners as a plain contact list instead of picking one.
+
+
+def _operator_out(o: DestinationOperator) -> AdminOperatorOut:
+    return AdminOperatorOut(
+        id=o.id, destination_id=o.destination_id, name=o.name, url=o.url, note=o.note, order_index=o.order_index
+    )
+
+
+@router.get("/operators", response_model=list[AdminOperatorOut])
+def list_operators(destination_id: uuid.UUID | None = None, db: Session = Depends(get_db)) -> list[AdminOperatorOut]:
+    query = db.query(DestinationOperator)
+    if destination_id:
+        query = query.filter(DestinationOperator.destination_id == destination_id)
+    return [_operator_out(o) for o in query.order_by(DestinationOperator.order_index).all()]
+
+
+@router.post("/operators", response_model=AdminOperatorOut)
+def create_operator(body: AdminOperatorIn, db: Session = Depends(get_db)) -> AdminOperatorOut:
+    o = DestinationOperator(**body.model_dump())
+    db.add(o)
+    db.commit()
+    db.refresh(o)
+    return _operator_out(o)
+
+
+@router.put("/operators/{operator_id}", response_model=AdminOperatorOut)
+def update_operator(operator_id: uuid.UUID, body: AdminOperatorIn, db: Session = Depends(get_db)) -> AdminOperatorOut:
+    o = db.get(DestinationOperator, operator_id)
+    if o is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Operator not found")
+    for field, value in body.model_dump().items():
+        setattr(o, field, value)
+    db.add(o)
+    db.commit()
+    db.refresh(o)
+    return _operator_out(o)
+
+
+@router.delete("/operators/{operator_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_operator(operator_id: uuid.UUID, db: Session = Depends(get_db)) -> None:
+    o = db.get(DestinationOperator, operator_id)
+    if o is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Operator not found")
+    db.delete(o)
     db.commit()
 
 
@@ -850,7 +910,7 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
                 description=description,
                 mechanism_explanation=explanations.get(d.id),
                 source_note=source_note,
-                research_report_id=latest_report_by_destination.get(d.id),
+                latest_report_id=latest_report_by_destination.get(d.id),
             )
         )
     return items
@@ -882,6 +942,14 @@ def approve_review_item(
 # --- Contact messages ---------------------------------------------------------
 
 
+def _contact_message_out(db: Session, m: ContactMessage) -> AdminContactMessageOut:
+    out = AdminContactMessageOut.model_validate(m)
+    if m.destination_id is not None:
+        d = db.get(Destination, m.destination_id)
+        out.destination_name = d.name if d else None
+    return out
+
+
 @router.get("/contact-messages", response_model=list[AdminContactMessageOut])
 def list_contact_messages(
     status_filter: ContactMessageStatus | None = None, db: Session = Depends(get_db)
@@ -890,7 +958,9 @@ def list_contact_messages(
     if status_filter:
         query = query.filter(ContactMessage.status == status_filter)
     messages = query.order_by(ContactMessage.created_at.desc()).all()
-    return [AdminContactMessageOut.model_validate(m) for m in messages]
+    # Urgent (destination-linked) messages float to the top regardless of date.
+    messages.sort(key=lambda m: m.destination_id is None)
+    return [_contact_message_out(db, m) for m in messages]
 
 
 @router.patch("/contact-messages/{message_id}", response_model=AdminContactMessageOut)
@@ -904,7 +974,7 @@ def update_contact_message_status(
     db.add(msg)
     db.commit()
     db.refresh(msg)
-    return AdminContactMessageOut.model_validate(msg)
+    return _contact_message_out(db, msg)
 
 
 @router.post("/contact-messages/{message_id}/reply", response_model=AdminContactMessageOut)
@@ -923,4 +993,4 @@ def reply_to_contact_message(
     db.add(msg)
     db.commit()
     db.refresh(msg)
-    return AdminContactMessageOut.model_validate(msg)
+    return _contact_message_out(db, msg)

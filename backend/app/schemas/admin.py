@@ -67,9 +67,9 @@ class ReviewQueueItemOut(BaseModel):
     # note) exists for it in any locale. Full source list lives in the
     # separate destination_sources table (see AdminSourceOut).
     source_note: str | None
-    # Most recent researcher+reviewer pipeline report for this destination, if
-    # any - lets the review queue link straight to it. See AdminResearchReportOut.
-    research_report_id: uuid.UUID | None = None
+    # Most recent agent report (any agent_type) for this destination, if any -
+    # lets the review queue link straight to it. See AdminAgentReportOut.
+    latest_report_id: uuid.UUID | None = None
 
     model_config = {"from_attributes": True}
 
@@ -126,9 +126,9 @@ class AdminDestinationOut(BaseModel):
     source_fetch_failing_since: datetime | None = None
     season_start_month: int | None = None
     season_end_month: int | None = None
-    # Most recent researcher+reviewer pipeline report for this destination, if
-    # any. See AdminResearchReportOut.
-    research_report_id: uuid.UUID | None = None
+    # Most recent agent report (any agent_type) for this destination, if any.
+    # See AdminAgentReportOut.
+    latest_report_id: uuid.UUID | None = None
 
     model_config = {"from_attributes": True}
 
@@ -263,14 +263,30 @@ class AdminFollowUpOut(AdminFollowUpIn):
     model_config = {"from_attributes": True}
 
 
-class AdminResearchReportOut(BaseModel):
+class AdminAgentReportOut(BaseModel):
     id: uuid.UUID
-    destination_id: uuid.UUID
-    destination_name: str
-    researcher_summary: str
-    reviewer_summary: str
+    agent_type: str
+    destination_id: uuid.UUID | None
+    destination_name: str | None
+    title: str | None
+    summary: str
+    secondary_summary: str | None
     escalations: str | None
     recommendation: str | None
     created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class AdminOperatorIn(BaseModel):
+    destination_id: uuid.UUID
+    name: str
+    url: str | None = None
+    note: str | None = None
+    order_index: int = 0
+
+
+class AdminOperatorOut(AdminOperatorIn):
+    id: uuid.UUID
 
     model_config = {"from_attributes": True}

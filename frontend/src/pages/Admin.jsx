@@ -61,7 +61,7 @@ export default function Admin() {
           <AdminFollowUpCalendar />
         </div>
       )}
-      {tab === "research-reports" && <ResearchReportsTab />}
+      {tab === "reports" && <ReportsTab />}
     </div>
   );
 }
@@ -74,91 +74,168 @@ const TABS = [
   { key: "feedback", label: "Feedback" },
   { key: "inquiries", label: "Inquiries" },
   { key: "follow-ups", label: "Follow-ups" },
-  { key: "research-reports", label: "Research Reports" },
+  { key: "reports", label: "Reports" },
 ];
 
-function ResearchReportsTab() {
+const AGENT_TYPE_LABELS = {
+  destination_pipeline: "מחקר יעדים (חוקר + בודק)",
+  visitor_tester: "בודק חוויית משתמש",
+  ux_reviewer: "עיצוב וחוויית משתמש (כלל האתר)",
+};
+
+function agentTypeLabel(agentType) {
+  return AGENT_TYPE_LABELS[agentType] || agentType;
+}
+
+// Prefix match (starts-with), not substring - per explicit admin request: as
+// soon as a typed character doesn't match the start of a row, it disappears.
+function prefixMatch(text, query) {
+  if (!query) return true;
+  return (text || "").toLowerCase().startsWith(query.toLowerCase());
+}
+
+function SearchBox({ value, onChange, placeholder }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder || "חיפוש..."}
+      dir="rtl"
+      className="mb-3 block w-full max-w-xs rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-sm text-stone-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+    />
+  );
+}
+
+function ReportsTab() {
+  const [agentTypes, setAgentTypes] = useState([]);
+  const [selectedType, setSelectedType] = useState(null);
   const [reports, setReports] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
+  const [search, setSearch] = useState("");
 
-  const load = () => api.get("/admin/api/research-reports").then((res) => setReports(res.data));
+  useEffect(() => {
+    api.get("/admin/api/reports/agent-types").then((res) => {
+      setAgentTypes(res.data);
+      if (res.data.length > 0) setSelectedType((t) => t ?? res.data[0]);
+    });
+  }, []);
+
+  const load = () => {
+    if (!selectedType) return;
+    api.get("/admin/api/reports", { params: { agent_type: selectedType } }).then((res) => setReports(res.data));
+  };
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedType]);
 
   const deleteReport = async (id) => {
-    await api.delete(`/admin/api/research-reports/${id}`);
+    await api.delete(`/admin/api/reports/${id}`);
     load();
   };
+
+  const visible = reports.filter((r) => prefixMatch(r.destination_name || r.title || "", search));
 
   return (
     <div className="mt-6">
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
-        דוח לכל יעד שעבר את תהליך המילוי והבדיקה הדו-שלבי (חוקר + בודק). לוחצים על יעד כדי לפתוח את הדוח המלא.
+        דוחות מכל הסוכנים, מרוכזים כאן לפי הסוכן ששלח אותם. בוחרים סוכן כדי לראות רק את הדוחות שלו.
       </p>
-      {reports.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">אין עדיין דוחות.</p>}
-      <ul className="space-y-2">
-        {reports.map((r) => {
-          const expanded = expandedId === r.id;
-          return (
-            <li key={r.id} className="rounded border border-slate-200 dark:border-slate-800">
-              <button
-                onClick={() => setExpandedId(expanded ? null : r.id)}
-                className="flex w-full items-center justify-between p-3 text-left text-sm"
-              >
-                <span>
-                  <Link
-                    to={`/admin/destinations/${r.destination_id}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="font-medium text-blue-700 underline dark:text-blue-400"
+      <div className="mb-4 flex flex-wrap gap-2">
+        {agentTypes.map((at) => (
+          <button
+            key={at}
+            onClick={() => {
+              setSelectedType(at);
+              setExpandedId(null);
+              setSearch("");
+            }}
+            className={`rounded-full border px-3 py-1.5 text-sm ${
+              selectedType === at
+                ? "border-amber-400 bg-amber-50 font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                : "border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            }`}
+          >
+            {agentTypeLabel(at)}
+          </button>
+        ))}
+      </div>
+      {agentTypes.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">אין עדיין דוחות מאף סוכן.</p>}
+      {agentTypes.length > 0 && (
+        <>
+          <SearchBox value={search} onChange={setSearch} placeholder="חיפוש לפי שם יעד / כותרת..." />
+          {visible.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">אין דוחות תואמים.</p>}
+          <ul className="space-y-2">
+            {visible.map((r) => {
+              const expanded = expandedId === r.id;
+              return (
+                <li key={r.id} className="rounded border border-slate-200 dark:border-slate-800">
+                  <button
+                    onClick={() => setExpandedId(expanded ? null : r.id)}
+                    className="flex w-full items-center justify-between p-3 text-left text-sm"
                   >
-                    {r.destination_name}
-                  </Link>{" "}
-                  <span className="text-xs text-slate-500 dark:text-slate-300">{new Date(r.created_at).toLocaleString()}</span>
-                  {r.escalations && (
-                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                      דורש הכרעה
+                    <span>
+                      {r.destination_id ? (
+                        <Link
+                          to={`/admin/destinations/${r.destination_id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-medium text-blue-700 underline dark:text-blue-400"
+                        >
+                          {r.destination_name}
+                        </Link>
+                      ) : (
+                        <span className="font-medium">{r.title || "דוח"}</span>
+                      )}{" "}
+                      <span className="text-xs text-slate-500 dark:text-slate-300">{new Date(r.created_at).toLocaleString()}</span>
+                      {r.escalations && (
+                        <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                          דורש הכרעה
+                        </span>
+                      )}
                     </span>
-                  )}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-300">{expanded ? "כווץ" : "פתח"}</span>
-              </button>
-              {expanded && (
-                <div className="space-y-3 border-t border-slate-200 p-3 text-sm dark:border-slate-800" dir="rtl">
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נעשה (חוקר)</h4>
-                    <p className="mt-1 whitespace-pre-wrap">{r.researcher_summary}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בודק)</h4>
-                    <p className="mt-1 whitespace-pre-wrap">{r.reviewer_summary}</p>
-                  </div>
-                  {r.escalations && (
-                    <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
-                      <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
-                        דברים שהושארו להכרעה שלך
-                      </h4>
-                      <p className="mt-1 whitespace-pre-wrap">{r.escalations}</p>
-                    </div>
-                  )}
-                  {r.recommendation && (
-                    <div className="rounded bg-emerald-50 p-2 dark:bg-emerald-900/20">
-                      <h4 className="text-xs font-semibold uppercase text-emerald-800 dark:text-emerald-300">
-                        המלצת הסוכנים
-                      </h4>
-                      <p className="mt-1 whitespace-pre-wrap">{r.recommendation}</p>
-                    </div>
-                  )}
-                  <button onClick={() => deleteReport(r.id)} className="text-xs text-red-600 underline">
-                    מחק דוח
+                    <span className="text-xs text-slate-500 dark:text-slate-300">{expanded ? "כווץ" : "פתח"}</span>
                   </button>
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                  {expanded && (
+                    <div className="space-y-3 border-t border-slate-200 p-3 text-sm dark:border-slate-800" dir="rtl">
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">סיכום</h4>
+                        <p className="mt-1 whitespace-pre-wrap">{r.summary}</p>
+                      </div>
+                      {r.secondary_summary && (
+                        <div>
+                          <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בדיקה נוספת)</h4>
+                          <p className="mt-1 whitespace-pre-wrap">{r.secondary_summary}</p>
+                        </div>
+                      )}
+                      {r.escalations && (
+                        <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
+                          <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
+                            דברים שהושארו להכרעה שלך
+                          </h4>
+                          <p className="mt-1 whitespace-pre-wrap">{r.escalations}</p>
+                        </div>
+                      )}
+                      {r.recommendation && (
+                        <div className="rounded bg-emerald-50 p-2 dark:bg-emerald-900/20">
+                          <h4 className="text-xs font-semibold uppercase text-emerald-800 dark:text-emerald-300">
+                            המלצת הסוכנים
+                          </h4>
+                          <p className="mt-1 whitespace-pre-wrap">{r.recommendation}</p>
+                        </div>
+                      )}
+                      <button onClick={() => deleteReport(r.id)} className="text-xs text-red-600 underline">
+                        מחק דוח
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
@@ -170,7 +247,7 @@ function ResearchReportButton({ reportId }) {
 
   const openReport = async () => {
     setModalReport({ loading: true, data: null });
-    const res = await api.get(`/admin/api/research-reports/${reportId}`);
+    const res = await api.get(`/admin/api/reports/${reportId}`);
     setModalReport({ loading: false, data: res.data });
   };
 
@@ -180,7 +257,7 @@ function ResearchReportButton({ reportId }) {
         onClick={openReport}
         className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
       >
-        דוח מחקר
+        דוח סוכן
       </button>
       {modalReport && (
         <div
@@ -193,7 +270,7 @@ function ResearchReportButton({ reportId }) {
             dir="rtl"
           >
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">דוח מחקר</h3>
+              <h3 className="text-sm font-semibold">דוח סוכן</h3>
               <button
                 onClick={() => setModalReport(null)}
                 className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -206,13 +283,15 @@ function ResearchReportButton({ reportId }) {
             ) : (
               <div className="space-y-3 text-sm">
                 <div>
-                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נעשה (חוקר)</h4>
-                  <p className="mt-1 whitespace-pre-wrap">{modalReport.data.researcher_summary}</p>
+                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">סיכום</h4>
+                  <p className="mt-1 whitespace-pre-wrap">{modalReport.data.summary}</p>
                 </div>
-                <div>
-                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בודק)</h4>
-                  <p className="mt-1 whitespace-pre-wrap">{modalReport.data.reviewer_summary}</p>
-                </div>
+                {modalReport.data.secondary_summary && (
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בדיקה נוספת)</h4>
+                    <p className="mt-1 whitespace-pre-wrap">{modalReport.data.secondary_summary}</p>
+                  </div>
+                )}
                 {modalReport.data.escalations && (
                   <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
                     <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
@@ -256,13 +335,15 @@ function DestinationsTab({ onCountChange }) {
     load();
   };
 
-  const published = destinations.filter((d) => d.is_published);
+  const [search, setSearch] = useState("");
+  const published = destinations.filter((d) => d.is_published && prefixMatch(d.name, search));
 
   return (
     <div className="mt-6">
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
         Published destinations only - unpublished ones are in the Review Queue tab.
       </p>
+      <SearchBox value={search} onChange={setSearch} placeholder="חיפוש יעד..." />
       <ul className="space-y-2">
         {published.map((d) => (
           <li key={d.id} className="flex items-center justify-between rounded border border-slate-200 p-2 text-sm dark:border-slate-800">
@@ -270,7 +351,7 @@ function DestinationsTab({ onCountChange }) {
               <span className="font-medium">{d.name}</span> <span className="text-slate-500 dark:text-slate-300">({d.country})</span>
             </Link>
             <div className="flex items-center gap-2">
-              <ResearchReportButton reportId={d.research_report_id} />
+              <ResearchReportButton reportId={d.latest_report_id} />
               <Link to={`/admin/destinations/${d.id}`} className="underline">
                 edit
               </Link>
@@ -368,6 +449,9 @@ function ReviewQueueTab({ onCountChange }) {
     load();
   }, []);
 
+  const [search, setSearch] = useState("");
+  const visible = items.filter((item) => prefixMatch(item.name, search));
+
   return (
     <div className="mt-6">
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
@@ -375,9 +459,10 @@ function ReviewQueueTab({ onCountChange }) {
         will appear on the site, with every field editable, then Approve &amp; Publish to send it live, or
         discard it.
       </p>
+      <SearchBox value={search} onChange={setSearch} placeholder="חיפוש יעד..." />
       {items.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">Nothing pending review.</p>}
       <ul className="space-y-2">
-        {items.map((item) => (
+        {visible.map((item) => (
           <li key={item.id} className="rounded border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between p-3 text-sm">
               <Link to={`/admin/destinations/${item.id}`} className="flex-1">
@@ -386,7 +471,7 @@ function ReviewQueueTab({ onCountChange }) {
                 </span>
               </Link>
               <div className="flex items-center gap-3">
-                <ResearchReportButton reportId={item.research_report_id} />
+                <ResearchReportButton reportId={item.latest_report_id} />
                 <Link to={`/admin/destinations/${item.id}`} className="text-xs text-slate-500 dark:text-slate-300">
                   review
                 </Link>
@@ -608,10 +693,20 @@ function InquiriesTab() {
           <tbody>
             {messages.map((m) => (
               <Fragment key={m.id}>
-                <tr className="border-b border-slate-100 align-top dark:border-slate-900">
+                <tr
+                  className={`border-b align-top dark:border-slate-900 ${m.destination_id ? "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-900/10" : "border-slate-100"}`}
+                >
                   <td className="py-2 pr-3">
                     <div className="font-medium">{m.name}</div>
                     <div className="text-xs text-slate-500 dark:text-slate-300">{m.email}</div>
+                    {m.destination_id && (
+                      <Link
+                        to={`/admin/destinations/${m.destination_id}`}
+                        className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                      >
+                        דחוף - {m.destination_name}
+                      </Link>
+                    )}
                   </td>
                   <td className="max-w-sm py-2 pr-3 whitespace-pre-wrap">{m.message}</td>
                   <td className="py-2 pr-3 text-xs text-slate-400 dark:text-slate-300">{new Date(m.created_at).toLocaleString()}</td>

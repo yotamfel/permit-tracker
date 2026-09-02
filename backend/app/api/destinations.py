@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.deps import get_current_user, get_db, get_locale, get_optional_current_user
 from app.models.destination import Destination
 from app.models.destination_alternative import DestinationAlternative
+from app.models.destination_operator import DestinationOperator
 from app.models.enums import Category, CompetitivenessLevel, MechanismType
 from app.models.general_requirement import DestinationRequirement
 from app.models.user import User
@@ -18,6 +19,7 @@ from app.schemas.destination import (
     DestinationCardOut,
     DestinationChecklistOut,
     DestinationDetailOut,
+    OperatorOut,
     PrepItemOut,
     UserChecklistItemIn,
 )
@@ -140,6 +142,16 @@ def get_destination(
     if general_count:
         checklist_item_counts["general_requirement"] = general_count
 
+    operators: list[OperatorOut] = []
+    if is_owned:
+        operators = [
+            OperatorOut(name=o.name, url=o.url, note=o.note)
+            for o in db.query(DestinationOperator)
+            .filter(DestinationOperator.destination_id == destination_id)
+            .order_by(DestinationOperator.order_index)
+            .all()
+        ]
+
     alternatives: list[AlternativeOut] = []
     if is_owned:
         alt_rows = (
@@ -184,6 +196,7 @@ def get_destination(
         mechanism_config=d.mechanism_config,
         checklist_item_counts=checklist_item_counts,
         application_url=d.application_url if is_owned else None,
+        operators=operators,
         alternatives=alternatives,
     )
 
