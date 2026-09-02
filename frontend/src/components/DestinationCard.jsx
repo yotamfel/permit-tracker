@@ -41,35 +41,36 @@ export default function DestinationCard({ d, compact = false }) {
       {/* Image slot - placeholder for now, ready to hold a real destination
           photo (same slot is reused on the destination detail page) without
           reworking this layout later. */}
-      <div className={`relative w-full bg-gradient-to-br ${category.gradient} ${compact ? "aspect-[2/1]" : "aspect-[3/2]"}`}>
+      <div className={`relative w-full bg-gradient-to-br ${category.gradient} ${compact ? "aspect-[3/1]" : "aspect-[3/2]"}`}>
         <span
-          className={`absolute inset-0 flex items-center justify-center opacity-40 ${compact ? "text-2xl" : "text-5xl"}`}
+          className={`absolute inset-0 flex items-center justify-center opacity-40 ${compact ? "text-lg" : "text-5xl"}`}
           aria-hidden="true"
         >
           {category.icon}
         </span>
-        <div className={`absolute flex flex-col items-start gap-1 ${compact ? "left-1.5 top-1.5" : "left-2 top-2"}`}>
-          <OverlayBadge compact={compact} className={`uppercase tracking-wide ${category.text}`}>
-            <span aria-hidden="true">{category.icon}</span>
-            {!compact && t(`category.${d.category}`)}
-          </OverlayBadge>
-          {competitivenessLabel && (
-            <OverlayBadge compact={compact} className={competitivenessText} title={`Competitiveness: ${competitivenessInfo?.text ?? ""}`}>
-              {!compact && "🎯 "}
-              {competitivenessLabel}
+        {!compact && (
+          <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
+            <OverlayBadge className={`uppercase tracking-wide ${category.text}`}>
+              <span aria-hidden="true">{category.icon}</span>
+              {t(`category.${d.category}`)}
             </OverlayBadge>
-          )}
-        </div>
+            {competitivenessLabel && (
+              <OverlayBadge className={competitivenessText} title={`Competitiveness: ${competitivenessInfo?.text ?? ""}`}>
+                🎯 {competitivenessLabel}
+              </OverlayBadge>
+            )}
+          </div>
+        )}
       </div>
 
-      <div className={`flex flex-1 flex-col ${compact ? "gap-0.5 p-2.5" : "gap-1 p-4"}`}>
+      <div className={`flex flex-1 flex-col ${compact ? "gap-0 p-1.5" : "gap-1 p-4"}`}>
         <h2
-          className={`font-display font-semibold text-stone-900 group-hover:text-amber-700 dark:text-stone-100 dark:group-hover:text-amber-400 ${compact ? "text-sm leading-tight" : "text-lg"}`}
+          className={`font-display font-semibold text-stone-900 group-hover:text-amber-700 dark:text-stone-100 dark:group-hover:text-amber-400 ${compact ? "text-xs leading-tight" : "text-lg"}`}
         >
           {d.name}
         </h2>
         {compact ? (
-          <p className="text-xs text-stone-500 dark:text-stone-400">{d.country}</p>
+          <p className="truncate text-[10px] text-stone-500 dark:text-stone-400">{d.country}</p>
         ) : (
           <>
             <p className="text-sm text-stone-500 dark:text-stone-400">
@@ -81,15 +82,14 @@ export default function DestinationCard({ d, compact = false }) {
             </p>
           </>
         )}
-        {d.is_owned ? (
-          <div className={`font-semibold text-emerald-600 dark:text-emerald-400 ${compact ? "text-xs" : "mt-1 text-sm"}`}>
-            ✓ {t("browse.owned")}
-          </div>
-        ) : (
-          <div className={`font-semibold text-amber-700 dark:text-amber-400 ${compact ? "text-xs" : "mt-1 text-sm"}`}>
-            {t("browse.unlock_for", { price: d.price_usd })}
-          </div>
-        )}
+        {!compact &&
+          (d.is_owned ? (
+            <div className="mt-1 text-sm font-semibold text-emerald-600 dark:text-emerald-400">✓ {t("browse.owned")}</div>
+          ) : (
+            <div className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-400">
+              {t("browse.unlock_for", { price: d.price_usd })}
+            </div>
+          ))}
       </div>
     </Link>
   );

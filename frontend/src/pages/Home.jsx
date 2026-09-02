@@ -68,7 +68,7 @@ export default function Home() {
                   See all →
                 </Link>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {featured.map((d) => (
                   <DestinationCard key={d.id} d={d} compact />
                 ))}
