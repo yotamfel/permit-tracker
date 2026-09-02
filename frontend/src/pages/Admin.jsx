@@ -31,38 +31,58 @@ export default function Admin() {
   const counts = { destinations: destCount, review: reviewCount };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-bold">{t("admin.title")}</h1>
-      <div className="mt-4 flex gap-4 border-b border-slate-200 text-sm dark:border-slate-800">
-        {TABS.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`pb-2 ${tab === key ? "border-b-2 border-slate-900 font-medium dark:border-slate-100" : "text-slate-500 dark:text-slate-300"}`}
-          >
-            {label}
-            {counts[key] != null && <span className="ml-1 text-xs">({counts[key]})</span>}
-          </button>
-        ))}
-      </div>
+      <div className="mt-6 flex flex-col gap-8 md:flex-row">
+        <nav className="shrink-0 md:w-48">
+          {TAB_GROUPS.map((group) => (
+            <div key={group.label} className="mb-5">
+              <div className="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                {group.label}
+              </div>
+              <div className="flex flex-row flex-wrap gap-1 md:flex-col md:flex-nowrap">
+                {group.tabs.map((key) => {
+                  const meta = TABS.find((x) => x.key === key);
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setTab(key)}
+                      className={`rounded-lg px-2 py-1.5 text-left text-sm transition ${
+                        tab === key
+                          ? "bg-slate-900 font-medium text-white dark:bg-slate-100 dark:text-slate-900"
+                          : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      {meta.label}
+                      {counts[key] != null && <span className="ml-1 text-xs opacity-70">({counts[key]})</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
 
-      {tab === "destinations" && <DestinationsTab onCountChange={setDestCount} />}
-      {tab === "review" && <ReviewQueueTab onCountChange={setReviewCount} />}
-      {tab === "monitoring" && <MonitoringTab t={t} />}
-      {tab === "stats" && <StatsTab />}
-      {tab === "users" && <UsersTab />}
-      {tab === "feedback" && <FeedbackStatsTab />}
-      {tab === "inquiries" && <InquiriesTab />}
-      {tab === "follow-ups" && (
-        <div className="mt-6">
-          <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
-            Schedule a reminder to manually re-check something about a destination on a specific date - e.g.
-            official prices that only publish in October. Click a marked day to see what's due.
-          </p>
-          <AdminFollowUpCalendar />
+        <div className="min-w-0 flex-1">
+          {tab === "destinations" && <DestinationsTab onCountChange={setDestCount} />}
+          {tab === "review" && <ReviewQueueTab onCountChange={setReviewCount} />}
+          {tab === "monitoring" && <MonitoringTab t={t} />}
+          {tab === "stats" && <StatsTab />}
+          {tab === "users" && <UsersTab />}
+          {tab === "feedback" && <FeedbackStatsTab />}
+          {tab === "inquiries" && <InquiriesTab />}
+          {tab === "follow-ups" && (
+            <div>
+              <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
+                Schedule a reminder to manually re-check something about a destination on a specific date - e.g.
+                official prices that only publish in October. Click a marked day to see what's due.
+              </p>
+              <AdminFollowUpCalendar />
+            </div>
+          )}
+          {tab === "reports" && <ReportsTab />}
         </div>
-      )}
-      {tab === "reports" && <ReportsTab />}
+      </div>
     </div>
   );
 }
@@ -77,6 +97,15 @@ const TABS = [
   { key: "inquiries", label: "Inquiries" },
   { key: "follow-ups", label: "Follow-ups" },
   { key: "reports", label: "Reports" },
+];
+
+// Grouped for the sidebar nav - purely a presentation grouping, doesn't
+// change what any tab does or drops anything that was there before.
+const TAB_GROUPS = [
+  { label: "Content", tabs: ["destinations", "review", "monitoring"] },
+  { label: "Users & access", tabs: ["users", "stats"] },
+  { label: "Messages", tabs: ["inquiries", "feedback", "follow-ups"] },
+  { label: "Agents", tabs: ["reports"] },
 ];
 
 const AGENT_TYPE_LABELS = {

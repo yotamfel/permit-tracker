@@ -80,6 +80,11 @@ class DestinationDetailOut(BaseModel):
     last_verified_at: datetime | None
     price_usd: float
     is_owned: bool
+    # True when the user has a completed purchase for this destination whose
+    # cycle has since lapsed - lets the frontend say "your access ended" (with
+    # a contact-us prompt) rather than showing the plain unlock CTA as if
+    # they'd never bought it.
+    previously_owned: bool = False
     next_known_release: datetime | None
     # Free to everyone (spec addendum: Pre-Purchase Trust Signals §1.3) - shows
     # concrete numbers (quota size, lottery odds, etc.) as a trust/urgency

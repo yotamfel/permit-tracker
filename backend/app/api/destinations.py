@@ -25,7 +25,7 @@ from app.schemas.destination import (
 )
 from app.services.checklist_completion import completed_prep_item_ids, toggle_completion
 from app.services.i18n import translate_bulk, translate_one_entity_multi_type
-from app.services.ownership import owned_destination_ids, user_owns_destination
+from app.services.ownership import owned_destination_ids, user_owns_destination, user_previously_purchased
 from app.services.release_date import compute_next_release, compute_release_dates_in_month
 
 router = APIRouter(prefix="/api/destinations", tags=["destinations"])
@@ -119,6 +119,7 @@ def get_destination(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
 
     is_owned = user_owns_destination(db, user, destination_id)
+    previously_owned = False if is_owned else user_previously_purchased(db, user, destination_id)
 
     texts = translate_one_entity_multi_type(
         db,
@@ -192,6 +193,7 @@ def get_destination(
         last_verified_at=d.last_verified_at,
         price_usd=float(d.price_usd),
         is_owned=is_owned,
+        previously_owned=previously_owned,
         next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
         mechanism_config=d.mechanism_config,
         checklist_item_counts=checklist_item_counts,

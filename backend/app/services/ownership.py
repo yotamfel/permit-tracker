@@ -48,6 +48,25 @@ def user_owns_destination(db: Session, user: User | None, destination_id: uuid.U
     return purchase_still_active(destination, purchase.created_at, travel_date, admin_override_until=purchase.admin_override_until)
 
 
+def user_previously_purchased(db: Session, user: User | None, destination_id: uuid.UUID) -> bool:
+    """True if the user has ever completed a purchase for this destination,
+    regardless of whether that purchase's cycle is still active - lets the
+    frontend distinguish "never bought this" from "bought it, cycle lapsed"
+    so a re-locked destination doesn't read as if they never unlocked it."""
+    if user is None or is_admin(db, user):
+        return False
+    return (
+        db.query(Purchase)
+        .filter(
+            Purchase.user_id == user.id,
+            Purchase.destination_id == destination_id,
+            Purchase.status == PurchaseStatus.completed,
+        )
+        .first()
+        is not None
+    )
+
+
 def owned_destination_ids(db: Session, user: User | None, all_destination_ids: list[uuid.UUID]) -> set[uuid.UUID]:
     """Batched version of user_owns_destination for list endpoints - one round
     of queries instead of one-per-destination (was previously the dominant

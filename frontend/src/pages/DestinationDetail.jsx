@@ -381,6 +381,15 @@ export default function DestinationDetail() {
         ) : (
           <>
             {!user && <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">Log in to unlock this destination.</p>}
+            {destination.previously_owned && (
+              <p className="mb-3 rounded-lg bg-stone-100 px-3 py-2 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+                Your access to this destination has ended for this cycle. If you think that's a mistake,{" "}
+                <a href="#report-issue" className="text-amber-700 underline hover:text-amber-900 dark:text-amber-400">
+                  let us know
+                </a>
+                .
+              </p>
+            )}
             <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">{t("destination.risk_framing")}</p>
             <button
               onClick={handleUnlock}
@@ -417,7 +426,7 @@ function DestinationContactSection({ destinationId, destinationName, userEmail }
   };
 
   return (
-    <section className="mt-8 border-t border-stone-200 pt-6 dark:border-stone-800">
+    <section id="report-issue" className="mt-8 border-t border-stone-200 pt-6 dark:border-stone-800">
       {!open ? (
         <button
           onClick={() => setOpen(true)}
