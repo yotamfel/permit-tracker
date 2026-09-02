@@ -25,6 +25,14 @@ def init_sentry() -> None:
         return
     import sentry_sdk
 
-    sentry_sdk.init(dsn=settings.sentry_dsn, environment=settings.environment, traces_sample_rate=0.1)
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.environment,
+        traces_sample_rate=0.1,
+        # Sentry's own default for this project - includes request headers,
+        # IP, and user info on captured errors to make them easier to debug.
+        # See https://docs.sentry.io/platforms/python/data-management/data-collected/
+        send_default_pii=True,
+    )
     _initialized = True
     logger.info("Sentry initialized (environment=%s)", settings.environment)

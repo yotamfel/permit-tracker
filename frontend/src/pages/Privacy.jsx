@@ -1,4 +1,4 @@
-const EFFECTIVE_DATE = "September 1, 2026";
+const EFFECTIVE_DATE = "September 2, 2026";
 
 export default function Privacy() {
   return (
@@ -81,14 +81,24 @@ export default function Privacy() {
               <span className="font-medium">Our hosting and database providers</span> - to run the website, backend,
               and store data securely.
             </li>
+            <li>
+              <span className="font-medium">Google Analytics</span> - anonymized-where-possible usage analytics
+              (pages visited, general location, device type) to understand how the Service is used.
+            </li>
+            <li>
+              <span className="font-medium">Sentry</span> - error monitoring, so we can detect and fix bugs. When an
+              error occurs, technical details (such as your IP address and the request that triggered it) may be sent
+              to Sentry to help us diagnose the issue.
+            </li>
           </ul>
           <p className="mt-2">We may also disclose information if required to by law.</p>
         </Section>
 
-        <Section title="5. Cookies and local storage">
+        <Section title="5. Cookies, local storage, and analytics">
           <p>
             We use your browser's local storage (not tracking cookies) to keep you logged in and to remember your
-            theme preference. We do not use third-party advertising or tracking scripts.
+            theme preference. We use Google Analytics to understand overall usage of the Service - it may set its own
+            cookies for this purpose. We do not use third-party advertising scripts or sell data to advertisers.
           </p>
         </Section>
 
