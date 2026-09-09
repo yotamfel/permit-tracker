@@ -25,6 +25,11 @@ class MechanismType(str, enum.Enum):
     guided_tour_only = "guided_tour_only"
     single_operator_annual_quota = "single_operator_annual_quota"
     first_come_first_served = "first_come_first_served"
+    # A lottery/application window that recurs weekly or monthly (as opposed
+    # to `lottery`'s single annual window) - e.g. JMT's weekly Yosemite
+    # wilderness-permit draw, or The Subway/The Wave/Grand Canyon Corridor's
+    # monthly Recreation.gov lotteries.
+    recurring_lottery = "recurring_lottery"
 
 
 class IssuingAuthority(str, enum.Enum):

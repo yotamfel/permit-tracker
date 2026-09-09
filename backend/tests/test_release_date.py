@@ -100,6 +100,61 @@ def test_lottery_with_additional_windows_picks_soonest():
     assert (result.year, result.month, result.day) == (2026, 10, 1)
 
 
+def test_recurring_lottery_weekly_off_season_jumps_to_season_start():
+    # JMT shape: weekly (Sunday) draw, only active mid-Nov through early May.
+    config = {
+        "recurrence": "weekly",
+        "application_weekday": "sunday",
+        "results_delay_days": 8,
+        "timezone": "America/Los_Angeles",
+        "active_window_start": "11-15",
+        "active_window_end": "05-03",
+    }
+    now = datetime(2026, 9, 9, tzinfo=ZoneInfo("UTC"))  # off-season
+    result = compute_next_release("recurring_lottery", config, now=now)
+    assert (result.year, result.month, result.day) == (2026, 11, 15)
+
+
+def test_recurring_lottery_weekly_in_season_finds_next_weekday():
+    config = {
+        "recurrence": "weekly",
+        "application_weekday": "sunday",
+        "results_delay_days": 8,
+        "timezone": "America/Los_Angeles",
+        "active_window_start": "11-15",
+        "active_window_end": "05-03",
+    }
+    now = datetime(2027, 1, 5, tzinfo=ZoneInfo("UTC"))  # a Tuesday, in-season
+    result = compute_next_release("recurring_lottery", config, now=now)
+    assert result.weekday() == 6  # Sunday
+    assert (result.year, result.month, result.day) == (2027, 1, 10)
+
+
+def test_recurring_lottery_monthly_year_round():
+    # The Subway shape: opens the 1st of every month, no seasonal restriction.
+    config = {"recurrence": "monthly", "application_day_of_month": 1, "results_delay_days": 26, "timezone": "America/Denver"}
+    now = datetime(2026, 9, 9, tzinfo=ZoneInfo("UTC"))
+    result = compute_next_release("recurring_lottery", config, now=now)
+    assert (result.year, result.month, result.day) == (2026, 10, 1)
+
+
+def test_recurring_lottery_dates_in_month_respects_active_window():
+    config = {
+        "recurrence": "weekly",
+        "application_weekday": "sunday",
+        "results_delay_days": 8,
+        "timezone": "America/Los_Angeles",
+        "active_window_start": "11-15",
+        "active_window_end": "05-03",
+    }
+    from app.services.release_date import compute_release_dates_in_month
+
+    assert compute_release_dates_in_month("recurring_lottery", config, 2026, 9) == []
+    december_sundays = compute_release_dates_in_month("recurring_lottery", config, 2026, 12)
+    assert all(d.weekday() == 6 for d in december_sundays)
+    assert len(december_sundays) == 4
+
+
 def test_mechanism_types_with_no_computable_date_return_none():
     now = datetime(2026, 1, 1, tzinfo=ZoneInfo("UTC"))
     for mechanism_type in ["rolling_window", "guided_tour_only", "first_come_first_served", "single_operator_annual_quota", "fixed_daily_quota"]:

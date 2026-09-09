@@ -46,7 +46,8 @@
     "weekly_release": "Weekly Release",
     "guided_tour_only": "Guided Tour Only",
     "single_operator_annual_quota": "Single Operator Annual Quota",
-    "first_come_first_served": "First Come, First Served"
+    "first_come_first_served": "First Come, First Served",
+    "recurring_lottery": "Recurring Lottery"
   },
   "competitiveness_level": {
     "low": "Low",

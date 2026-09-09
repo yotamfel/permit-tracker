@@ -126,6 +126,16 @@ export function formatMechanismConfig(mechanismType, config) {
     }
     case "weekly_release":
       return `New availability releases every ${capitalize(config.release_weekday)} at ${formatTimeWithUTC(null, config.release_time, config.timezone)}, roughly ${config.weeks_ahead} weeks ahead.`;
+    case "recurring_lottery": {
+      const cadence =
+        config.recurrence === "weekly"
+          ? `every ${capitalize(config.application_weekday)}`
+          : `on day ${config.application_day_of_month} of every month`;
+      const season = config.active_window_start
+        ? ` (active ${formatMonthDay(config.active_window_start)} - ${formatMonthDay(config.active_window_end)} only)`
+        : "";
+      return `A recurring lottery opens ${cadence}${season}, with results roughly ${config.results_delay_days} days later. See the checklist for this destination's exact real-world timing details.`;
+    }
     case "guided_tour_only":
       return config.note || "No self-service release date - depends on tour operator availability.";
     case "single_operator_annual_quota":
@@ -178,6 +188,15 @@ export function getMechanismStats(mechanismType, config) {
         `Releases every ${capitalize(config.release_weekday)} at ${formatTimeWithUTC(null, config.release_time, config.timezone)}`,
         `Availability window: roughly ${config.weeks_ahead} weeks ahead`,
       ];
+    case "recurring_lottery": {
+      const cadence =
+        config.recurrence === "weekly" ? `Every ${capitalize(config.application_weekday)}` : `Day ${config.application_day_of_month} of every month`;
+      const stats = [`Recurring lottery opens: ${cadence}`, `Results roughly ${config.results_delay_days} days later`];
+      if (config.active_window_start) {
+        stats.push(`Active season: ${formatMonthDay(config.active_window_start)} - ${formatMonthDay(config.active_window_end)}`);
+      }
+      return stats;
+    }
     case "guided_tour_only":
       return [config.note || "No self-service release date - depends on tour operator availability"];
     case "single_operator_annual_quota":

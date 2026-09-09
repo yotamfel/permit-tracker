@@ -31,6 +31,40 @@ def _next_month_day(today: date, month_day: str) -> date:
     return candidate
 
 
+def _in_active_window(d: date, start: str | None, end: str | None) -> bool:
+    """True if d falls within the MM-DD..MM-DD window (inclusive), handling a
+    window that wraps the new year (e.g. Nov 15 - May 3). No window (either
+    bound null) means always active - year-round recurrence."""
+    if start is None or end is None:
+        return True
+    start_md = tuple(int(p) for p in start.split("-"))
+    end_md = tuple(int(p) for p in end.split("-"))
+    cur_md = (d.month, d.day)
+    if start_md <= end_md:
+        return start_md <= cur_md <= end_md
+    return cur_md >= start_md or cur_md <= end_md
+
+
+def _next_recurring_lottery_date(today: date, config: dict) -> date:
+    """First date on/after `today` that both matches the recurrence pattern
+    (a given weekday, or a given day-of-month) and falls inside the active
+    window, if any. Bounded to a 400-day search - always terminates well
+    within a year even for the rarest combination (a single weekday inside a
+    short active window)."""
+    active_start = config.get("active_window_start")
+    active_end = config.get("active_window_end")
+    candidate = today
+    for _ in range(400):
+        if config["recurrence"] == "weekly":
+            matches = candidate.weekday() == WEEKDAYS[config["application_weekday"]]
+        else:
+            matches = candidate.day == config["application_day_of_month"]
+        if matches and _in_active_window(candidate, active_start, active_end):
+            return candidate
+        candidate += timedelta(days=1)
+    raise ValueError("No matching recurring_lottery date found within 400 days - check the config")
+
+
 def compute_next_release(mechanism_type: str, config: dict, now: datetime | None = None) -> datetime | None:
     now = now or datetime.now(ZoneInfo("UTC"))
     today = now.date()
@@ -58,6 +92,11 @@ def compute_next_release(mechanism_type: str, config: dict, now: datetime | None
         if candidate < now:
             candidate += timedelta(days=7)
         return candidate
+
+    if mechanism_type == "recurring_lottery":
+        tz = ZoneInfo(config["timezone"])
+        next_date = _next_recurring_lottery_date(today, config)
+        return datetime.combine(next_date, time(0, 0), tzinfo=tz)
 
     if mechanism_type == "lottery":
         windows = [config, *config.get("additional_windows", [])]
@@ -117,6 +156,24 @@ def compute_release_dates_in_month(mechanism_type: str, config: dict, year: int,
         while current.month == month:
             dates.append(current)
             current += timedelta(days=7)
+        return dates
+
+    if mechanism_type == "recurring_lottery":
+        active_start = config.get("active_window_start")
+        active_end = config.get("active_window_end")
+        dates = []
+        for day in range(1, 32):
+            try:
+                d = date(year, month, day)
+            except ValueError:
+                break
+            if not _in_active_window(d, active_start, active_end):
+                continue
+            if config["recurrence"] == "weekly":
+                if d.weekday() == WEEKDAYS[config["application_weekday"]]:
+                    dates.append(d)
+            elif d.day == config["application_day_of_month"]:
+                dates.append(d)
         return dates
 
     # rolling_window / fixed_daily_quota / guided_tour_only /

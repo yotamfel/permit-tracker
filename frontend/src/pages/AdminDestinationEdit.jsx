@@ -11,7 +11,7 @@ const CATEGORIES = [
   "thru_hike", "tourist_attraction", "seasonal_nature_event", "endurance_event",
 ];
 const MECHANISMS = [
-  "fixed_daily_quota", "lottery", "rolling_window", "fixed_annual_date",
+  "fixed_daily_quota", "lottery", "recurring_lottery", "rolling_window", "fixed_annual_date",
   "weekly_release", "guided_tour_only", "single_operator_annual_quota", "first_come_first_served",
 ];
 const ISSUERS = ["government", "tribal", "commercial", "mixed"];

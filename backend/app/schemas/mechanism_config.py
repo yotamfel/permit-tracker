@@ -49,6 +49,38 @@ class LotteryConfig(BaseModel):
     additional_windows: list[LotteryWindow] = []
 
 
+class RecurringLotteryConfig(BaseModel):
+    """A lottery/application window that recurs weekly or monthly, rather than
+    once a year - e.g. JMT's weekly Yosemite wilderness-permit draw, or The
+    Subway/The Wave/Grand Canyon Corridor's monthly Recreation.gov lotteries.
+    This is inherently an approximation of real systems that have their own
+    quirks (exact weekday cutoffs, results-notification timing) - the
+    destination's own mechanism_explanation/checklist text is the source of
+    truth for those details; this config only drives "when's the next one"
+    and the release calendar.
+    """
+
+    mechanism_type: Literal["recurring_lottery"] = "recurring_lottery"
+    recurrence: Literal["weekly", "monthly"]
+    # For recurrence="weekly": which day each application window opens.
+    application_weekday: Literal[
+        "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+    ] | None = None
+    # For recurrence="monthly": which day of the month each window opens (1-28,
+    # to stay valid in every month).
+    application_day_of_month: int | None = Field(default=None, ge=1, le=28)
+    # Approximate days from an application window opening to results being
+    # announced - a best-effort single number even when the real system's
+    # exact delay varies (e.g. by month length).
+    results_delay_days: int
+    timezone: str
+    # Only part of the year is active (e.g. JMT: mid-Nov to early May) - null
+    # on both means it recurs year-round (The Subway, The Wave, Grand Canyon
+    # Corridor).
+    active_window_start: str | None = Field(default=None, pattern=r"^\d{2}-\d{2}$")
+    active_window_end: str | None = Field(default=None, pattern=r"^\d{2}-\d{2}$")
+
+
 class RollingWindowConfig(BaseModel):
     mechanism_type: Literal["rolling_window"] = "rolling_window"
     days_before_travel_date: int
@@ -106,6 +138,7 @@ class FirstComeFirstServedConfig(BaseModel):
 MECHANISM_CONFIG_MODELS: dict[str, type[BaseModel]] = {
     "fixed_daily_quota": FixedDailyQuotaConfig,
     "lottery": LotteryConfig,
+    "recurring_lottery": RecurringLotteryConfig,
     "rolling_window": RollingWindowConfig,
     "fixed_annual_date": FixedAnnualDateConfig,
     "weekly_release": WeeklyReleaseConfig,
