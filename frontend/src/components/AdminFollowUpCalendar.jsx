@@ -61,6 +61,22 @@ export default function AdminFollowUpCalendar() {
     load();
   };
 
+  const postpone = async (f, newDueDate) => {
+    if (!newDueDate || newDueDate === f.due_date) return;
+    await api.put(`/admin/api/follow-ups/${f.id}`, { ...f, due_date: newDueDate });
+    load();
+  };
+
+  const postponeByDays = (f, days) => {
+    // Pure UTC date arithmetic - avoids a local-timezone shift landing the
+    // result on the wrong day (e.g. new Date("...T00:00:00") + toISOString()
+    // round-trips through local time and can land a day early/late).
+    const [y, m, d] = f.due_date.split("-").map(Number);
+    const date = new Date(Date.UTC(y, m - 1, d));
+    date.setUTCDate(date.getUTCDate() + days);
+    postpone(f, date.toISOString().slice(0, 10));
+  };
+
   const addFollowUp = async () => {
     if (!newFollowUp.destination_id || !newFollowUp.due_date || !newFollowUp.title) return;
     await api.post("/admin/api/follow-ups", newFollowUp);
@@ -143,6 +159,24 @@ export default function AdminFollowUpCalendar() {
                   </label>
                 </div>
                 {f.notes && <p className="mt-1 whitespace-pre-wrap text-slate-600 dark:text-slate-400">{f.notes}</p>}
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-slate-500 dark:text-slate-400">Postpone:</span>
+                  <button onClick={() => postponeByDays(f, 7)} className="rounded border border-slate-300 px-1.5 py-0.5 dark:border-slate-600">
+                    +1wk
+                  </button>
+                  <button onClick={() => postponeByDays(f, 14)} className="rounded border border-slate-300 px-1.5 py-0.5 dark:border-slate-600">
+                    +2wk
+                  </button>
+                  <button onClick={() => postponeByDays(f, 30)} className="rounded border border-slate-300 px-1.5 py-0.5 dark:border-slate-600">
+                    +1mo
+                  </button>
+                  <input
+                    type="date"
+                    value={f.due_date}
+                    onChange={(e) => postpone(f, e.target.value)}
+                    className="rounded border border-slate-300 bg-transparent px-1 py-0.5 dark:border-slate-600"
+                  />
+                </div>
                 <button onClick={() => deleteFollowUp(f.id)} className="mt-1 text-red-600 underline">
                   delete
                 </button>
