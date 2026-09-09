@@ -432,22 +432,43 @@ function MonitoringTab({ t }) {
       {fetchFailures.length > 0 && (
         <div className="rounded border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
           <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-            Needs manual check ({fetchFailures.length})
+            Source pages we can't reach automatically ({fetchFailures.length})
           </h3>
           <p className="mt-1 text-xs text-amber-800 dark:text-amber-300">
-            Automated monitoring can't reach these sources (blocked, broken, or moved) - you were emailed when
-            each one first failed. Worth checking these by hand periodically.
+            Every week, the site tries to re-fetch each published destination's official source page to catch
+            changes (price, dates, rules). For the destinations below, that fetch is currently failing - the site
+            itself may be down, blocking automated requests, or moved. This does <strong>not</strong> unpublish or
+            break the destination page for visitors - it only means we can't detect changes there automatically
+            right now.
           </p>
-          <ul className="mt-2 space-y-2">
+          <p className="mt-1 text-xs text-amber-800 dark:text-amber-300">
+            <strong>What to do:</strong> nothing is required. This clears itself automatically the next time the
+            weekly check succeeds. If you want to check sooner, click the source link below to see if it's back
+            up - if it looks fine to you in a browser, the automated check is likely just being blocked as a bot,
+            which is harmless.
+          </p>
+          <ul className="mt-3 space-y-3">
             {fetchFailures.map((f) => (
-              <li key={f.destination_id} className="text-xs">
+              <li key={f.destination_id} className="rounded border border-amber-200 bg-white/60 p-2 dark:border-amber-800 dark:bg-black/10">
                 <Link to={`/admin/destinations/${f.destination_id}`} className="font-medium text-amber-900 underline dark:text-amber-100">
                   {f.destination_name}
                 </Link>
-                <span className="text-amber-700 dark:text-amber-400">
-                  {" "}
-                  - failing since {f.failing_since ? new Date(f.failing_since).toLocaleDateString() : "?"} ({f.error})
-                </span>
+                <div className="mt-1 text-xs text-amber-800 dark:text-amber-300">
+                  Failing since {f.failing_since ? new Date(f.failing_since).toLocaleDateString() : "unknown date"}
+                  {f.source_url && (
+                    <>
+                      {" · "}
+                      <a href={f.source_url} target="_blank" rel="noreferrer" className="underline">
+                        Check the source page ↗
+                      </a>
+                    </>
+                  )}
+                </div>
+                {f.error && (
+                  <p className="mt-1 truncate text-[11px] text-amber-600 dark:text-amber-500" title={f.error}>
+                    Technical detail: {f.error}
+                  </p>
+                )}
               </li>
             ))}
           </ul>
