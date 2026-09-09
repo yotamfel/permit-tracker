@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { formatMechanismConfig } from "../lib/mechanismConfig";
 import { COMPETITIVENESS_INFO } from "../components/CompetitivenessNote";
 import { MONTH_NAMES } from "../lib/months";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const CATEGORIES = [
   "trek", "national_park_entry", "camping", "diving", "wildlife_safari",
@@ -33,6 +34,7 @@ export default function AdminDestinationEdit() {
   const [newAltNote, setNewAltNote] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   const load = useCallback(() => {
     api.get(`/admin/api/destinations/${id}`).then((res) =>
@@ -101,11 +103,12 @@ export default function AdminDestinationEdit() {
     }
   };
 
+  const discardWarning = form?.is_published
+    ? `"${form.name}" is LIVE and PUBLISHED right now. Deleting it removes it from the site permanently and cannot be undone. Are you sure?`
+    : `Permanently delete "${form?.name}"? This cannot be undone.`;
+
   const discard = async () => {
-    const warning = form.is_published
-      ? `"${form.name}" is LIVE and PUBLISHED right now. Deleting it removes it from the site permanently and cannot be undone. Are you sure?`
-      : `Permanently delete "${form.name}"? This cannot be undone.`;
-    if (!window.confirm(warning)) return;
+    setShowDiscardConfirm(false);
     await api.delete(`/admin/api/destinations/${id}`);
     navigate("/admin");
   };
@@ -639,10 +642,20 @@ export default function AdminDestinationEdit() {
         >
           Save without publishing
         </button>
-        <button onClick={discard} className="rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700">
+        <button
+          onClick={() => setShowDiscardConfirm(true)}
+          className="rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+        >
           Discard
         </button>
       </section>
+
+      <ConfirmDialog
+        open={showDiscardConfirm}
+        message={discardWarning}
+        onConfirm={discard}
+        onCancel={() => setShowDiscardConfirm(false)}
+      />
     </div>
   );
 }

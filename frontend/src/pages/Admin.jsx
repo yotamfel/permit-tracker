@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import AdminFollowUpCalendar from "../components/AdminFollowUpCalendar";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function Admin() {
   const { t } = useTranslation();
@@ -359,8 +360,11 @@ function DestinationsTab({ onCountChange }) {
     load();
   }, []);
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`"${name}" is LIVE and PUBLISHED right now. Deleting it removes it from the site permanently and cannot be undone. Are you sure?`)) return;
+  const [pendingDelete, setPendingDelete] = useState(null); // { id, name }
+
+  const confirmDelete = async () => {
+    const { id } = pendingDelete;
+    setPendingDelete(null);
     await api.delete(`/admin/api/destinations/${id}`);
     load();
   };
@@ -385,13 +389,22 @@ function DestinationsTab({ onCountChange }) {
               <Link to={`/admin/destinations/${d.id}`} className="underline">
                 edit
               </Link>
-              <button onClick={() => handleDelete(d.id, d.name)} className="text-red-600 underline">
+              <button onClick={() => setPendingDelete({ id: d.id, name: d.name })} className="text-red-600 underline">
                 delete
               </button>
             </div>
           </li>
         ))}
       </ul>
+      <ConfirmDialog
+        open={!!pendingDelete}
+        message={
+          pendingDelete &&
+          `"${pendingDelete.name}" is LIVE and PUBLISHED right now. Deleting it removes it from the site permanently and cannot be undone. Are you sure?`
+        }
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
