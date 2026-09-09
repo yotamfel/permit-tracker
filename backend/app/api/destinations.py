@@ -72,6 +72,10 @@ def list_destinations(
                 season_start_month=d.season_start_month,
                 season_end_month=d.season_end_month,
                 safety_advisory=d.safety_advisory,
+                image_url=d.image_url,
+                image_credit_name=d.image_credit_name,
+                image_credit_url=d.image_credit_url,
+                image_license=d.image_license,
             )
         )
     return out
@@ -202,6 +206,10 @@ def get_destination(
         operators=operators,
         alternatives=alternatives,
         safety_advisory=d.safety_advisory,
+        image_url=d.image_url,
+        image_credit_name=d.image_credit_name,
+        image_credit_url=d.image_credit_url,
+        image_license=d.image_license,
     )
 
 

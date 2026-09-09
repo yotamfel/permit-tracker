@@ -257,6 +257,40 @@ export default function AdminDestinationEdit() {
         />
       </div>
 
+      {/* Photo - public, credit is legally required whenever image_url is set */}
+      <div className="mb-4 rounded-xl bg-stone-100 p-3 text-xs dark:bg-stone-800">
+        <label className="block font-semibold text-stone-500 dark:text-stone-400">Photo (public)</label>
+        <input
+          value={form.image_url ?? ""}
+          onChange={(e) => set("image_url", e.target.value)}
+          placeholder="Image URL"
+          className="mt-1 block w-full rounded border border-stone-300 bg-white px-2 py-1 dark:border-stone-700 dark:bg-stone-900"
+        />
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <input
+            value={form.image_credit_name ?? ""}
+            onChange={(e) => set("image_credit_name", e.target.value)}
+            placeholder="Photographer / credit name (required with a photo)"
+            className="rounded border border-stone-300 bg-white px-2 py-1 dark:border-stone-700 dark:bg-stone-900"
+          />
+          <input
+            value={form.image_license ?? ""}
+            onChange={(e) => set("image_license", e.target.value)}
+            placeholder="License, e.g. CC BY-SA 4.0"
+            className="rounded border border-stone-300 bg-white px-2 py-1 dark:border-stone-700 dark:bg-stone-900"
+          />
+        </div>
+        <input
+          value={form.image_credit_url ?? ""}
+          onChange={(e) => set("image_credit_url", e.target.value)}
+          placeholder="Link to source/author page (the credit name links here)"
+          className="mt-2 block w-full rounded border border-stone-300 bg-white px-2 py-1 dark:border-stone-700 dark:bg-stone-900"
+        />
+        {form.image_url && (
+          <img src={form.image_url} alt="preview" className="mt-2 h-32 w-full rounded object-cover" />
+        )}
+      </div>
+
       {/* Sources - admin only, never shown on the public page */}
       <div className="mb-4 rounded-xl bg-stone-100 p-3 text-xs dark:bg-stone-800">
         <label className="block font-semibold text-stone-500 dark:text-stone-400">

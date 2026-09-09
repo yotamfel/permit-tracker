@@ -30,6 +30,7 @@ export default function DestinationDetail() {
   const [alertMessage, setAlertMessage] = useState("");
   const [calendarStatus, setCalendarStatus] = useState("");
   const [files, setFiles] = useState([]);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const load = useCallback(() => {
     api.get(`/api/destinations/${id}`, { params: { locale: i18n.language } }).then((res) => setDestination(res.data));
@@ -158,6 +159,70 @@ export default function DestinationDetail() {
       {purchaseStatus === "success" && !destination.is_owned && (
         <div className="mb-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
           Payment received - refresh in a few seconds once the webhook processes.
+        </div>
+      )}
+
+      {destination.image_url && (
+        <button
+          type="button"
+          onClick={() => setLightboxOpen(true)}
+          className="group relative mb-4 block w-full overflow-hidden rounded-2xl"
+        >
+          <img
+            src={destination.image_url}
+            alt={destination.name}
+            className="h-64 w-full object-cover transition group-hover:opacity-90 sm:h-80"
+          />
+          {destination.image_credit_name && (
+            <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1 text-xs text-white/90">
+              Photo: {destination.image_credit_name}
+              {destination.image_license ? ` · ${destination.image_license}` : ""}
+            </span>
+          )}
+          <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/20 group-hover:opacity-100">
+            <span aria-hidden="true" className="rounded-full bg-black/50 px-3 py-1.5 text-sm text-white">
+              🔍 Enlarge
+            </span>
+          </span>
+        </button>
+      )}
+
+      {lightboxOpen && destination.image_url && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div className="relative max-h-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={destination.image_url}
+              alt={destination.name}
+              className="max-h-[85vh] w-full rounded-lg object-contain"
+            />
+            <div className="mt-2 flex items-center justify-between gap-3 text-sm text-white/90">
+              <span>
+                {destination.image_credit_name &&
+                  (destination.image_credit_url ? (
+                    <>
+                      Photo by{" "}
+                      <a href={destination.image_credit_url} target="_blank" rel="noreferrer" className="underline">
+                        {destination.image_credit_name}
+                      </a>
+                    </>
+                  ) : (
+                    `Photo by ${destination.image_credit_name}`
+                  ))}
+                {destination.image_license ? ` · ${destination.image_license}` : ""}
+              </span>
+              <button
+                onClick={() => setLightboxOpen(false)}
+                className="shrink-0 rounded-full bg-white/10 px-3 py-1 hover:bg-white/20"
+              >
+                Close ✕
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

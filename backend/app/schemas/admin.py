@@ -105,6 +105,10 @@ class AdminDestinationIn(BaseModel):
     # A prominent warning banner shown to every visitor - see the model column
     # docstring. Null/empty = no banner.
     safety_advisory: str | None = None
+    image_url: str | None = None
+    image_credit_name: str | None = None
+    image_credit_url: str | None = None
+    image_license: str | None = None
     # Not Destination model columns - these live in the translations table
     # (locale="en") and are upserted there by the endpoint, not written
     # directly onto the Destination row.
@@ -136,6 +140,10 @@ class AdminDestinationOut(BaseModel):
     season_start_month: int | None = None
     season_end_month: int | None = None
     safety_advisory: str | None = None
+    image_url: str | None = None
+    image_credit_name: str | None = None
+    image_credit_url: str | None = None
+    image_license: str | None = None
     # Most recent agent report (any agent_type) for this destination, if any.
     # See AdminAgentReportOut.
     latest_report_id: uuid.UUID | None = None

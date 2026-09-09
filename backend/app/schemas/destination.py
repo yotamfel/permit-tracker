@@ -57,6 +57,10 @@ class DestinationCardOut(BaseModel):
     # Public even for guests / unpublished-preview contexts - a safety warning
     # shouldn't hide behind purchase. Null = no active advisory.
     safety_advisory: str | None = None
+    image_url: str | None = None
+    image_credit_name: str | None = None
+    image_credit_url: str | None = None
+    image_license: str | None = None
 
 
 class AlternativeOut(BaseModel):
@@ -111,6 +115,10 @@ class DestinationDetailOut(BaseModel):
     alternatives: list[AlternativeOut] = []
     # Public - see DestinationCardOut.safety_advisory.
     safety_advisory: str | None = None
+    image_url: str | None = None
+    image_credit_name: str | None = None
+    image_credit_url: str | None = None
+    image_license: str | None = None
 
 
 class DestinationChecklistOut(BaseModel):

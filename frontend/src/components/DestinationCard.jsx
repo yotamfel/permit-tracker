@@ -39,16 +39,24 @@ export default function DestinationCard({ d, compact = false }) {
       to={`/destinations/${d.id}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-stone-800 dark:bg-stone-900"
     >
-      {/* Image slot - placeholder for now, ready to hold a real destination
-          photo (same slot is reused on the destination detail page) without
-          reworking this layout later. */}
+      {/* Image slot - falls back to a category-colored gradient + icon when no
+          photo has been sourced yet for this destination. */}
       <div className={`relative w-full bg-gradient-to-br ${category.gradient} ${compact ? "aspect-[3/1]" : "aspect-[3/2]"}`}>
-        <span
-          className={`absolute inset-0 flex items-center justify-center opacity-40 ${compact ? "text-lg" : "text-5xl"}`}
-          aria-hidden="true"
-        >
-          {category.icon}
-        </span>
+        {d.image_url ? (
+          <img src={d.image_url} alt={d.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        ) : (
+          <span
+            className={`absolute inset-0 flex items-center justify-center opacity-40 ${compact ? "text-lg" : "text-5xl"}`}
+            aria-hidden="true"
+          >
+            {category.icon}
+          </span>
+        )}
+        {d.image_url && d.image_credit_name && !compact && (
+          <span className="absolute bottom-1 right-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[10px] text-white/90">
+            Photo: {d.image_credit_name}
+          </span>
+        )}
         {!compact && (
           <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
             <OverlayBadge className={`uppercase tracking-wide ${category.text}`}>

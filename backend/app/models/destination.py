@@ -58,6 +58,17 @@ class Destination(UUIDPKMixin, TimestampMixin, Base):
     # doesn't stop people from wanting to see prep info for a future trip, but
     # that they must not mistake for "safe to go right now". Null = no banner.
     safety_advisory: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # A representative photo - direct URL to the (ideally CC-licensed or public
+    # domain) image file. Attribution fields are required together with the
+    # URL for legal/licensing reasons - never show an image without credit.
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_credit_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Link to the image's source/author page (e.g. the Wikimedia Commons file
+    # page or the photographer's profile) - the credit name links here.
+    image_credit_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Short license label shown next to the credit, e.g. "CC BY-SA 4.0", "CC0",
+    # "Public domain".
+    image_license: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     checklist_items: Mapped[list["ChecklistItem"]] = relationship(
         back_populates="destination", cascade="all, delete-orphan", order_by="ChecklistItem.order_index"

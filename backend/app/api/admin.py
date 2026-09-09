@@ -132,6 +132,7 @@ _DESTINATION_MODEL_FIELDS = {
     "country", "category", "name", "mechanism_type", "mechanism_config", "issuing_authority",
     "competitiveness_level", "source_url", "application_url", "price_usd", "is_published",
     "season_start_month", "season_end_month", "safety_advisory",
+    "image_url", "image_credit_name", "image_credit_url", "image_license",
 }
 
 
