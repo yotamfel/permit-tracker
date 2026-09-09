@@ -3,16 +3,12 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
-import { getMechanismStats } from "../lib/mechanismConfig";
+import { getMechanismStats, NO_RELEASE_DATE_TYPES } from "../lib/mechanismConfig";
 import CompetitivenessNote from "../components/CompetitivenessNote";
 
-const TRAVEL_DATE_REQUIRED = new Set([
-  "guided_tour_only",
-  "first_come_first_served",
-  "single_operator_annual_quota",
-  "fixed_daily_quota",
-  "rolling_window",
-]);
+// Same set as NO_RELEASE_DATE_TYPES - these mechanisms also need a travel_date
+// from the user before an alert can be computed (see app/services/alerts.py).
+const TRAVEL_DATE_REQUIRED = NO_RELEASE_DATE_TYPES;
 
 const LEAD_TIME_OPTIONS = [
   { minutes: 20160, label: "2 weeks before" },
@@ -172,20 +168,22 @@ export default function DestinationDetail() {
         </p>
       )}
 
-      <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm dark:bg-amber-900/20">
-        <span className="font-semibold text-stone-900 dark:text-stone-100">{t("browse.next_release")}: </span>
-        <span className="text-stone-800 dark:text-stone-300">
-          {destination.next_known_release
-            ? new Date(destination.next_known_release).toLocaleString("en-US", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })
-            : t("browse.not_computable")}
-        </span>
-        {destination.next_known_release && (
-          <span className="ml-1 text-xs text-stone-500 dark:text-stone-400">(your local time)</span>
-        )}
-      </div>
+      {!needsTravelDate && (
+        <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm dark:bg-amber-900/20">
+          <span className="font-semibold text-stone-900 dark:text-stone-100">{t("browse.next_release")}: </span>
+          <span className="text-stone-800 dark:text-stone-300">
+            {destination.next_known_release
+              ? new Date(destination.next_known_release).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : t("browse.not_computable")}
+          </span>
+          {destination.next_known_release && (
+            <span className="ml-1 text-xs text-stone-500 dark:text-stone-400">(your local time)</span>
+          )}
+        </div>
+      )}
 
       <section className="mt-8 rounded-2xl border border-stone-200 bg-stone-50 p-5 dark:border-stone-800 dark:bg-stone-900/50">
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{t("destination.how_it_works")}</h2>

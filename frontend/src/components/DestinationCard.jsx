@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { CATEGORY_INFO, DEFAULT_CATEGORY } from "../lib/categoryInfo";
 import { COMPETITIVENESS_INFO } from "./CompetitivenessNote";
+import { NO_RELEASE_DATE_TYPES } from "../lib/mechanismConfig";
 
 const COMPETITIVENESS_TEXT = {
   low: "text-emerald-700 dark:text-emerald-300",
@@ -76,10 +77,11 @@ export default function DestinationCard({ d, compact = false }) {
             <p className="text-sm text-stone-500 dark:text-stone-400">
               {d.country} · {t(`mechanism_type.${d.mechanism_type}`)}
             </p>
-            <p className="text-sm text-stone-800 dark:text-stone-300">
-              {t("browse.next_release")}:{" "}
-              {d.next_known_release ? new Date(d.next_known_release).toLocaleDateString("en-US") : t("browse.not_computable")}
-            </p>
+            {!NO_RELEASE_DATE_TYPES.has(d.mechanism_type) && (
+              <p className="text-sm text-stone-800 dark:text-stone-300">
+                {t("browse.next_release")}: {d.next_known_release ? new Date(d.next_known_release).toLocaleDateString("en-US") : t("browse.not_computable")}
+              </p>
+            )}
           </>
         )}
         {!compact &&

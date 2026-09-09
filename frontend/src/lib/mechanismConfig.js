@@ -1,3 +1,15 @@
+// Mechanism types with no computable release-date concept at all (backend's
+// compute_next_release() always returns None for these) - a destination page
+// showing these should skip "Next known release" entirely rather than a
+// confusing placeholder, since there's no release event to be pending.
+export const NO_RELEASE_DATE_TYPES = new Set([
+  "guided_tour_only",
+  "first_come_first_served",
+  "single_operator_annual_quota",
+  "fixed_daily_quota",
+  "rolling_window",
+]);
+
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
