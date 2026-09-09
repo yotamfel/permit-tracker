@@ -78,7 +78,7 @@ export default function DestinationCard({ d, compact = false }) {
             </p>
             <p className="text-sm text-stone-800 dark:text-stone-300">
               {t("browse.next_release")}:{" "}
-              {d.next_known_release ? new Date(d.next_known_release).toLocaleDateString() : t("browse.not_computable")}
+              {d.next_known_release ? new Date(d.next_known_release).toLocaleDateString("en-US") : t("browse.not_computable")}
             </p>
           </>
         )}

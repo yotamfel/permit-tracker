@@ -168,7 +168,7 @@ export default function DestinationDetail() {
       {destination.last_verified_at && (
         <p className="mt-2 flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
           <span aria-hidden="true">✓</span>
-          Verified {new Date(destination.last_verified_at).toLocaleDateString()}
+          Verified {new Date(destination.last_verified_at).toLocaleDateString("en-US")}
         </p>
       )}
 
@@ -176,7 +176,7 @@ export default function DestinationDetail() {
         <span className="font-semibold text-stone-900 dark:text-stone-100">{t("browse.next_release")}: </span>
         <span className="text-stone-800 dark:text-stone-300">
           {destination.next_known_release
-            ? new Date(destination.next_known_release).toLocaleString(undefined, {
+            ? new Date(destination.next_known_release).toLocaleString("en-US", {
                 dateStyle: "medium",
                 timeStyle: "short",
               })
