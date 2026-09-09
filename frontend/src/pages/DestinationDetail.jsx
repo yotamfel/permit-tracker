@@ -143,6 +143,18 @@ export default function DestinationDetail() {
         ← Back to catalog
       </Link>
 
+      {destination.safety_advisory && (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border-2 border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
+        >
+          <p className="flex items-center gap-1.5 font-semibold">
+            <span aria-hidden="true">⚠️</span> Safety advisory
+          </p>
+          <p className="mt-1">{destination.safety_advisory}</p>
+        </div>
+      )}
+
       {purchaseStatus === "success" && !destination.is_owned && (
         <div className="mb-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
           Payment received - refresh in a few seconds once the webhook processes.

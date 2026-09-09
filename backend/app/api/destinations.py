@@ -71,6 +71,7 @@ def list_destinations(
                 is_owned=d.id in owned_ids,
                 season_start_month=d.season_start_month,
                 season_end_month=d.season_end_month,
+                safety_advisory=d.safety_advisory,
             )
         )
     return out
@@ -200,6 +201,7 @@ def get_destination(
         application_url=d.application_url if is_owned else None,
         operators=operators,
         alternatives=alternatives,
+        safety_advisory=d.safety_advisory,
     )
 
 

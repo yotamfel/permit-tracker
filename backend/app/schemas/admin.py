@@ -102,6 +102,9 @@ class AdminDestinationIn(BaseModel):
     # means the season wraps the new year (e.g. 11 -> 3 for Nov-Mar).
     season_start_month: int | None = None
     season_end_month: int | None = None
+    # A prominent warning banner shown to every visitor - see the model column
+    # docstring. Null/empty = no banner.
+    safety_advisory: str | None = None
     # Not Destination model columns - these live in the translations table
     # (locale="en") and are upserted there by the endpoint, not written
     # directly onto the Destination row.
@@ -132,6 +135,7 @@ class AdminDestinationOut(BaseModel):
     source_fetch_failing_since: datetime | None = None
     season_start_month: int | None = None
     season_end_month: int | None = None
+    safety_advisory: str | None = None
     # Most recent agent report (any agent_type) for this destination, if any.
     # See AdminAgentReportOut.
     latest_report_id: uuid.UUID | None = None

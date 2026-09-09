@@ -1,0 +1,25 @@
+"""add destinations.safety_advisory
+
+Revision ID: a9d2e7c14f68
+Revises: e7b3c05d9f14
+Create Date: 2026-09-09 00:00:00.000000
+
+"""
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+
+
+revision: str = 'a9d2e7c14f68'
+down_revision: Union[str, None] = 'e7b3c05d9f14'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+def upgrade() -> None:
+    op.add_column('destinations', sa.Column('safety_advisory', sa.Text(), nullable=True))
+
+
+def downgrade() -> None:
+    op.drop_column('destinations', 'safety_advisory')

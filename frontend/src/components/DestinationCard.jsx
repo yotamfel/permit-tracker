@@ -60,6 +60,11 @@ export default function DestinationCard({ d, compact = false }) {
                 🎯 {competitivenessLabel}
               </OverlayBadge>
             )}
+            {d.safety_advisory && (
+              <OverlayBadge className="text-red-700 dark:text-red-400" title={d.safety_advisory}>
+                ⚠️ Safety advisory
+              </OverlayBadge>
+            )}
           </div>
         )}
       </div>

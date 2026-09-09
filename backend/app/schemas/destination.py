@@ -54,6 +54,9 @@ class DestinationCardOut(BaseModel):
     is_owned: bool
     season_start_month: int | None = None
     season_end_month: int | None = None
+    # Public even for guests / unpublished-preview contexts - a safety warning
+    # shouldn't hide behind purchase. Null = no active advisory.
+    safety_advisory: str | None = None
 
 
 class AlternativeOut(BaseModel):
@@ -106,6 +109,8 @@ class DestinationDetailOut(BaseModel):
     # Only populated when is_owned is True (spec addendum §2.4) - only
     # suggested when the user already has skin in the game.
     alternatives: list[AlternativeOut] = []
+    # Public - see DestinationCardOut.safety_advisory.
+    safety_advisory: str | None = None
 
 
 class DestinationChecklistOut(BaseModel):

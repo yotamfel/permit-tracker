@@ -53,6 +53,11 @@ class Destination(UUIDPKMixin, TimestampMixin, Base):
     # means the season wraps the new year (e.g. 11 -> 3 for a Nov-Mar season).
     season_start_month: Mapped[int | None] = mapped_column(Integer, nullable=True)
     season_end_month: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # A prominent, admin-set warning shown to every visitor (published or not
+    # gated behind purchase) - e.g. an active natural disaster or closure that
+    # doesn't stop people from wanting to see prep info for a future trip, but
+    # that they must not mistake for "safe to go right now". Null = no banner.
+    safety_advisory: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     checklist_items: Mapped[list["ChecklistItem"]] = relationship(
         back_populates="destination", cascade="all, delete-orphan", order_by="ChecklistItem.order_index"
