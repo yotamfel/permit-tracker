@@ -24,6 +24,16 @@ class FixedDailyQuotaConfig(BaseModel):
     booking_opens_days_before: int
 
 
+class LotteryWindow(BaseModel):
+    """One occurrence of an application/lottery window - same shape as
+    LotteryConfig's own top-level fields, used for `additional_windows` below."""
+
+    application_window_start: str = Field(pattern=r"^\d{2}-\d{2}$")
+    application_window_end: str = Field(pattern=r"^\d{2}-\d{2}$")
+    results_date: str = Field(pattern=r"^\d{2}-\d{2}$")
+    registration_window: MonthDayWindow | None = None
+
+
 class LotteryConfig(BaseModel):
     mechanism_type: Literal["lottery"] = "lottery"
     application_window_start: str = Field(pattern=r"^\d{2}-\d{2}$")
@@ -32,6 +42,11 @@ class LotteryConfig(BaseModel):
     # Optional two-stage extension (PCT / JMT): a registration window that
     # happens before the application/lottery window itself.
     registration_window: MonthDayWindow | None = None
+    # For destinations that run more than one lottery per year (e.g. Angels
+    # Landing's 4 seasonal windows) - the fields above are the first/primary
+    # window, this holds any further ones. Empty for the common single-window
+    # case, so nothing about existing destinations needs to change.
+    additional_windows: list[LotteryWindow] = []
 
 
 class RollingWindowConfig(BaseModel):
@@ -39,11 +54,26 @@ class RollingWindowConfig(BaseModel):
     days_before_travel_date: int
 
 
+class AdditionalAnnualDate(BaseModel):
+    """One further occurrence of a fixed_annual_date release, for destinations
+    that release more than once a year (e.g. Conundrum Hot Springs' 3 fixed
+    dates). release_time/timezone default to the parent config's own values
+    when omitted, since multiple releases in a year are usually at the same
+    time of day."""
+
+    typical_release_date: str = Field(pattern=r"^\d{2}-\d{2}$")
+    release_time: str | None = Field(default=None, pattern=r"^\d{2}:\d{2}$")
+    timezone: str | None = None
+
+
 class FixedAnnualDateConfig(BaseModel):
     mechanism_type: Literal["fixed_annual_date"] = "fixed_annual_date"
     typical_release_date: str = Field(pattern=r"^\d{2}-\d{2}$")
     release_time: str = Field(pattern=r"^\d{2}:\d{2}$")
     timezone: str
+    # Further releases in the same year beyond the primary one above - empty
+    # for the common once-a-year case.
+    additional_dates: list[AdditionalAnnualDate] = []
 
 
 class WeeklyReleaseConfig(BaseModel):

@@ -36,10 +36,17 @@ def compute_next_release(mechanism_type: str, config: dict, now: datetime | None
     today = now.date()
 
     if mechanism_type == "fixed_annual_date":
-        release_date = _next_month_day(today, config["typical_release_date"])
-        tz = ZoneInfo(config["timezone"])
-        hour, minute = (int(p) for p in config["release_time"].split(":"))
-        return datetime.combine(release_date, time(hour, minute), tzinfo=tz)
+        occurrences = [
+            {"typical_release_date": config["typical_release_date"], "release_time": config["release_time"], "timezone": config["timezone"]},
+            *config.get("additional_dates", []),
+        ]
+        candidates = []
+        for occ in occurrences:
+            release_date = _next_month_day(today, occ["typical_release_date"])
+            tz = ZoneInfo(occ.get("timezone") or config["timezone"])
+            hour, minute = (int(p) for p in (occ.get("release_time") or config["release_time"]).split(":"))
+            candidates.append(datetime.combine(release_date, time(hour, minute), tzinfo=tz))
+        return min(candidates)
 
     if mechanism_type == "weekly_release":
         tz = ZoneInfo(config["timezone"])
@@ -53,10 +60,14 @@ def compute_next_release(mechanism_type: str, config: dict, now: datetime | None
         return candidate
 
     if mechanism_type == "lottery":
-        window_start = config.get("registration_window", {}).get("start") if config.get("registration_window") else None
-        window_start = window_start or config["application_window_start"]
-        next_date = _next_month_day(today, window_start)
-        return datetime.combine(next_date, time(0, 0), tzinfo=ZoneInfo("UTC"))
+        windows = [config, *config.get("additional_windows", [])]
+        candidates = []
+        for w in windows:
+            window_start = w.get("registration_window", {}).get("start") if w.get("registration_window") else None
+            window_start = window_start or w["application_window_start"]
+            next_date = _next_month_day(today, window_start)
+            candidates.append(datetime.combine(next_date, time(0, 0), tzinfo=ZoneInfo("UTC")))
+        return min(candidates)
 
     if mechanism_type == "rolling_window":
         # No fixed calendar date - opens N days before whatever travel date the
@@ -80,18 +91,22 @@ def compute_release_dates_in_month(mechanism_type: str, config: dict, year: int,
     computable types as compute_next_release; everything else returns [].
     """
     if mechanism_type == "fixed_annual_date":
-        release_month, release_day = (int(p) for p in config["typical_release_date"].split("-"))
-        if release_month == month:
-            return [date(year, release_month, release_day)]
-        return []
+        dates = []
+        for occ in [config, *config.get("additional_dates", [])]:
+            release_month, release_day = (int(p) for p in occ["typical_release_date"].split("-"))
+            if release_month == month:
+                dates.append(date(year, release_month, release_day))
+        return dates
 
     if mechanism_type == "lottery":
-        window_start = config.get("registration_window", {}).get("start") if config.get("registration_window") else None
-        window_start = window_start or config["application_window_start"]
-        release_month, release_day = (int(p) for p in window_start.split("-"))
-        if release_month == month:
-            return [date(year, release_month, release_day)]
-        return []
+        dates = []
+        for w in [config, *config.get("additional_windows", [])]:
+            window_start = w.get("registration_window", {}).get("start") if w.get("registration_window") else None
+            window_start = window_start or w["application_window_start"]
+            release_month, release_day = (int(p) for p in window_start.split("-"))
+            if release_month == month:
+                dates.append(date(year, release_month, release_day))
+        return dates
 
     if mechanism_type == "weekly_release":
         target_weekday = WEEKDAYS[config["release_weekday"]]

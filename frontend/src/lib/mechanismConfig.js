@@ -84,20 +84,46 @@ export function formatMechanismConfig(mechanismType, config) {
     case "fixed_daily_quota":
       return `Daily quota: ${config.daily_quota} permits/day. Booking typically opens ${config.booking_opens_days_before} days before your date.`;
     case "lottery": {
-      const main = `Applications open ${formatMonthDay(config.application_window_start)} - ${formatMonthDay(
-        config.application_window_end
-      )} each year, with results announced around ${formatMonthDay(config.results_date)}.`;
-      if (config.registration_window) {
-        return `Registration opens ${formatMonthDay(config.registration_window.start)} - ${formatMonthDay(
-          config.registration_window.end
-        )}, before the lottery itself. ${main}`;
-      }
-      return main;
+      const describeWindow = (w) => {
+        const main = `Applications open ${formatMonthDay(w.application_window_start)} - ${formatMonthDay(
+          w.application_window_end
+        )}, with results announced around ${formatMonthDay(w.results_date)}.`;
+        if (w.registration_window) {
+          return `Registration opens ${formatMonthDay(w.registration_window.start)} - ${formatMonthDay(
+            w.registration_window.end
+          )}, before the lottery itself. ${main}`;
+        }
+        return main;
+      };
+      const windows = [config, ...(config.additional_windows || [])];
+      if (windows.length === 1) return `${describeWindow(config)} (each year)`;
+      return `${windows.length} lottery windows per year: ` + windows.map((w, i) => `(${i + 1}) ${describeWindow(w)}`).join(" ");
     }
     case "rolling_window":
       return `Booking opens ${config.days_before_travel_date} days before your travel date.`;
-    case "fixed_annual_date":
-      return `Opens every year on ${formatMonthDay(config.typical_release_date)} at ${formatTimeWithUTC(config.typical_release_date, config.release_time, config.timezone)}.`;
+    case "fixed_annual_date": {
+      const occurrences = [
+        { typical_release_date: config.typical_release_date, release_time: config.release_time, timezone: config.timezone },
+        ...(config.additional_dates || []),
+      ];
+      if (occurrences.length === 1) {
+        return `Opens every year on ${formatMonthDay(config.typical_release_date)} at ${formatTimeWithUTC(config.typical_release_date, config.release_time, config.timezone)}.`;
+      }
+      return (
+        `Opens ${occurrences.length} times a year: ` +
+        occurrences
+          .map(
+            (occ) =>
+              `${formatMonthDay(occ.typical_release_date)} at ${formatTimeWithUTC(
+                occ.typical_release_date,
+                occ.release_time || config.release_time,
+                occ.timezone || config.timezone
+              )}`
+          )
+          .join("; ") +
+        "."
+      );
+    }
     case "weekly_release":
       return `New availability releases every ${capitalize(config.release_weekday)} at ${formatTimeWithUTC(null, config.release_time, config.timezone)}, roughly ${config.weeks_ahead} weeks ahead.`;
     case "guided_tour_only":
@@ -120,21 +146,33 @@ export function getMechanismStats(mechanismType, config) {
     case "fixed_daily_quota":
       return [`Daily quota: ${config.daily_quota} permits/day`, `Booking opens: ${config.booking_opens_days_before} days before your date`];
     case "lottery": {
+      const windows = [config, ...(config.additional_windows || [])];
       const stats = [];
-      if (config.registration_window) {
-        stats.push(`Registration window: ${formatMonthDay(config.registration_window.start)} - ${formatMonthDay(config.registration_window.end)}`);
-      }
-      stats.push(`Application window: ${formatMonthDay(config.application_window_start)} - ${formatMonthDay(config.application_window_end)}`);
-      stats.push(`Results announced: around ${formatMonthDay(config.results_date)}`);
+      windows.forEach((w, i) => {
+        const prefix = windows.length > 1 ? `Window ${i + 1} - ` : "";
+        if (w.registration_window) {
+          stats.push(`${prefix}Registration window: ${formatMonthDay(w.registration_window.start)} - ${formatMonthDay(w.registration_window.end)}`);
+        }
+        stats.push(`${prefix}Application window: ${formatMonthDay(w.application_window_start)} - ${formatMonthDay(w.application_window_end)}`);
+        stats.push(`${prefix}Results announced: around ${formatMonthDay(w.results_date)}`);
+      });
       return stats;
     }
     case "rolling_window":
       return [`Booking opens: ${config.days_before_travel_date} days before your travel date`];
-    case "fixed_annual_date":
-      return [
-        `Opens every year: ${formatMonthDay(config.typical_release_date)}`,
-        `Release time: ${formatTimeWithUTC(config.typical_release_date, config.release_time, config.timezone)}`,
+    case "fixed_annual_date": {
+      const occurrences = [
+        { typical_release_date: config.typical_release_date, release_time: config.release_time, timezone: config.timezone },
+        ...(config.additional_dates || []),
       ];
+      return occurrences.flatMap((occ, i) => {
+        const prefix = occurrences.length > 1 ? `Date ${i + 1} - ` : "";
+        return [
+          `${prefix}Opens every year: ${formatMonthDay(occ.typical_release_date)}`,
+          `${prefix}Release time: ${formatTimeWithUTC(occ.typical_release_date, occ.release_time || config.release_time, occ.timezone || config.timezone)}`,
+        ];
+      });
+    }
     case "weekly_release":
       return [
         `Releases every ${capitalize(config.release_weekday)} at ${formatTimeWithUTC(null, config.release_time, config.timezone)}`,

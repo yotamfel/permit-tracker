@@ -54,6 +54,52 @@ def test_lottery_prefers_registration_window_start_when_present():
     assert (result.month, result.day) == (2, 1)
 
 
+def test_fixed_annual_date_with_additional_dates_picks_soonest():
+    # Conundrum Hot Springs shape: 3 releases/year, all should be considered.
+    now = datetime(2026, 9, 9, tzinfo=ZoneInfo("UTC"))
+    config = {
+        "typical_release_date": "02-15",
+        "release_time": "08:00",
+        "timezone": "America/Denver",
+        "additional_dates": [{"typical_release_date": "06-15"}, {"typical_release_date": "10-15"}],
+    }
+    result = compute_next_release("fixed_annual_date", config, now=now)
+    # Feb 15 and Jun 15 have already passed this year - Oct 15 is next.
+    assert (result.year, result.month, result.day) == (2026, 10, 15)
+
+
+def test_fixed_annual_date_additional_dates_inherit_parent_time_and_timezone():
+    now = datetime(2026, 1, 1, tzinfo=ZoneInfo("UTC"))
+    config = {
+        "typical_release_date": "02-15",
+        "release_time": "08:00",
+        "timezone": "America/Denver",
+        "additional_dates": [{"typical_release_date": "06-15"}],
+    }
+    result = compute_next_release("fixed_annual_date", config, now=now)
+    assert (result.month, result.day) == (2, 15)
+    assert result.tzinfo == ZoneInfo("America/Denver")
+    assert result.hour == 8
+
+
+def test_lottery_with_additional_windows_picks_soonest():
+    # Angels Landing shape: 4 seasonal windows/year.
+    now = datetime(2026, 9, 9, tzinfo=ZoneInfo("UTC"))
+    config = {
+        "application_window_start": "10-01",
+        "application_window_end": "10-20",
+        "results_date": "10-25",
+        "additional_windows": [
+            {"application_window_start": "02-13", "application_window_end": "02-25", "results_date": "02-26"},
+            {"application_window_start": "04-01", "application_window_end": "04-20", "results_date": "04-25"},
+            {"application_window_start": "07-01", "application_window_end": "07-20", "results_date": "07-25"},
+        ],
+    }
+    result = compute_next_release("lottery", config, now=now)
+    # Jul 1 window has already passed this year - Oct 1 is next.
+    assert (result.year, result.month, result.day) == (2026, 10, 1)
+
+
 def test_mechanism_types_with_no_computable_date_return_none():
     now = datetime(2026, 1, 1, tzinfo=ZoneInfo("UTC"))
     for mechanism_type in ["rolling_window", "guided_tour_only", "first_come_first_served", "single_operator_annual_quota", "fixed_daily_quota"]:
