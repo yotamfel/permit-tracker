@@ -26,14 +26,21 @@ const OPENS_SOON_OPTIONS = [
   ["90", "Within 90 days"],
 ];
 
-const EMPTY_FILTERS = { country: "", category: "", region: "", opensSoon: "", season: "" };
+const EMPTY_FILTERS = { country: [], category: [], region: [], opensSoon: [], season: [] };
+
+function toggleValue(list, value) {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
 
 const COMPETITIVENESS_RANK = { very_high: 3, high: 2, medium: 1, low: 0 };
 
 const SORT_OPTIONS = [
   ["soonest", "Opening soonest"],
   ["competitiveness", "Most competitive first"],
+  ["competitiveness_asc", "Least competitive first"],
   ["name", "Name (A-Z)"],
+  ["name_desc", "Name (Z-A)"],
+  ["country", "Country (A-Z)"],
 ];
 
 function sortDestinations(list, sortBy) {
@@ -47,6 +54,12 @@ function sortDestinations(list, sortBy) {
     });
   } else if (sortBy === "competitiveness") {
     sorted.sort((a, b) => (COMPETITIVENESS_RANK[b.competitiveness_level] ?? -1) - (COMPETITIVENESS_RANK[a.competitiveness_level] ?? -1));
+  } else if (sortBy === "competitiveness_asc") {
+    sorted.sort((a, b) => (COMPETITIVENESS_RANK[a.competitiveness_level] ?? -1) - (COMPETITIVENESS_RANK[b.competitiveness_level] ?? -1));
+  } else if (sortBy === "name_desc") {
+    sorted.sort((a, b) => b.name.localeCompare(a.name));
+  } else if (sortBy === "country") {
+    sorted.sort((a, b) => a.country.localeCompare(b.country) || a.name.localeCompare(b.name));
   } else {
     sorted.sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -94,22 +107,27 @@ export default function Browse() {
     { key: "opensSoon", label: "Opens soon", allLabel: "Any time", options: OPENS_SOON_OPTIONS },
     { key: "season", label: "Season", allLabel: t("browse.all"), options: MONTH_NAMES.map((m, i) => [String(i + 1), m]) },
   ];
-  const activeFilters = filterDefs.filter((f) => filters[f.key]);
+  // One chip per selected value (not per filter key) so each can be cleared
+  // individually - e.g. "Country: France" and "Country: Peru" as two chips.
+  const activeChips = filterDefs.flatMap((f) =>
+    filters[f.key].map((v) => ({ key: f.key, value: v, label: f.label, valueLabel: f.options.find(([ov]) => ov === v)?.[1] ?? v }))
+  );
 
   const filtered = useMemo(() => {
     const now = Date.now();
-    const opensSoonMs = filters.opensSoon ? Number(filters.opensSoon) * 24 * 60 * 60 * 1000 : null;
+    // Within-a-filter: OR (match any selected value). Across filters: AND.
+    const opensSoonMsList = filters.opensSoon.map((v) => Number(v) * 24 * 60 * 60 * 1000);
     return destinations.filter((d) => {
-      if (filters.country && d.country !== filters.country) return false;
-      if (filters.category && d.category !== filters.category) return false;
-      if (filters.region && regionFor(d.country) !== filters.region) return false;
-      if (opensSoonMs) {
+      if (filters.country.length && !filters.country.includes(d.country)) return false;
+      if (filters.category.length && !filters.category.includes(d.category)) return false;
+      if (filters.region.length && !filters.region.includes(regionFor(d.country))) return false;
+      if (opensSoonMsList.length) {
         if (!d.next_known_release) return false;
         const diff = new Date(d.next_known_release).getTime() - now;
-        if (diff < 0 || diff > opensSoonMs) return false;
+        if (diff < 0 || !opensSoonMsList.some((ms) => diff <= ms)) return false;
       }
-      if (filters.season) {
-        if (!monthInSeason(Number(filters.season), d.season_start_month, d.season_end_month)) return false;
+      if (filters.season.length) {
+        if (!filters.season.some((s) => monthInSeason(Number(s), d.season_start_month, d.season_end_month))) return false;
       }
       return true;
     });
@@ -121,18 +139,18 @@ export default function Browse() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Catalog</h1>
-      <p className="mt-1 text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("home.title")}</h1>
+      <p className="mt-1 text-stone-700 dark:text-stone-400">{t("home.subtitle")}</p>
 
       <div className="mt-4 flex gap-1.5 overflow-x-auto pb-1">
         {CATEGORIES.map((c) => {
           const info = CATEGORY_INFO[c] || DEFAULT_CATEGORY;
-          const active = filters.category === c;
+          const active = filters.category.includes(c);
           return (
             <button
               key={c}
               type="button"
-              onClick={() => setFilters((cur) => ({ ...cur, category: active ? "" : c }))}
+              onClick={() => setFilters((cur) => ({ ...cur, category: toggleValue(cur.category, c) }))}
               className={`flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
                 active
                   ? "border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
@@ -152,39 +170,36 @@ export default function Browse() {
             type="button"
             onClick={() => setPanelOpen((o) => !o)}
             className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium ${
-              activeFilters.length > 0
+              activeChips.length > 0
                 ? "border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
                 : "border-stone-300 text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
             }`}
           >
             <span aria-hidden="true">⚙</span>
-            Filters{activeFilters.length > 0 ? ` (${activeFilters.length})` : ""}
+            Filters{activeChips.length > 0 ? ` (${activeChips.length})` : ""}
             <span aria-hidden="true" className="text-xs">
               {panelOpen ? "▴" : "▾"}
             </span>
           </button>
 
-          {activeFilters.map((f) => {
-            const selectedLabel = f.options.find(([v]) => v === filters[f.key])?.[1] ?? filters[f.key];
-            return (
-              <span
-                key={f.key}
-                className="flex items-center gap-1.5 rounded-full border border-amber-400 bg-amber-50 px-3 py-1.5 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+          {activeChips.map((chip) => (
+            <span
+              key={`${chip.key}:${chip.value}`}
+              className="flex items-center gap-1.5 rounded-full border border-amber-400 bg-amber-50 px-3 py-1.5 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+            >
+              {chip.label}: {chip.valueLabel}
+              <button
+                type="button"
+                aria-label={`Remove ${chip.label}: ${chip.valueLabel} filter`}
+                onClick={() => setFilters((cur) => ({ ...cur, [chip.key]: toggleValue(cur[chip.key], chip.value) }))}
+                className="text-amber-600 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-100"
               >
-                {f.label}: {selectedLabel}
-                <button
-                  type="button"
-                  aria-label={`Clear ${f.label} filter`}
-                  onClick={() => setFilters((cur) => ({ ...cur, [f.key]: "" }))}
-                  className="text-amber-600 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-100"
-                >
-                  ×
-                </button>
-              </span>
-            );
-          })}
+                ×
+              </button>
+            </span>
+          ))}
 
-          {activeFilters.length > 0 && (
+          {activeChips.length > 0 && (
             <button
               type="button"
               onClick={() => setFilters(EMPTY_FILTERS)}
@@ -221,21 +236,26 @@ export default function Browse() {
             <div className="fixed inset-0 z-10" onClick={() => setPanelOpen(false)} />
             <div className="absolute z-20 mt-2 grid w-full grid-cols-1 gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-lg sm:grid-cols-2 lg:grid-cols-3 dark:border-stone-800 dark:bg-stone-900">
               {filterDefs.map((f) => (
-                <label key={f.key} className="block text-sm">
-                  <span className="mb-1 block font-medium text-stone-700 dark:text-stone-300">{f.label}</span>
-                  <select
-                    value={filters[f.key]}
-                    onChange={(e) => setFilters((cur) => ({ ...cur, [f.key]: e.target.value }))}
-                    className="block w-full rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                  >
-                    <option value="">{f.allLabel}</option>
+                <div key={f.key} className="text-sm">
+                  <span className="mb-1 block font-medium text-stone-700 dark:text-stone-300">
+                    {f.label} {filters[f.key].length > 0 && `(${filters[f.key].length})`}
+                  </span>
+                  <div className="max-h-40 space-y-0.5 overflow-y-auto rounded-lg border border-stone-200 p-1.5 dark:border-stone-700">
                     {f.options.map(([v, label]) => (
-                      <option key={v} value={v}>
-                        {label}
-                      </option>
+                      <label
+                        key={v}
+                        className="flex items-center gap-2 rounded px-1.5 py-1 hover:bg-stone-100 dark:hover:bg-stone-800"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filters[f.key].includes(v)}
+                          onChange={() => setFilters((cur) => ({ ...cur, [f.key]: toggleValue(cur[f.key], v) }))}
+                        />
+                        <span className="text-stone-800 dark:text-stone-200">{label}</span>
+                      </label>
                     ))}
-                  </select>
-                </label>
+                  </div>
+                </div>
               ))}
             </div>
           </>
