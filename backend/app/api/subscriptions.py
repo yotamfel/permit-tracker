@@ -63,14 +63,16 @@ def create_subscription(
     if body.lead_time_minutes not in LEAD_TIME_PRESET_MINUTES:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "lead_time_minutes must be one of the offered presets")
 
-    sub = AlertSubscription(
-        user_id=user.id,
-        destination_id=d.id,
-        lead_time_minutes=body.lead_time_minutes,
-        travel_date=body.travel_date,
-        is_active=True,
-    )
-    db.add(sub)
+    # Upsert: one alert per user+destination (see the unique constraint on the
+    # model) - re-submitting (including a double-submit race on the button)
+    # updates the existing alert instead of creating a duplicate.
+    sub = db.query(AlertSubscription).filter_by(user_id=user.id, destination_id=d.id).first()
+    if sub is None:
+        sub = AlertSubscription(user_id=user.id, destination_id=d.id)
+        db.add(sub)
+    sub.lead_time_minutes = body.lead_time_minutes
+    sub.travel_date = body.travel_date
+    sub.is_active = True
     db.commit()
     db.refresh(sub)
     return SubscriptionOut.model_validate(sub)

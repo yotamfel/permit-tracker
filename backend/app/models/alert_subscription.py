@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import Boolean, Date, ForeignKey, Integer
+from sqlalchemy import Boolean, Date, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -11,6 +11,10 @@ from app.models.mixins import TimestampMixin, UUIDPKMixin
 
 class AlertSubscription(UUIDPKMixin, TimestampMixin, Base):
     __tablename__ = "alert_subscriptions"
+    # One alert per user per destination - re-submitting "Set alert" (e.g. a
+    # double-submit race) updates the existing row instead of creating a
+    # duplicate. See app/api/subscriptions.py's upsert logic.
+    __table_args__ = (UniqueConstraint("user_id", "destination_id", name="uq_alert_subscriptions_user_destination"),)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
