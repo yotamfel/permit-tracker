@@ -247,17 +247,29 @@ export default function AdminDestinationEdit() {
         </span>
       </div>
 
-      <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs dark:border-red-900/50 dark:bg-red-900/10">
-        <label className="block font-semibold text-red-800 dark:text-red-300">
-          Safety advisory banner (public, shown to every visitor - use for an active closure/disaster, not a minor
-          note)
+      <div
+        className={`mb-4 rounded-xl border p-3 text-xs ${
+          form.safety_advisory
+            ? "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-900/10"
+            : "border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-900/40"
+        }`}
+      >
+        <label
+          className={`block font-semibold ${
+            form.safety_advisory ? "text-red-800 dark:text-red-300" : "text-stone-500 dark:text-stone-400"
+          }`}
+        >
+          Safety advisory banner{form.safety_advisory ? " - ACTIVE, showing on the live page" : ""} (public, shown to
+          every visitor - use for an active closure/disaster, not a minor note)
         </label>
         <textarea
           rows={2}
           value={form.safety_advisory ?? ""}
           onChange={(e) => set("safety_advisory", e.target.value || null)}
           placeholder="e.g. This area is currently closed following a natural disaster. Do not travel until an official reopening is announced. Content below reflects the destination under normal conditions, for trip planning."
-          className="mt-1 block w-full rounded border border-red-300 bg-white px-2 py-1 dark:border-red-800 dark:bg-stone-900"
+          className={`mt-1 block w-full rounded border bg-white px-2 py-1 dark:bg-stone-900 ${
+            form.safety_advisory ? "border-red-300 dark:border-red-800" : "border-stone-300 dark:border-stone-700"
+          }`}
         />
       </div>
 
