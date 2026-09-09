@@ -13,8 +13,11 @@
     "dark": "Dark",
     "system": "System"
   },
+  "home": {
+    "title": "Don't let paperwork cost you the trip of a lifetime",
+    "subtitle": "Documents, deadlines, and alerts for the world's hardest-to-get permits — all in one place."
+  },
   "browse": {
-    "title": "Everything you need to prepare for permits that sell out fast",
     "subtitle": "Track deadlines, gather your documents, and get notified before the window opens.",
     "filter_country": "Country",
     "filter_category": "Category",

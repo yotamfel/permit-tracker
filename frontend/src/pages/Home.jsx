@@ -44,9 +44,9 @@ export default function Home() {
       <section className="border-b border-stone-200 bg-gradient-to-b from-amber-50 to-white dark:border-stone-800 dark:from-stone-900 dark:to-stone-950">
         <div className="mx-auto max-w-5xl px-4 py-16 text-center sm:py-24">
           <h1 className="text-4xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl">
-            {t("browse.title")}
+            {t("home.title")}
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-700 dark:text-stone-400">{t("home.subtitle")}</p>
           <Link
             to="/catalog"
             className="mt-8 inline-block rounded-full bg-amber-600 px-8 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-700"
