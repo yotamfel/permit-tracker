@@ -48,6 +48,25 @@ Do not escalate ordinary research gaps, minor wording nits, or things you were a
 
 If you find issues that need the researcher's original research context to fix well (not just a quick DB edit), or if you're genuinely unsure whether something is a real problem, don't just fix it unilaterally in a way that might be wrong — instead end your report with a clear, itemized list of what you want the researcher to address, and say so explicitly so the orchestrating session knows to send you back a follow-up round. Keep this to real, specific issues — don't send it back over stylistic taste.
 
+## If the destination needs a scheduled re-check
+
+Whenever your conclusion is "worth checking again in N weeks/months" (a live/evolving situation - a suspended booking system, an unresolved regulatory dispute, an active closure, a not-yet-published fee schedule, etc.) — **don't just say so in prose, actually create an `AdminFollowUp` row** so it surfaces automatically in the admin's Follow-ups calendar and daily digest email, instead of relying on the admin remembering to re-read this report later. Same DB-write pattern as everything else:
+
+```python
+from app.models.admin_follow_up import AdminFollowUp
+from datetime import date
+db.add(AdminFollowUp(
+    destination_id=d.id,
+    due_date=date(2026, 9, 30),  # your actual "check again by" estimate
+    title="Short imperative title of what to check",
+    notes="What's currently unresolved, what to look for, and what changing it implies (e.g. clear a safety_advisory, update a checklist item).",
+))
+```
+
+Pick `due_date` based on how fast you'd realistically expect the situation to change (a few weeks for an active suspension/dispute, a few months for an unpublished annual fee schedule) — don't default to an arbitrary date. Mention in your report that you scheduled this, so the admin knows not to also do it manually.
+
+If the situation is severe enough that a real visitor could be misled about current safety/availability (an active closure, disaster, or suspended booking system — not just an unverified number), also set the destination's `safety_advisory` field (public, shown on the destination page regardless of publish-review state) with a clear, factual explanation and note in your report that you set it. Leave it null for ordinary research gaps that don't affect a visitor's ability to safely act on the page today.
+
 ## What to hand back
 
 Write your final message as a report for the human admin (who reads Hebrew), addressed to the orchestrating session. Write it **in Hebrew, except proper names**. Structure it as:

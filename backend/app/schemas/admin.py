@@ -73,6 +73,7 @@ class ReviewQueueItemOut(BaseModel):
     # note) exists for it in any locale. Full source list lives in the
     # separate destination_sources table (see AdminSourceOut).
     source_note: str | None
+    created_at: datetime
     # Most recent agent report (any agent_type) for this destination, if any -
     # lets the review queue link straight to it. See AdminAgentReportOut.
     latest_report_id: uuid.UUID | None = None

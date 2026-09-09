@@ -1,18 +1,27 @@
 import { Fragment, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import AdminFollowUpCalendar from "../components/AdminFollowUpCalendar";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { countUnseen, countUnseenByTotal, markSeen, markSeenTotal } from "../lib/adminUnseen";
+
+// Tabs that show a "N new since you last opened this" badge, and how to
+// compute it - date-based tabs compare each item's timestamp field against
+// when the tab was last opened; feedback has no per-item timestamp exposed,
+// so it tracks growth of the aggregate total instead.
+const UNSEEN_TABS = ["review", "monitoring", "reports", "inquiries", "feedback"];
 
 export default function Admin() {
   const { t } = useTranslation();
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState("destinations");
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState(() => TABS.some((x) => x.key === searchParams.get("tab")) ? searchParams.get("tab") : "destinations");
   const [forbidden, setForbidden] = useState(false);
   const [destCount, setDestCount] = useState(null);
   const [reviewCount, setReviewCount] = useState(null);
+  const [newCounts, setNewCounts] = useState({});
 
   useEffect(() => {
     if (!user) return;
@@ -22,8 +31,41 @@ export default function Admin() {
       .catch((e) => {
         if (e.response?.status === 403) setForbidden(true);
       });
-    api.get("/admin/api/review-queue").then((res) => setReviewCount(res.data.length));
+    api.get("/admin/api/review-queue").then((res) => {
+      setReviewCount(res.data.length);
+      setNewCounts((c) => ({ ...c, review: countUnseen("review", res.data, (d) => d.created_at) }));
+    });
+    Promise.all([api.get("/admin/api/monitoring/diffs"), api.get("/admin/api/monitoring/fetch-failures")]).then(
+      ([diffsRes, failuresRes]) => {
+        const items = [
+          ...diffsRes.data.map((d) => ({ ts: d.created_at })),
+          ...failuresRes.data.map((f) => ({ ts: f.failing_since })),
+        ];
+        setNewCounts((c) => ({ ...c, monitoring: countUnseen("monitoring", items, (i) => i.ts) }));
+      }
+    );
+    api.get("/admin/api/reports").then((res) => {
+      setNewCounts((c) => ({ ...c, reports: countUnseen("reports", res.data, (r) => r.created_at) }));
+    });
+    api.get("/admin/api/contact-messages").then((res) => {
+      setNewCounts((c) => ({ ...c, inquiries: countUnseen("inquiries", res.data, (m) => m.created_at) }));
+    });
+    api.get("/admin/api/feedback-stats").then((res) => {
+      setNewCounts((c) => ({ ...c, feedback: countUnseenByTotal("feedback", res.data.total_responses) }));
+    });
   }, [user]);
+
+  const openTab = (key) => {
+    setTab(key);
+    if (!UNSEEN_TABS.includes(key)) return;
+    setNewCounts((c) => ({ ...c, [key]: 0 }));
+    if (key === "feedback") {
+      // Re-mark against whatever total we last fetched, so growth resets from here.
+      api.get("/admin/api/feedback-stats").then((res) => markSeenTotal("feedback", res.data.total_responses));
+    } else {
+      markSeen(key);
+    }
+  };
 
   if (loading) return null;
   if (!user) return <div className="mx-auto max-w-3xl px-4 py-8">Log in as an admin to continue.</div>;
@@ -47,15 +89,20 @@ export default function Admin() {
                   return (
                     <button
                       key={key}
-                      onClick={() => setTab(key)}
-                      className={`rounded-lg px-2 py-1.5 text-left text-sm transition ${
+                      onClick={() => openTab(key)}
+                      className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-sm transition ${
                         tab === key
                           ? "bg-slate-900 font-medium text-white dark:bg-slate-100 dark:text-slate-900"
                           : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                       }`}
                     >
                       {meta.label}
-                      {counts[key] != null && <span className="ml-1 text-xs opacity-70">({counts[key]})</span>}
+                      {counts[key] != null && <span className="text-xs opacity-70">({counts[key]})</span>}
+                      {!!newCounts[key] && (
+                        <span className="rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          {newCounts[key]} new
+                        </span>
+                      )}
                     </button>
                   );
                 })}

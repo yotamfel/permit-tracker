@@ -1010,6 +1010,7 @@ def list_review_queue(db: Session = Depends(get_db)) -> list[ReviewQueueItemOut]
                 description=description,
                 mechanism_explanation=explanations.get(d.id),
                 source_note=source_note,
+                created_at=d.created_at,
                 latest_report_id=latest_report_by_destination.get(d.id),
             )
         )

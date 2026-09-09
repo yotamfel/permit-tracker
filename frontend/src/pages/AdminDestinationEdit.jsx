@@ -85,7 +85,8 @@ export default function AdminDestinationEdit() {
     try {
       const payload = { ...buildPayload(), is_published: true };
       await api.post(`/admin/api/review-queue/${id}/approve`, payload);
-      navigate("/admin");
+      navigate("/admin?tab=review");
+      window.scrollTo(0, 0);
     } catch (e) {
       setError(e.message || JSON.stringify(e.response?.data?.detail) || "Approve failed");
     } finally {
