@@ -109,9 +109,9 @@ const TAB_GROUPS = [
 ];
 
 const AGENT_TYPE_LABELS = {
-  destination_pipeline: "מחקר יעדים (חוקר + בודק)",
-  visitor_tester: "בודק חוויית משתמש",
-  ux_reviewer: "עיצוב וחוויית משתמש (כלל האתר)",
+  destination_pipeline: "Destination research (researcher + reviewer)",
+  visitor_tester: "Visitor experience tester",
+  ux_reviewer: "Design & UX (site-wide)",
 };
 
 function agentTypeLabel(agentType) {
@@ -131,8 +131,7 @@ function SearchBox({ value, onChange, placeholder }) {
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder || "חיפוש..."}
-      dir="rtl"
+      placeholder={placeholder || "Search..."}
       className="mb-3 block w-full max-w-xs rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-sm text-stone-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
     />
   );
@@ -172,7 +171,7 @@ function ReportsTab() {
   return (
     <div className="mt-6">
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
-        דוחות מכל הסוכנים, מרוכזים כאן לפי הסוכן ששלח אותם. בוחרים סוכן כדי לראות רק את הדוחות שלו.
+        Reports from every agent, grouped here by the agent that sent them. Pick an agent to see only its reports.
       </p>
       <div className="mb-4 flex flex-wrap gap-2">
         {agentTypes.map((at) => (
@@ -193,11 +192,11 @@ function ReportsTab() {
           </button>
         ))}
       </div>
-      {agentTypes.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">אין עדיין דוחות מאף סוכן.</p>}
+      {agentTypes.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">No reports from any agent yet.</p>}
       {agentTypes.length > 0 && (
         <>
-          <SearchBox value={search} onChange={setSearch} placeholder="חיפוש לפי שם יעד / כותרת..." />
-          {visible.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">אין דוחות תואמים.</p>}
+          <SearchBox value={search} onChange={setSearch} placeholder="Search by destination name / title..." />
+          {visible.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">No matching reports.</p>}
           <ul className="space-y-2">
             {visible.map((r) => {
               const expanded = expandedId === r.id;
@@ -217,33 +216,33 @@ function ReportsTab() {
                           {r.destination_name}
                         </Link>
                       ) : (
-                        <span className="font-medium">{r.title || "דוח"}</span>
+                        <span className="font-medium">{r.title || "Report"}</span>
                       )}{" "}
                       <span className="text-xs text-slate-500 dark:text-slate-300">{new Date(r.created_at).toLocaleString()}</span>
                       {r.escalations && (
                         <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                          דורש הכרעה
+                          Needs a decision
                         </span>
                       )}
                     </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-300">{expanded ? "כווץ" : "פתח"}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-300">{expanded ? "Collapse" : "Expand"}</span>
                   </button>
                   {expanded && (
-                    <div className="space-y-3 border-t border-slate-200 p-3 text-sm dark:border-slate-800" dir="rtl">
+                    <div className="space-y-3 border-t border-slate-200 p-3 text-sm dark:border-slate-800">
                       <div>
-                        <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">סיכום</h4>
+                        <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">Summary</h4>
                         <p className="mt-1 whitespace-pre-wrap">{r.summary}</p>
                       </div>
                       {r.secondary_summary && (
                         <div>
-                          <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בדיקה נוספת)</h4>
+                          <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">What was found and fixed (review pass)</h4>
                           <p className="mt-1 whitespace-pre-wrap">{r.secondary_summary}</p>
                         </div>
                       )}
                       {r.escalations && (
                         <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
                           <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
-                            דברים שהושארו להכרעה שלך
+                            Left for your decision
                           </h4>
                           <p className="mt-1 whitespace-pre-wrap">{r.escalations}</p>
                         </div>
@@ -251,13 +250,13 @@ function ReportsTab() {
                       {r.recommendation && (
                         <div className="rounded bg-emerald-50 p-2 dark:bg-emerald-900/20">
                           <h4 className="text-xs font-semibold uppercase text-emerald-800 dark:text-emerald-300">
-                            המלצת הסוכנים
+                            Agent recommendation
                           </h4>
                           <p className="mt-1 whitespace-pre-wrap">{r.recommendation}</p>
                         </div>
                       )}
                       <button onClick={() => deleteReport(r.id)} className="text-xs text-red-600 underline">
-                        מחק דוח
+                        Delete report
                       </button>
                     </div>
                   )}
@@ -288,7 +287,7 @@ function ResearchReportButton({ reportId }) {
         onClick={openReport}
         className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
       >
-        דוח סוכן
+        Agent report
       </button>
       {modalReport && (
         <div
@@ -298,35 +297,34 @@ function ResearchReportButton({ reportId }) {
           <div
             className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-5 shadow-xl dark:bg-slate-900"
             onClick={(e) => e.stopPropagation()}
-            dir="rtl"
           >
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">דוח סוכן</h3>
+              <h3 className="text-sm font-semibold">Agent report</h3>
               <button
                 onClick={() => setModalReport(null)}
                 className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
               >
-                סגור ✕
+                Close ✕
               </button>
             </div>
             {modalReport.loading ? (
-              <p className="text-xs text-slate-500 dark:text-slate-300">טוען...</p>
+              <p className="text-xs text-slate-500 dark:text-slate-300">Loading...</p>
             ) : (
               <div className="space-y-3 text-sm">
                 <div>
-                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">סיכום</h4>
+                  <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">Summary</h4>
                   <p className="mt-1 whitespace-pre-wrap">{modalReport.data.summary}</p>
                 </div>
                 {modalReport.data.secondary_summary && (
                   <div>
-                    <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">מה נמצא ותוקן (בדיקה נוספת)</h4>
+                    <h4 className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">What was found and fixed (review pass)</h4>
                     <p className="mt-1 whitespace-pre-wrap">{modalReport.data.secondary_summary}</p>
                   </div>
                 )}
                 {modalReport.data.escalations && (
                   <div className="rounded bg-amber-50 p-2 dark:bg-amber-900/20">
                     <h4 className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-300">
-                      דברים שהושארו להכרעה שלך
+                      Left for your decision
                     </h4>
                     <p className="mt-1 whitespace-pre-wrap">{modalReport.data.escalations}</p>
                   </div>
@@ -334,7 +332,7 @@ function ResearchReportButton({ reportId }) {
                 {modalReport.data.recommendation && (
                   <div className="rounded bg-emerald-50 p-2 dark:bg-emerald-900/20">
                     <h4 className="text-xs font-semibold uppercase text-emerald-800 dark:text-emerald-300">
-                      המלצת הסוכנים
+                      Agent recommendation
                     </h4>
                     <p className="mt-1 whitespace-pre-wrap">{modalReport.data.recommendation}</p>
                   </div>
@@ -375,7 +373,7 @@ function DestinationsTab({ onCountChange }) {
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
         Published destinations only - unpublished ones are in the Review Queue tab.
       </p>
-      <SearchBox value={search} onChange={setSearch} placeholder="חיפוש יעד..." />
+      <SearchBox value={search} onChange={setSearch} placeholder="Search destination..." />
       <ul className="space-y-2">
         {published.map((d) => (
           <li key={d.id} className="flex items-center justify-between rounded border border-slate-200 p-2 text-sm dark:border-slate-800">
@@ -491,7 +489,7 @@ function ReviewQueueTab({ onCountChange }) {
         will appear on the site, with every field editable, then Approve &amp; Publish to send it live, or
         discard it.
       </p>
-      <SearchBox value={search} onChange={setSearch} placeholder="חיפוש יעד..." />
+      <SearchBox value={search} onChange={setSearch} placeholder="Search destination..." />
       {items.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-300">Nothing pending review.</p>}
       <ul className="space-y-2">
         {visible.map((item) => (
@@ -901,7 +899,7 @@ function InquiriesTab() {
                         to={`/admin/destinations/${m.destination_id}`}
                         className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
                       >
-                        דחוף - {m.destination_name}
+                        Urgent - {m.destination_name}
                       </Link>
                     )}
                   </td>
