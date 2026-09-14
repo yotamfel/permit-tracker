@@ -11,6 +11,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [country, setCountry] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
@@ -84,15 +85,24 @@ export default function Signup() {
           onChange={(e) => setEmail(e.target.value)}
           className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
         />
-        <input
-          type="password"
-          required
-          minLength={8}
-          placeholder={t("auth.password")}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
-        />
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            required
+            minLength={8}
+            placeholder={t("auth.password")}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 pe-14 dark:border-stone-700"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute inset-y-0 end-2 text-xs text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
         <CountryPicker value={country} onChange={setCountry} />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
