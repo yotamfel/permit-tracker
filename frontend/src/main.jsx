@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import "./lib/i18n";
 import "./index.css";
 import App from "./App.jsx";
@@ -15,14 +16,16 @@ initPaddle();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <OnboardingProvider>
-            <App />
-          </OnboardingProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <ThemeProvider>
+            <OnboardingProvider>
+              <App />
+            </OnboardingProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </StrictMode>
 );

@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /account
 
-Sitemap: https://permit-tracker-zeta.vercel.app/sitemap.xml
+Sitemap: https://www.myslotscout.com/sitemap.xml

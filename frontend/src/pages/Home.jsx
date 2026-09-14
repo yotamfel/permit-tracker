@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import { useOnboarding } from "../lib/OnboardingContext";
 import DestinationCard from "../components/DestinationCard";
 import ReleaseCalendar from "../components/ReleaseCalendar";
+import SeoHead from "../components/SeoHead";
 import { pickFeatured } from "../lib/pickFeatured";
 
 export default function Home() {
@@ -13,16 +14,6 @@ export default function Home() {
   const [featured, setFeatured] = useState([]);
   const { user, loading } = useAuth();
   const { openIfFirstVisit } = useOnboarding();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Entering the site fresh (no remembered login) goes to login/signup
-    // first, per the site's requested flow - a returning, already-logged-in
-    // visitor lands straight on this page as before.
-    if (!loading && !user) {
-      navigate("/login", { replace: true });
-    }
-  }, [loading, user, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -37,10 +28,14 @@ export default function Home() {
       .then((res) => setFeatured(pickFeatured(res.data, 4)));
   }, [i18n.language]);
 
-  if (loading || !user) return null;
+  if (loading) return null;
 
   return (
     <div>
+      <SeoHead
+        description="Track application windows, quotas, and lotteries for permits that sell out fast - Aconcagua, Torres del Paine, national park entries, and more. Get the exact prep checklist and an alert before the window opens."
+        path="/"
+      />
       <section className="border-b border-stone-200 bg-gradient-to-b from-amber-50 to-white dark:border-stone-800 dark:from-stone-900 dark:to-stone-950">
         <div className="mx-auto max-w-5xl px-4 py-16 text-center sm:py-24">
           <div className="mb-6 text-7xl" aria-hidden="true">

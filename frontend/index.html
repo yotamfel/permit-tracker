@@ -22,15 +22,14 @@
       })();
     </script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E" />
+    <!-- title/description/og/twitter tags are set dynamically per-page by
+         SeoHead.jsx (react-helmet-async) - a static default here would just
+         duplicate them (Helmet appends rather than replacing tags it didn't
+         itself render), leaving two conflicting meta descriptions in <head>.
+         The one exception is <title>: Helmet always cleanly replaces the
+         single <title> element (never duplicates it), so a static fallback
+         here is harmless and covers the brief pre-hydration moment. -->
     <title>SlotScout</title>
-    <meta name="description" content="Track application windows, quotas, and lotteries for permits that sell out fast - Aconcagua, Torres del Paine, national park entries, and more. Get the exact prep checklist and an alert before the window opens." />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="SlotScout" />
-    <meta property="og:title" content="SlotScout - Never miss a permit window again" />
-    <meta property="og:description" content="Track application windows, quotas, and lotteries for permits that sell out fast, with a prep checklist and an alert before the window opens." />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="SlotScout - Never miss a permit window again" />
-    <meta name="twitter:description" content="Track application windows, quotas, and lotteries for permits that sell out fast, with a prep checklist and an alert before the window opens." />
     <script>
       (function () {
         try {

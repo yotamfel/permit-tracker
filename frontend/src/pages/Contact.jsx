@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
+import SeoHead from "../components/SeoHead";
 
 export default function Contact() {
   const { user } = useAuth();
@@ -30,6 +31,7 @@ export default function Contact() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
+      <SeoHead title="Contact Us" description="Get in touch with the SlotScout team." path="/contact" />
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Contact us</h1>
       <p className="mt-1 text-stone-500">
         Questions, requests, or something not working right? Send us a message.

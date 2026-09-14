@@ -1,8 +1,11 @@
+import SeoHead from "../components/SeoHead";
+
 const EFFECTIVE_DATE = "September 2, 2026";
 
 export default function Privacy() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
+      <SeoHead title="Privacy Policy" description="How SlotScout collects, uses, and protects your data." path="/privacy" />
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Privacy Policy</h1>
       <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Effective {EFFECTIVE_DATE}</p>
 

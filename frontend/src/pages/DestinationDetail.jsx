@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import { getMechanismStats, NO_RELEASE_DATE_TYPES } from "../lib/mechanismConfig";
 import CompetitivenessNote from "../components/CompetitivenessNote";
+import SeoHead from "../components/SeoHead";
 
 // Same set as NO_RELEASE_DATE_TYPES - these mechanisms also need a travel_date
 // from the user before an alert can be computed (see app/services/alerts.py).
@@ -134,9 +135,32 @@ export default function DestinationDetail() {
 
   const purchaseStatus = searchParams.get("purchase");
   const needsTravelDate = TRAVEL_DATE_REQUIRED.has(destination.mechanism_type);
+  const seoDescription =
+    destination.description ||
+    `Everything you need to prepare for ${destination.name} (${destination.country}) - application checklist, key dates, and alerts before the window opens.`;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
+      <SeoHead
+        title={`${destination.name} Permit & Application Guide`}
+        description={seoDescription}
+        image={destination.image_url}
+        path={`/destinations/${id}`}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: `${destination.name} destination unlock`,
+          description: seoDescription,
+          image: destination.image_url || undefined,
+          offers: {
+            "@type": "Offer",
+            price: destination.price_usd,
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+            url: `https://www.myslotscout.com/destinations/${id}`,
+          },
+        }}
+      />
       <Link
         to="/catalog"
         className="mb-4 flex w-fit items-center gap-1 text-sm text-stone-500 hover:text-amber-700 dark:text-stone-400 dark:hover:text-amber-400"

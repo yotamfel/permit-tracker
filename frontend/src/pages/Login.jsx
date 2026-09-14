@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { pickFeatured } from "../lib/pickFeatured";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import DestinationCard from "../components/DestinationCard";
+import SeoHead from "../components/SeoHead";
 
 export default function Login() {
   const { t, i18n } = useTranslation();
@@ -36,6 +37,7 @@ export default function Login() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
+      <SeoHead title="Log In" description="Log in to your SlotScout account." path="/login" />
       <div className="mx-auto max-w-sm">
         <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("auth.login_title")}</h1>
         <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">

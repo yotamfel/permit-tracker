@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../lib/AuthContext";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import CountryPicker from "../components/CountryPicker";
+import SeoHead from "../components/SeoHead";
 
 export default function Signup() {
   const { t } = useTranslation();
@@ -29,6 +30,11 @@ export default function Signup() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-8">
+      <SeoHead
+        title="Sign Up"
+        description="Create a free SlotScout account to browse permits worldwide and unlock full prep checklists."
+        path="/signup"
+      />
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("auth.signup_title")}</h1>
       <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
         Create a free account to browse permits worldwide, unlock full prep checklists, and get

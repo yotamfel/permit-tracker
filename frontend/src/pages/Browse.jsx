@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
-import { useAuth } from "../lib/AuthContext";
 import { regionFor } from "../lib/regions";
 import { MONTH_NAMES, monthInSeason } from "../lib/months";
 import { CATEGORY_INFO, DEFAULT_CATEGORY } from "../lib/categoryInfo";
 import DestinationCard from "../components/DestinationCard";
+import SeoHead from "../components/SeoHead";
 
 const CATEGORIES = [
   "trek",
@@ -68,8 +67,6 @@ function sortDestinations(list, sortBy) {
 
 export default function Browse() {
   const { t, i18n } = useTranslation();
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
@@ -78,15 +75,6 @@ export default function Browse() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    // The full catalog is an account perk - guests get a small taste on the
-    // login page instead (see Login.jsx) and are sent there to sign up.
-    if (!authLoading && !user) {
-      navigate("/login", { replace: true });
-    }
-  }, [authLoading, user, navigate]);
-
-  useEffect(() => {
-    if (!user) return;
     setLoading(true);
     // Fetch everything once and filter client-side - the catalog is small
     // (~100s of rows) and several filters (region, opens-soon, season) are
@@ -96,7 +84,7 @@ export default function Browse() {
       .get("/api/destinations", { params: { locale: i18n.language } })
       .then((res) => setDestinations(res.data))
       .finally(() => setLoading(false));
-  }, [i18n.language, user]);
+  }, [i18n.language]);
 
   const countries = useMemo(() => [...new Set(destinations.map((d) => d.country))].sort(), [destinations]);
   const regions = useMemo(() => [...new Set(destinations.map((d) => regionFor(d.country)))].sort(), [destinations]);
@@ -138,10 +126,13 @@ export default function Browse() {
 
   const sorted = useMemo(() => sortDestinations(filtered, sortBy), [filtered, sortBy]);
 
-  if (authLoading || !user) return null;
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
+      <SeoHead
+        title="Browse Permits, Quotas & Lotteries Worldwide"
+        description="Browse every hard-to-get permit, quota, and lottery SlotScout tracks worldwide - treks, national parks, camping, diving, safaris, and seasonal nature events."
+        path="/catalog"
+      />
       <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("browse.title")}</h1>
       <p className="mt-1 text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
 
