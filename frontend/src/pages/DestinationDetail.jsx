@@ -852,7 +852,12 @@ function PrepItem({ item, t, onToggle, files, onFilesChange }) {
           )}
         </span>
       </div>
-      {files && <FileAttachRow files={files} checklistItemId={item.id} onFilesChange={onFilesChange} />}
+      {/* General requirement rows aren't backed by a real ChecklistItem row (their
+          id is a DestinationRequirement id), so the file-attachment API - which
+          only knows about ChecklistItem/UserChecklistItem - can't accept them. */}
+      {files && item.section !== "general" && (
+        <FileAttachRow files={files} checklistItemId={item.id} onFilesChange={onFilesChange} />
+      )}
     </li>
   );
 }
