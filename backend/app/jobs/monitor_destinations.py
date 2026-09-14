@@ -12,6 +12,7 @@ import difflib
 import hashlib
 import logging
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -28,6 +29,18 @@ logger = logging.getLogger(__name__)
 MAX_EXCERPT_CHARS = 20_000
 REQUEST_TIMEOUT_SECONDS = 20
 
+# These two government hosts (Corcovado/Manuel Antonio's SINAC pages, Machu
+# Picchu's official site) don't send their intermediate TLS certificate -
+# something browsers tolerate (they already cache common intermediates) but
+# httpx's strict verification rejects outright. Confirmed 2026-09-14 this
+# reproduces from multiple networks, so it's a real server misconfiguration,
+# not transient. Explicit, narrow exception per the site owner's decision:
+# retry without verification ONLY for these already-known hosts, for this
+# read-only public-content monitoring fetch only (never for anything that
+# submits data or credentials). Do not add a host here without confirming the
+# failure is genuinely a cert-chain issue (see the ConnectError branch below).
+INSECURE_FALLBACK_HOSTS = {"www.sinac.go.cr", "www.machupicchu.gob.pe"}
+
 
 def extract_visible_text(html: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
@@ -42,15 +55,26 @@ def extract_visible_text(html: str) -> str:
     return " ".join(text.split())
 
 
+def _is_cert_verification_error(exc: Exception) -> bool:
+    cause = exc.__cause__
+    return "CERTIFICATE_VERIFY_FAILED" in str(cause or exc)
+
+
 def fetch_text(url: str) -> tuple[str | None, str | None]:
     """Returns (text, error) - exactly one of which is None."""
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; PermitTrackerBot/1.0)"}
     try:
-        resp = httpx.get(
-            url,
-            timeout=REQUEST_TIMEOUT_SECONDS,
-            follow_redirects=True,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; PermitTrackerBot/1.0)"},
-        )
+        try:
+            resp = httpx.get(url, timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True, headers=headers)
+        except httpx.ConnectError as exc:
+            host = urlparse(url).hostname
+            if host in INSECURE_FALLBACK_HOSTS and _is_cert_verification_error(exc):
+                logger.warning("TLS cert verification failed for known host %s - retrying without verification", host)
+                resp = httpx.get(
+                    url, timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True, headers=headers, verify=False
+                )
+            else:
+                raise
         resp.raise_for_status()
         content_type = resp.headers.get("content-type", "")
         if "html" not in content_type and "text" not in content_type:
