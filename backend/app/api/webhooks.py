@@ -1,7 +1,6 @@
 import logging
 import uuid
 
-import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -9,43 +8,46 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_db
 from app.models.enums import PurchaseStatus
 from app.models.purchase import Purchase
-from app.services.stripe_service import construct_webhook_event
+from app.services.paddle_service import verify_webhook_signature
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/stripe")
-async def stripe_webhook(request: Request, db: Session = Depends(get_db)) -> dict:
+@router.post("/paddle")
+async def paddle_webhook(request: Request, db: Session = Depends(get_db)) -> dict:
     payload = await request.body()
-    sig_header = request.headers.get("stripe-signature", "")
+    signature_header = request.headers.get("paddle-signature", "")
 
-    try:
-        event = construct_webhook_event(payload, sig_header)
-    except (ValueError, stripe.error.SignatureVerificationError) as exc:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Invalid webhook signature: {exc}") from exc
+    if not verify_webhook_signature(payload, signature_header):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid webhook signature")
 
-    if event["type"] == "checkout.session.completed":
-        return _handle_checkout_completed(event, db)
-    if event["type"] in ("charge.refunded", "charge.dispute.created"):
-        return _handle_refund_or_dispute(event, db)
+    event = (await request.json()) if payload else {}
+    event_type = event.get("event_type")
+
+    if event_type == "transaction.completed":
+        return _handle_transaction_completed(event, db)
+    if event_type in ("transaction.payment_failed",):
+        return _handle_payment_failed(event, db)
+    if event_type == "adjustment.updated":
+        return _handle_adjustment_updated(event, db)
 
     return {"status": "ignored"}
 
 
-def _handle_checkout_completed(event: dict, db: Session) -> dict:
-    session = event["data"]["object"]
-    payment_intent_id = session.get("payment_intent")
-    metadata = session.get("metadata", {})
-    user_id = metadata.get("user_id")
-    destination_id = metadata.get("destination_id")
+def _handle_transaction_completed(event: dict, db: Session) -> dict:
+    data = event.get("data", {})
+    transaction_id = data.get("id")
+    custom_data = data.get("custom_data") or {}
+    user_id = custom_data.get("user_id")
+    destination_id = custom_data.get("destination_id")
 
-    if not payment_intent_id or not user_id or not destination_id:
-        logger.warning("Stripe webhook missing required metadata: %s", session.get("id"))
+    if not transaction_id or not user_id or not destination_id:
+        logger.warning("Paddle webhook missing required custom_data: %s", transaction_id)
         return {"status": "ignored_missing_metadata"}
 
-    # Idempotency: if we've already recorded this payment_intent as completed, no-op.
-    existing = db.query(Purchase).filter(Purchase.stripe_payment_intent_id == payment_intent_id).first()
+    # Idempotency: if we've already recorded this transaction as completed, no-op.
+    existing = db.query(Purchase).filter(Purchase.paddle_transaction_id == transaction_id).first()
     if existing is not None:
         return {"status": "already_processed"}
 
@@ -61,47 +63,88 @@ def _handle_checkout_completed(event: dict, db: Session) -> dict:
     )
     if pending is None:
         # No matching pending row (shouldn't normally happen) - create one directly.
+        amount_minor = 0
+        totals = data.get("details", {}).get("totals", {})
+        if totals.get("total") is not None:
+            amount_minor = int(totals["total"])
         pending = Purchase(
             user_id=uuid.UUID(user_id),
             destination_id=uuid.UUID(destination_id),
-            amount_usd=(session.get("amount_total") or 0) / 100,
+            amount_usd=amount_minor / 100,
         )
         db.add(pending)
 
     pending.status = PurchaseStatus.completed
-    pending.stripe_payment_intent_id = payment_intent_id
+    pending.paddle_transaction_id = transaction_id
 
     try:
         db.commit()
     except IntegrityError:
         db.rollback()
-        # Concurrent webhook delivery already inserted this payment_intent_id.
+        # Concurrent webhook delivery already inserted this transaction_id.
         return {"status": "already_processed"}
 
     return {"status": "completed"}
 
 
-def _handle_refund_or_dispute(event: dict, db: Session) -> dict:
-    """A refund or a won chargeback dispute both mean the money came back -
-    revoke access by marking the purchase refunded. It just needs to stop
-    being PurchaseStatus.completed; the ownership checks (see
-    app/services/ownership.py) only ever consider completed purchases, so
-    this takes effect immediately without any other code change."""
-    obj = event["data"]["object"]
-    payment_intent_id = obj.get("payment_intent")
-    if not payment_intent_id:
-        return {"status": "ignored_missing_payment_intent"}
+def _handle_payment_failed(event: dict, db: Session) -> dict:
+    data = event.get("data", {})
+    custom_data = data.get("custom_data") or {}
+    user_id = custom_data.get("user_id")
+    destination_id = custom_data.get("destination_id")
+    if not user_id or not destination_id:
+        return {"status": "ignored_missing_metadata"}
 
-    purchase = db.query(Purchase).filter(Purchase.stripe_payment_intent_id == payment_intent_id).first()
+    pending = (
+        db.query(Purchase)
+        .filter(
+            Purchase.user_id == uuid.UUID(user_id),
+            Purchase.destination_id == uuid.UUID(destination_id),
+            Purchase.status == PurchaseStatus.pending,
+        )
+        .order_by(Purchase.created_at.desc())
+        .first()
+    )
+    if pending is None:
+        return {"status": "ignored_no_pending_purchase"}
+
+    pending.status = PurchaseStatus.failed
+    db.add(pending)
+    db.commit()
+    return {"status": "failed"}
+
+
+def _handle_adjustment_updated(event: dict, db: Session) -> dict:
+    """A refund or chargeback only actually returns money once its adjustment
+    reaches status "approved" (most refunds start "pending_approval" and are
+    reviewed by Paddle) - acting on adjustment.created would revoke access on
+    a refund request that could still be rejected. Reaching this point means
+    the money came back, so revoke access by marking the purchase refunded;
+    the ownership checks (see app/services/ownership.py) only ever consider
+    completed purchases, so this takes effect immediately without any other
+    code change. A chargeback_reverse (Paddle successfully contested a
+    chargeback) means the money came back to us, so access is restored."""
+    data = event.get("data", {})
+    transaction_id = data.get("transaction_id")
+    action = data.get("action")
+    status_ = data.get("status")
+    if not transaction_id:
+        return {"status": "ignored_missing_transaction_id"}
+
+    purchase = db.query(Purchase).filter(Purchase.paddle_transaction_id == transaction_id).first()
     if purchase is None:
-        logger.warning("Stripe %s for unknown payment_intent %s", event["type"], payment_intent_id)
+        logger.warning("Paddle adjustment for unknown transaction %s", transaction_id)
         return {"status": "ignored_unknown_purchase"}
 
-    if purchase.status == PurchaseStatus.refunded:
+    if status_ != "approved" or action not in ("refund", "chargeback", "chargeback_reverse"):
+        return {"status": "ignored"}
+
+    new_status = PurchaseStatus.completed if action == "chargeback_reverse" else PurchaseStatus.refunded
+    if purchase.status == new_status:
         return {"status": "already_processed"}
 
-    purchase.status = PurchaseStatus.refunded
+    purchase.status = new_status
     db.add(purchase)
     db.commit()
-    logger.info("Purchase %s marked refunded (Stripe event %s)", purchase.id, event["type"])
-    return {"status": "refunded"}
+    logger.info("Purchase %s set to %s (Paddle %s on transaction %s)", purchase.id, new_status, action, transaction_id)
+    return {"status": new_status.value}

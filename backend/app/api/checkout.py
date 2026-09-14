@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,10 +11,11 @@ from app.models.enums import Platform, PurchaseStatus
 from app.models.purchase import Purchase
 from app.models.user import User
 from app.schemas.purchase import CheckoutSessionOut, PurchaseOut
+from app.services.paddle_service import PaddleError, create_transaction, get_or_create_customer_id
 from app.services.purchase_cycle import purchase_still_active
-from app.services.stripe_service import create_checkout_session
 
 router = APIRouter(tags=["checkout"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/api/checkout/{destination_id}", response_model=CheckoutSessionOut)
@@ -49,13 +51,21 @@ def create_checkout(
         ):
             raise HTTPException(status.HTTP_409_CONFLICT, "Destination already unlocked")
 
-    checkout_url = create_checkout_session(
-        destination_id=str(d.id),
-        destination_name=d.name,
-        price_usd=float(d.price_usd),
-        user_id=str(user.id),
-        user_email=user.email,
-    )
+    try:
+        if user.paddle_customer_id is None:
+            user.paddle_customer_id = get_or_create_customer_id(user.email)
+            db.add(user)
+            db.commit()
+
+        checkout_url = create_transaction(
+            destination_id=str(d.id),
+            destination_name=d.name,
+            user_id=str(user.id),
+            customer_id=user.paddle_customer_id,
+        )
+    except PaddleError as exc:
+        logger.error("Paddle transaction creation failed for destination %s: %s", destination_id, exc)
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Could not start checkout - please try again") from exc
 
     pending = Purchase(
         user_id=user.id,

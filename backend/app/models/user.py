@@ -27,3 +27,6 @@ class User(UUIDPKMixin, TimestampMixin, Base):
     # Self-reported at signup (optional) - shown back to the admin as a
     # breakdown in the Stats tab, not used anywhere else.
     country: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Cached Paddle customer id (ctm_...) so checkout doesn't need a
+    # get-or-create-by-email round trip to Paddle on every purchase.
+    paddle_customer_id: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)

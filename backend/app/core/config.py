@@ -11,9 +11,16 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24 * 30
 
-    stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
-    stripe_publishable_key: str = ""
+    # Paddle Billing (Merchant of Record) - paddle_api_key is the server-side
+    # API key used to create transactions; paddle_webhook_secret verifies the
+    # "Paddle-Signature" header on incoming webhooks; paddle_price_id is the
+    # single $4.99 Price object every destination unlock uses (all
+    # destinations are priced identically, so one Price covers all of them).
+    paddle_api_key: str = ""
+    paddle_webhook_secret: str = ""
+    paddle_price_id: str = ""
+    # https://api.paddle.com for live, https://sandbox-api.paddle.com for testing.
+    paddle_api_base_url: str = "https://api.paddle.com"
 
     email_provider_api_key: str = ""
     email_from: str = "alerts@permit-tracker.example"

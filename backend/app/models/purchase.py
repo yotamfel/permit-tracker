@@ -21,7 +21,7 @@ class Purchase(UUIDPKMixin, TimestampMixin, Base):
     )
     platform: Mapped[Platform] = mapped_column(Enum(Platform, name="platform"), nullable=False, default=Platform.web)
     amount_usd: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    stripe_payment_intent_id: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    paddle_transaction_id: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
     status: Mapped[PurchaseStatus] = mapped_column(
         Enum(PurchaseStatus, name="purchase_status"), nullable=False, default=PurchaseStatus.pending
     )

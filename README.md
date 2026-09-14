@@ -74,7 +74,7 @@ backend/
     models/       SQLAlchemy models (destinations, translations, purchases, general_requirements, ...)
     schemas/       Pydantic request/response schemas + mechanism_config validators (§5)
     api/            FastAPI route modules (destinations, auth, checkout, webhooks, subscriptions, admin)
-    services/       stripe, email (Resend), i18n lookup, release-date math, monitoring
+    services/       paddle, email (Resend), i18n lookup, release-date math, monitoring
     jobs/           one-off/scheduled entrypoints: seed, stub_import, create_admin,
                      monitor_destinations (weekly cron), dispatch_alerts (daily cron)
   alembic/          migrations (generate the first one once DATABASE_URL is real - see SETUP_GUIDE.md)

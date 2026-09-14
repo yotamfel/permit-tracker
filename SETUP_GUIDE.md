@@ -24,20 +24,33 @@ migrations/seeding/tests directly.
    run the initial Alembic migration, and seed all the destination/requirement/
    translation data.
 
-## 3. Stripe
+## 3. Paddle (Merchant of Record - handles global VAT/sales tax for us)
 
-1. Create/use a Stripe account, switch to **test mode** first.
-2. Developers → API keys: copy the **Secret key** (`sk_test_...`) and
-   **Publishable key** (`pk_test_...`).
-3. Developers → Webhooks → Add endpoint:
-   - URL: `https://<your-railway-backend-url>/api/webhooks/stripe` (use the Stripe
-     CLI's `stripe listen --forward-to localhost:8000/api/webhooks/stripe` for local
-     testing before you have a deployed URL)
-   - Event: `checkout.session.completed`
-   - Copy the **Signing secret** (`whsec_...`)
-4. Give me the secret key, publishable key, and webhook signing secret.
-5. When you're ready for real payments, flip to live mode and repeat steps 2-4 for
-   the live keys.
+1. Create a Paddle account at paddle.com and verify it as an Israel-based seller
+   (Israel is a supported seller country). Start in **Sandbox** mode first - it's a
+   separate environment from Production with its own keys/catalog, good for testing
+   before real money moves. While in Sandbox, also set
+   `PADDLE_API_BASE_URL=https://sandbox-api.paddle.com` (the app defaults to the
+   production API URL).
+2. Catalog → Products → create one product (e.g. "SlotScout destination unlock"),
+   then add one **Price** to it: $4.99 USD, one-time (not recurring) - every
+   destination on the site is the same price, so this single Price ID covers all of
+   them. Copy the Price ID (`pri_...`).
+3. Developer Tools → Authentication → create an **API key** (this is the server-side
+   secret - keep it out of any client-side code).
+4. Developer Tools → Notifications → add a destination:
+   - URL: `https://<your-railway-backend-url>/api/webhooks/paddle`
+   - Events: `transaction.completed`, `transaction.payment_failed`, `adjustment.updated`
+   - Copy the **notification's own secret key** (starts `pdl_ntfset_...` in the UI,
+     used as the webhook signing secret)
+5. Give me the API key, webhook secret, and Price ID (as `PADDLE_API_KEY`,
+   `PADDLE_WEBHOOK_SECRET`, `PADDLE_PRICE_ID`).
+6. When you're ready for real payments: Paddle requires a short account verification
+   (business details, ~1-2 business days) before you can go live. Once approved,
+   switch to **Production** in the Paddle dashboard, repeat steps 2-4 there (Sandbox
+   and Production have entirely separate catalogs/keys), and remove the
+   `PADDLE_API_BASE_URL` override (or set it explicitly to `https://api.paddle.com`)
+   so requests go to the live API.
 
 ## 4. Resend (email)
 
