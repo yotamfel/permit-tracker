@@ -54,7 +54,7 @@ def _render(fb: PostReleaseFeedback, destination_name: str) -> str:
     <body style="font-family:sans-serif;max-width:480px;margin:40px auto;line-height:1.5">
       <h2>Thanks for letting us know about {escape(destination_name)}!</h2>
       {yesno_links("Did you get in?", "succeeded", fb.succeeded)}
-      {yesno_links("Did Permit Tracker help you prepare?", "found_site_helpful", fb.found_site_helpful)}
+      {yesno_links("Did SlotScout help you prepare?", "found_site_helpful", fb.found_site_helpful)}
       {comment_block}
     </body>
     </html>

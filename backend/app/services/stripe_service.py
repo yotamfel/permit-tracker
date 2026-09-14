@@ -17,7 +17,7 @@ def create_checkout_session(
                 "price_data": {
                     "currency": "usd",
                     "unit_amount": int(round(price_usd * 100)),
-                    "product_data": {"name": f"Permit Tracker unlock: {destination_name}"},
+                    "product_data": {"name": f"SlotScout unlock: {destination_name}"},
                 },
                 "quantity": 1,
             }

@@ -9,7 +9,7 @@ export default function Privacy() {
       <div className="mt-6 space-y-6 text-stone-800 dark:text-stone-300">
         <Section title="1. Overview">
           <p>
-            This Privacy Policy explains what information Permit Tracker ("we," "us") collects when you use our
+            This Privacy Policy explains what information SlotScout ("we," "us") collects when you use our
             website, how we use it, and the choices you have. By using the Service you agree to this Policy and to
             our{" "}
             <a href="/terms" target="_blank" rel="noreferrer" className="text-amber-700 underline dark:text-amber-400">
@@ -65,7 +65,7 @@ export default function Privacy() {
         </Section>
 
         <Section title="4. Who we share information with">
-          <p>We do not sell your personal data. We share information only with the service providers we rely on to operate Permit Tracker:</p>
+          <p>We do not sell your personal data. We share information only with the service providers we rely on to operate SlotScout:</p>
           <ul className="mt-2 list-disc space-y-1 ps-5">
             <li>
               <span className="font-medium">Our payment provider</span> - to process payments (they receive your

@@ -3,15 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Enforce www.myslotscout.com as the single canonical origin - anyone
+      // landing on the old production Vercel subdomain (or any other alias)
+      // gets sent straight there, path and query preserved. Runs before
+      // anything else. Exempts localhost/127.0.0.1 (local dev) and any other
+      // *.vercel.app host (branch/PR preview deployments - those would be
+      // pointless if every preview just bounced to production).
+      (function () {
+        var canonicalHost = "www.myslotscout.com";
+        var oldProductionHost = "permit-tracker-zeta.vercel.app";
+        var host = window.location.hostname;
+        var isPreviewDeployment = host.endsWith(".vercel.app") && host !== oldProductionHost;
+        var exempt = host === "localhost" || host === "127.0.0.1" || isPreviewDeployment;
+        if (host !== canonicalHost && !exempt) {
+          window.location.replace("https://" + canonicalHost + window.location.pathname + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%AD%3C/text%3E%3C/svg%3E" />
-    <title>Permit Tracker</title>
+    <title>SlotScout</title>
     <meta name="description" content="Track application windows, quotas, and lotteries for permits that sell out fast - Aconcagua, Torres del Paine, national park entries, and more. Get the exact prep checklist and an alert before the window opens." />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Permit Tracker" />
-    <meta property="og:title" content="Permit Tracker - Never miss a permit window again" />
+    <meta property="og:site_name" content="SlotScout" />
+    <meta property="og:title" content="SlotScout - Never miss a permit window again" />
     <meta property="og:description" content="Track application windows, quotas, and lotteries for permits that sell out fast, with a prep checklist and an alert before the window opens." />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Permit Tracker - Never miss a permit window again" />
+    <meta name="twitter:title" content="SlotScout - Never miss a permit window again" />
     <meta name="twitter:description" content="Track application windows, quotas, and lotteries for permits that sell out fast, with a prep checklist and an alert before the window opens." />
     <script>
       (function () {

@@ -256,7 +256,7 @@ def get_calendar_ics(
     ics = (
         "BEGIN:VCALENDAR\r\n"
         "VERSION:2.0\r\n"
-        "PRODID:-//Permit Tracker//EN\r\n"
+        "PRODID:-//SlotScout//EN\r\n"
         "CALSCALE:GREGORIAN\r\n"
         "BEGIN:VEVENT\r\n"
         f"UID:{d.id}@permit-tracker\r\n"

@@ -11,7 +11,7 @@ def send_alert_email(to_email: str, destination_name: str, body_html: str) -> No
         {
             "from": settings.email_from,
             "to": [to_email],
-            "subject": f"Permit Tracker alert: {destination_name}",
+            "subject": f"SlotScout alert: {destination_name}",
             "html": body_html,
         }
     )
@@ -29,9 +29,9 @@ def send_contact_notification(
         f"<p>{message}</p>"
     )
     subject = (
-        f"[URGENT - {destination_name}] Permit Tracker contact form: {name}"
+        f"[URGENT - {destination_name}] SlotScout contact form: {name}"
         if destination_name
-        else f"Permit Tracker contact form: {name}"
+        else f"SlotScout contact form: {name}"
     )
     resend.Emails.send(
         {
@@ -45,7 +45,7 @@ def send_contact_notification(
 
 def send_password_reset_email(to_email: str, reset_url: str) -> None:
     body = (
-        f"<p>We received a request to reset your Permit Tracker password.</p>"
+        f"<p>We received a request to reset your SlotScout password.</p>"
         f'<p><a href="{reset_url}">Click here to choose a new password</a>. This link expires in 1 hour.</p>'
         f"<p style='color:#777;font-size:12px'>If you didn't request this, you can safely ignore this email.</p>"
     )
@@ -53,7 +53,7 @@ def send_password_reset_email(to_email: str, reset_url: str) -> None:
         {
             "from": settings.email_from,
             "to": [to_email],
-            "subject": "Reset your Permit Tracker password",
+            "subject": "Reset your SlotScout password",
             "html": body,
         }
     )
@@ -94,7 +94,7 @@ def send_source_fetch_failure_email(admin_emails: list[str], destination_name: s
         {
             "from": settings.email_from,
             "to": admin_emails,
-            "subject": f"Permit Tracker: can't monitor {destination_name} automatically",
+            "subject": f"SlotScout: can't monitor {destination_name} automatically",
             "html": body,
         }
     )
@@ -115,7 +115,7 @@ def send_follow_up_reminder_email(admin_emails: list[str], items: list[dict]) ->
         {
             "from": settings.email_from,
             "to": admin_emails,
-            "subject": f"Permit Tracker: {len(items)} follow-up{'s' if len(items) != 1 else ''} due today",
+            "subject": f"SlotScout: {len(items)} follow-up{'s' if len(items) != 1 else ''} due today",
             "html": body,
         }
     )
@@ -134,7 +134,7 @@ def send_destination_updated_email(to_email: str, destination_name: str, diff_su
         {
             "from": settings.email_from,
             "to": [to_email],
-            "subject": f"Permit Tracker: {destination_name} was updated",
+            "subject": f"SlotScout: {destination_name} was updated",
             "html": body,
         }
     )
@@ -151,7 +151,7 @@ def send_contact_reply(to_email: str, to_name: str, original_message: str, reply
         {
             "from": settings.email_from,
             "to": [to_email],
-            "subject": "Re: your message to Permit Tracker",
+            "subject": "Re: your message to SlotScout",
             "html": body,
         }
     )

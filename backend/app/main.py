@@ -16,7 +16,7 @@ from app.models.destination import Destination
 init_sentry()
 settings = get_settings()
 
-app = FastAPI(title="Permit Tracker API")
+app = FastAPI(title="SlotScout API")
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

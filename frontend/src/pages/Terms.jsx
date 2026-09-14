@@ -9,7 +9,7 @@ export default function Terms() {
       <div className="mt-6 space-y-6 text-stone-800 dark:text-stone-300">
         <Section title="1. Acceptance of these terms">
           <p>
-            These Terms of Service ("Terms") govern your use of Permit Tracker (the "Service"). By creating an
+            These Terms of Service ("Terms") govern your use of SlotScout (the "Service"). By creating an
             account or using the Service, you agree to these Terms and to our{" "}
             <a href="/privacy" target="_blank" rel="noreferrer" className="text-amber-700 underline dark:text-amber-400">
               Privacy Policy
@@ -20,7 +20,7 @@ export default function Terms() {
 
         <Section title="2. What the Service is">
           <p>
-            Permit Tracker is an information and preparation tool. We research, organize, and summarize publicly
+            SlotScout is an information and preparation tool. We research, organize, and summarize publicly
             available information about official travel permits, quotas, lotteries, and similar access-controlled
             experiences, and provide checklists, reminders, and calendar tools to help you prepare.
           </p>
@@ -108,8 +108,8 @@ export default function Terms() {
 
         <Section title="9. Intellectual property">
           <p>
-            The compiled checklists, summaries, design, and other original content on the Service belong to Permit
-            Tracker. Trademarks, names, and content belonging to government agencies, park authorities, and other
+            The compiled checklists, summaries, design, and other original content on the Service belong to
+            SlotScout. Trademarks, names, and content belonging to government agencies, park authorities, and other
             third parties remain the property of their respective owners and are referenced for informational
             purposes only.
           </p>
@@ -125,7 +125,7 @@ export default function Terms() {
 
         <Section title="11. Limitation of liability">
           <p>
-            To the maximum extent permitted by law, Permit Tracker will not be liable for any indirect, incidental,
+            To the maximum extent permitted by law, SlotScout will not be liable for any indirect, incidental,
             or consequential damages (including the cost of a missed trip or booking) arising from your use of the
             Service. Our total liability for any claim relating to a specific destination is limited to the amount
             you paid to unlock that destination, if any.
