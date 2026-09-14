@@ -13,6 +13,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [featured, setFeatured] = useState([]);
 
@@ -59,14 +60,23 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
           />
-          <input
-            type="password"
-            required
-            placeholder={t("auth.password")}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              required
+              placeholder={t("auth.password")}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 pe-14 dark:border-stone-700"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute inset-y-0 end-2 text-xs text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
           <Link to="/forgot-password" className="block text-right text-xs text-amber-700 underline dark:text-amber-400">
             Forgot password?
           </Link>
