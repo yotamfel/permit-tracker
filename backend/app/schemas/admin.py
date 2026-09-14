@@ -347,6 +347,15 @@ class AdminUserPurchaseOut(BaseModel):
     admin_override_note: str | None
 
 
+class AdminUserListItemOut(BaseModel):
+    id: uuid.UUID
+    email: str
+    created_at: datetime
+    country: str | None
+    completed_purchase_count: int
+    is_admin: bool
+
+
 class AdminPurchaseOverrideIn(BaseModel):
     # Set until=null to clear an existing override and fall back to the
     # normal cycle-expiry calculation.

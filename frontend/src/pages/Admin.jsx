@@ -597,6 +597,7 @@ function ReviewQueueTab({ onCountChange }) {
 }
 
 function UsersTab() {
+  const [users, setUsers] = useState(null);
   const [email, setEmail] = useState("");
   const [purchases, setPurchases] = useState(null);
   const [searched, setSearched] = useState(false);
@@ -604,10 +605,16 @@ function UsersTab() {
   const [untilInput, setUntilInput] = useState("");
   const [noteInput, setNoteInput] = useState("");
 
-  const search = async (e) => {
+  useEffect(() => {
+    api.get("/admin/api/users").then((res) => setUsers(res.data));
+  }, []);
+
+  const search = async (e, overrideEmail) => {
     e?.preventDefault();
-    if (!email.trim()) return;
-    const res = await api.get("/admin/api/purchases/lookup", { params: { email: email.trim() } });
+    const target = overrideEmail ?? email;
+    if (!target.trim()) return;
+    setEmail(target);
+    const res = await api.get("/admin/api/purchases/lookup", { params: { email: target.trim() } });
     setPurchases(res.data);
     setSearched(true);
   };
@@ -639,6 +646,46 @@ function UsersTab() {
 
   return (
     <div className="mt-6">
+      <h2 className="mb-3 text-lg font-semibold">All accounts</h2>
+      {users === null ? (
+        <p className="mb-8 text-sm text-slate-500 dark:text-slate-300">Loading...</p>
+      ) : (
+        <table className="mb-8 w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-300">
+              <th className="pb-2">Email</th>
+              <th className="pb-2">Signed up</th>
+              <th className="pb-2">Country</th>
+              <th className="pb-2">Purchases</th>
+              <th className="pb-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.id} className="border-b border-slate-100 dark:border-slate-900">
+                <td className="py-2">
+                  {u.email}
+                  {u.is_admin && (
+                    <span className="ms-2 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                      Admin
+                    </span>
+                  )}
+                </td>
+                <td className="py-2">{new Date(u.created_at).toLocaleDateString()}</td>
+                <td className="py-2">{u.country || "-"}</td>
+                <td className="py-2">{u.completed_purchase_count}</td>
+                <td className="py-2">
+                  <button type="button" onClick={() => search(null, u.email)} className="text-xs text-amber-700 underline dark:text-amber-400">
+                    View purchases
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <h2 className="mb-3 text-lg font-semibold">Look up purchases</h2>
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-300">
         Look up a user's purchases and, if a destination locked again for them by mistake (or any other reason),
         manually reopen it - either until a specific date, or leave the date blank to reopen indefinitely.

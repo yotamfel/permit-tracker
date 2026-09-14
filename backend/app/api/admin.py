@@ -3,10 +3,12 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_admin, get_db
 from app.models.admin_follow_up import AdminFollowUp
+from app.models.admin_user import AdminUser
 from app.models.agent_report import AgentReport
 from app.models.alert_subscription import AlertSubscription
 from app.models.checklist_item import ChecklistItem
@@ -44,6 +46,7 @@ from app.schemas.admin import (
     AdminSourceOut,
     AdminTranslationIn,
     AdminTranslationOut,
+    AdminUserListItemOut,
     AdminUserPurchaseOut,
     CountryStatsOut,
     DailyPurchaseStatsOut,
@@ -605,6 +608,32 @@ def delete_operator(operator_id: uuid.UUID, db: Session = Depends(get_db)) -> No
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Operator not found")
     db.delete(o)
     db.commit()
+
+
+# --- User list ---------------------------------------------------------------
+
+
+@router.get("/users", response_model=list[AdminUserListItemOut])
+def list_users(db: Session = Depends(get_db)) -> list[AdminUserListItemOut]:
+    admin_emails = {a.email for a in db.query(AdminUser).all()}
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    purchase_counts = dict(
+        db.query(Purchase.user_id, func.count(Purchase.id))
+        .filter(Purchase.status == PurchaseStatus.completed)
+        .group_by(Purchase.user_id)
+        .all()
+    )
+    return [
+        AdminUserListItemOut(
+            id=u.id,
+            email=u.email,
+            created_at=u.created_at,
+            country=u.country,
+            completed_purchase_count=purchase_counts.get(u.id, 0),
+            is_admin=u.email in admin_emails,
+        )
+        for u in users
+    ]
 
 
 # --- User purchase lookup / manual access override --------------------------
