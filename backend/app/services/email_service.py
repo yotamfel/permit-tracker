@@ -1,3 +1,5 @@
+import html
+
 import resend
 
 from app.core.config import get_settings
@@ -22,11 +24,18 @@ def send_contact_notification(
 ) -> None:
     if not admin_emails:
         return
-    urgent_line = f"<p><strong>URGENT - sent from the {destination_name} page.</strong></p>" if destination_name else ""
+    safe_name = html.escape(name)
+    safe_from_email = html.escape(from_email)
+    safe_message = html.escape(message)
+    urgent_line = (
+        f"<p><strong>URGENT - sent from the {html.escape(destination_name)} page.</strong></p>"
+        if destination_name
+        else ""
+    )
     body = (
         f"{urgent_line}"
-        f"<p><strong>{name}</strong> ({from_email}) sent a message via the contact form:</p>"
-        f"<p>{message}</p>"
+        f"<p><strong>{safe_name}</strong> ({safe_from_email}) sent a message via the contact form:</p>"
+        f"<p>{safe_message}</p>"
     )
     subject = (
         f"[URGENT - {destination_name}] SlotScout contact form: {name}"
@@ -126,7 +135,7 @@ def send_destination_updated_email(to_email: str, destination_name: str, diff_su
         f"<p>Something changed on <strong>{destination_name}</strong>, a destination you've unlocked - "
         f"here's what's new:</p>"
         f"<pre style='white-space:pre-wrap;font-size:13px;background:#f5f5f5;padding:8px;border-radius:6px'>"
-        f"{diff_summary}</pre>"
+        f"{html.escape(diff_summary)}</pre>"
         f"<p style='color:#777;font-size:12px'>This is a one-off update notice, separate from your regular "
         f"pre-release alert.</p>"
     )
@@ -141,11 +150,14 @@ def send_destination_updated_email(to_email: str, destination_name: str, diff_su
 
 
 def send_contact_reply(to_email: str, to_name: str, original_message: str, reply_message: str) -> None:
+    safe_to_name = html.escape(to_name)
+    safe_reply_message = html.escape(reply_message)
+    safe_original_message = html.escape(original_message)
     body = (
-        f"<p>Hi {to_name},</p>"
-        f"<p>{reply_message}</p>"
+        f"<p>Hi {safe_to_name},</p>"
+        f"<p>{safe_reply_message}</p>"
         f"<hr/>"
-        f"<p style='color:#777;font-size:12px'>Your original message: {original_message}</p>"
+        f"<p style='color:#777;font-size:12px'>Your original message: {safe_original_message}</p>"
     )
     resend.Emails.send(
         {
