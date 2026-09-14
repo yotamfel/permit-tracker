@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
 from app.models.checklist_item import ChecklistItem
+from app.models.general_requirement import DestinationRequirement
 from app.models.user import User
 from app.models.user_checklist_item import UserChecklistItem
 from app.models.user_file import ALLOWED_CONTENT_TYPES, MAX_FILE_SIZE_BYTES, UserFile, UserFileAttachment
@@ -15,11 +16,16 @@ router = APIRouter(prefix="/api/me/files", tags=["user-files"])
 
 
 def _validate_attachment_target(
-    db: Session, user: User, checklist_item_id: uuid.UUID | None, user_checklist_item_id: uuid.UUID | None
+    db: Session,
+    user: User,
+    checklist_item_id: uuid.UUID | None,
+    user_checklist_item_id: uuid.UUID | None,
+    destination_requirement_id: uuid.UUID | None = None,
 ) -> None:
-    if checklist_item_id is not None and user_checklist_item_id is not None:
+    targets = [checklist_item_id, user_checklist_item_id, destination_requirement_id]
+    if sum(t is not None for t in targets) > 1:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "A file can attach to at most one checklist row at a time")
-    if checklist_item_id is None and user_checklist_item_id is None:
+    if all(t is None for t in targets):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Specify which checklist row to attach to")
     if checklist_item_id is not None:
         item = db.get(ChecklistItem, checklist_item_id)
@@ -28,6 +34,10 @@ def _validate_attachment_target(
     if user_checklist_item_id is not None:
         item = db.get(UserChecklistItem, user_checklist_item_id)
         if item is None or item.user_id != user.id:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Checklist item not found")
+    if destination_requirement_id is not None:
+        item = db.get(DestinationRequirement, destination_requirement_id)
+        if item is None or not user_owns_destination(db, user, item.destination_id):
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Checklist item not found")
 
 
@@ -49,6 +59,7 @@ async def upload_file(
     file: UploadFile = File(...),
     checklist_item_id: uuid.UUID | None = Form(None),
     user_checklist_item_id: uuid.UUID | None = Form(None),
+    destination_requirement_id: uuid.UUID | None = Form(None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> UserFileOut:
@@ -60,9 +71,10 @@ async def upload_file(
 
     # Uploading directly from a checklist row optionally attaches it in the
     # same step; uploading from the general library (Account page) leaves
-    # both null - the file just sits there until explicitly attached.
-    if checklist_item_id is not None or user_checklist_item_id is not None:
-        _validate_attachment_target(db, user, checklist_item_id, user_checklist_item_id)
+    # all three null - the file just sits there until explicitly attached.
+    has_target = checklist_item_id is not None or user_checklist_item_id is not None or destination_requirement_id is not None
+    if has_target:
+        _validate_attachment_target(db, user, checklist_item_id, user_checklist_item_id, destination_requirement_id)
 
     record = UserFile(
         user_id=user.id,
@@ -74,10 +86,13 @@ async def upload_file(
     db.add(record)
     db.flush()
 
-    if checklist_item_id is not None or user_checklist_item_id is not None:
+    if has_target:
         db.add(
             UserFileAttachment(
-                file_id=record.id, checklist_item_id=checklist_item_id, user_checklist_item_id=user_checklist_item_id
+                file_id=record.id,
+                checklist_item_id=checklist_item_id,
+                user_checklist_item_id=user_checklist_item_id,
+                destination_requirement_id=destination_requirement_id,
             )
         )
 
@@ -93,7 +108,7 @@ def attach_file(
     record = db.get(UserFile, file_id)
     if record is None or record.user_id != user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "File not found")
-    _validate_attachment_target(db, user, body.checklist_item_id, body.user_checklist_item_id)
+    _validate_attachment_target(db, user, body.checklist_item_id, body.user_checklist_item_id, body.destination_requirement_id)
 
     existing = (
         db.query(UserFileAttachment)
@@ -101,13 +116,17 @@ def attach_file(
             UserFileAttachment.file_id == file_id,
             UserFileAttachment.checklist_item_id == body.checklist_item_id,
             UserFileAttachment.user_checklist_item_id == body.user_checklist_item_id,
+            UserFileAttachment.destination_requirement_id == body.destination_requirement_id,
         )
         .first()
     )
     if existing is None:
         db.add(
             UserFileAttachment(
-                file_id=file_id, checklist_item_id=body.checklist_item_id, user_checklist_item_id=body.user_checklist_item_id
+                file_id=file_id,
+                checklist_item_id=body.checklist_item_id,
+                user_checklist_item_id=body.user_checklist_item_id,
+                destination_requirement_id=body.destination_requirement_id,
             )
         )
         db.commit()

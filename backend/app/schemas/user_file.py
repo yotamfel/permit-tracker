@@ -8,6 +8,7 @@ class UserFileAttachmentOut(BaseModel):
     id: uuid.UUID
     checklist_item_id: uuid.UUID | None
     user_checklist_item_id: uuid.UUID | None
+    destination_requirement_id: uuid.UUID | None
 
     model_config = {"from_attributes": True}
 
@@ -26,3 +27,4 @@ class UserFileOut(BaseModel):
 class AttachFileRequest(BaseModel):
     checklist_item_id: uuid.UUID | None = None
     user_checklist_item_id: uuid.UUID | None = None
+    destination_requirement_id: uuid.UUID | None = None

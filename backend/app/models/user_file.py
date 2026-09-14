@@ -36,9 +36,11 @@ class UserFile(UUIDPKMixin, TimestampMixin, Base):
 
 
 class UserFileAttachment(UUIDPKMixin, TimestampMixin, Base):
-    """Links one UserFile to one checklist row (admin-authored or the user's
-    own custom item - exactly one of the two FKs is set). A file can have
-    any number of these (including zero, if it just sits in the library)."""
+    """Links one UserFile to one row in the unified "what you need to prepare"
+    list (see PrepItemOut) - a checklist item, a user's own custom checklist
+    item, or a destination's general requirement row; exactly one of the
+    three FKs is set. A file can have any number of these (including zero,
+    if it just sits in the library)."""
 
     __tablename__ = "user_file_attachments"
 
@@ -50,4 +52,7 @@ class UserFileAttachment(UUIDPKMixin, TimestampMixin, Base):
     )
     user_checklist_item_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user_checklist_items.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    destination_requirement_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("destination_requirements.id", ondelete="CASCADE"), nullable=True, index=True
     )

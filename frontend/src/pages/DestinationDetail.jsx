@@ -304,6 +304,8 @@ export default function DestinationDetail() {
                 items={checklist.items.filter((i) => i.section === "general")}
                 t={t}
                 onToggle={handleToggleItem}
+                files={files}
+                onFilesChange={refreshFiles}
               />
               <PrepSection
                 title={t("destination.section_specific")}
@@ -621,13 +623,20 @@ function PrepSection({ title, items, t, onToggle, files, onFilesChange }) {
 // `attachments` list) - a file can be attached to several rows at once (e.g.
 // one passport scan relevant to several destinations), so "attached here"
 // means it has an attachment entry matching this row's checklistItemId/
-// userChecklistItemId (exactly one of which is set by the caller).
-function FileAttachRow({ files, checklistItemId, userChecklistItemId, onFilesChange }) {
+// userChecklistItemId/destinationRequirementId (exactly one of which is set
+// by the caller, depending on the row's section - "general" rows are backed
+// by a DestinationRequirement id, not a real ChecklistItem id).
+function FileAttachRow({ files, checklistItemId, userChecklistItemId, destinationRequirementId, onFilesChange }) {
   const [uploading, setUploading] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState("");
 
-  const matchesRow = (a) => (checklistItemId ? a.checklist_item_id === checklistItemId : a.user_checklist_item_id === userChecklistItemId);
+  const matchesRow = (a) =>
+    checklistItemId
+      ? a.checklist_item_id === checklistItemId
+      : userChecklistItemId
+        ? a.user_checklist_item_id === userChecklistItemId
+        : a.destination_requirement_id === destinationRequirementId;
   const attachedHere = files
     .map((f) => ({ file: f, attachment: f.attachments.find(matchesRow) }))
     .filter((x) => x.attachment);
@@ -644,6 +653,7 @@ function FileAttachRow({ files, checklistItemId, userChecklistItemId, onFilesCha
       formData.append("file", file);
       if (checklistItemId) formData.append("checklist_item_id", checklistItemId);
       if (userChecklistItemId) formData.append("user_checklist_item_id", userChecklistItemId);
+      if (destinationRequirementId) formData.append("destination_requirement_id", destinationRequirementId);
       await api.post("/api/me/files", formData);
       onFilesChange();
     } catch (err) {
@@ -658,6 +668,7 @@ function FileAttachRow({ files, checklistItemId, userChecklistItemId, onFilesCha
     await api.post(`/api/me/files/${fileId}/attach`, {
       checklist_item_id: checklistItemId || null,
       user_checklist_item_id: userChecklistItemId || null,
+      destination_requirement_id: destinationRequirementId || null,
     });
     onFilesChange();
   };
@@ -852,12 +863,15 @@ function PrepItem({ item, t, onToggle, files, onFilesChange }) {
           )}
         </span>
       </div>
-      {/* General requirement rows aren't backed by a real ChecklistItem row (their
-          id is a DestinationRequirement id), so the file-attachment API - which
-          only knows about ChecklistItem/UserChecklistItem - can't accept them. */}
-      {files && item.section !== "general" && (
-        <FileAttachRow files={files} checklistItemId={item.id} onFilesChange={onFilesChange} />
-      )}
+      {/* General requirement rows are backed by a DestinationRequirement id
+          rather than a real ChecklistItem id - route the attachment to the
+          matching prop so the API validates it against the right table. */}
+      {files &&
+        (item.section === "general" ? (
+          <FileAttachRow files={files} destinationRequirementId={item.id} onFilesChange={onFilesChange} />
+        ) : (
+          <FileAttachRow files={files} checklistItemId={item.id} onFilesChange={onFilesChange} />
+        ))}
     </li>
   );
 }
