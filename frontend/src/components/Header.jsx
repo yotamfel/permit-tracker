@@ -58,7 +58,6 @@ export default function Header() {
           >
             <option value="light">{t("theme.light")}</option>
             <option value="dark">{t("theme.dark")}</option>
-            <option value="system">{t("theme.system")}</option>
           </select>
 
           {loading ? (

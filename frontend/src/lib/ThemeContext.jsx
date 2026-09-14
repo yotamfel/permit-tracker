@@ -4,14 +4,19 @@ import { useAuth } from "./AuthContext";
 
 const ThemeContext = createContext(null);
 
+// "system" used to be a third option here - it's been removed (light/dark
+// only now), but old localStorage values / user.theme_preference rows from
+// before that change may still say "system", so normalize it to "light".
+function normalizeTheme(theme) {
+  return theme === "dark" ? "dark" : "light";
+}
+
 function applyTheme(theme) {
-  const isDark =
-    theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.classList.toggle("dark", isDark);
+  document.documentElement.classList.toggle("dark", theme === "dark");
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => localStorage.getItem("theme") || "system");
+  const [theme, setThemeState] = useState(() => normalizeTheme(localStorage.getItem("theme")));
   const { user, refreshMe } = useAuth() || {};
 
   useEffect(() => {
@@ -19,8 +24,9 @@ export function ThemeProvider({ children }) {
   }, [theme]);
 
   useEffect(() => {
-    if (user?.theme_preference && user.theme_preference !== theme) {
-      setThemeState(user.theme_preference);
+    const preferred = user?.theme_preference && normalizeTheme(user.theme_preference);
+    if (preferred && preferred !== theme) {
+      setThemeState(preferred);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
