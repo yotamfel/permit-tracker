@@ -9,7 +9,7 @@ import { useOnboarding } from "../lib/OnboardingContext";
 // work resumes. See README.md.
 export default function Header() {
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const { openGuide } = useOnboarding();
 
@@ -37,9 +37,17 @@ export default function Header() {
             How it works
           </button>
           {user?.is_admin && (
-            <Link to="/admin" className="hover:text-amber-700 dark:hover:text-amber-400">
-              {t("nav.admin")}
-            </Link>
+            <>
+              <Link to="/admin" className="hover:text-amber-700 dark:hover:text-amber-400">
+                {t("nav.admin")}
+              </Link>
+              <span
+                title="You're viewing as an admin - every destination shows as unlocked for you regardless of purchase."
+                className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
+              >
+                Admin view
+              </span>
+            </>
           )}
 
           <select
@@ -53,7 +61,9 @@ export default function Header() {
             <option value="system">{t("theme.system")}</option>
           </select>
 
-          {user ? (
+          {loading ? (
+            <span className="h-4 w-16 animate-pulse rounded bg-stone-200 dark:bg-stone-800" aria-hidden="true" />
+          ) : user ? (
             <button onClick={logout} className="underline hover:text-amber-700 dark:hover:text-amber-400">
               {t("nav.logout")}
             </button>

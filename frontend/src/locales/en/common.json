@@ -18,7 +18,8 @@
     "subtitle": "Documents, deadlines, and alerts for the world's hardest-to-get permits — all in one place."
   },
   "browse": {
-    "subtitle": "Track deadlines, gather your documents, and get notified before the window opens.",
+    "title": "Catalog",
+    "subtitle": "Browse every tracked destination and filter down to what matters for your trip.",
     "filter_country": "Country",
     "filter_category": "Category",
     "filter_mechanism": "How it's released",

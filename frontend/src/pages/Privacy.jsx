@@ -104,8 +104,8 @@ export default function Privacy() {
 
         <Section title="6. Data retention">
           <p>
-            We keep your account information for as long as your account is active. If you'd like your account and
-            associated data deleted, contact us (see below) and we will process your request.
+            We keep your account information for as long as your account is active. You can delete your account and
+            its associated data at any time from your Account page, or contact us (see below) if you'd like help.
           </p>
         </Section>
 

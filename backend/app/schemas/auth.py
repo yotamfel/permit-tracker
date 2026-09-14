@@ -1,13 +1,13 @@
 import uuid
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from app.models.enums import ThemePreference
 
 
 class SignupRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8)
     # Must be true - enforced in the endpoint, not just here, so the error
     # message can be specific ("please accept the terms") rather than a
     # generic 422.
@@ -33,7 +33,7 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    new_password: str
+    new_password: str = Field(min_length=8)
 
 
 class TokenResponse(BaseModel):

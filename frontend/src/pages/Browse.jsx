@@ -139,8 +139,8 @@ export default function Browse() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("home.title")}</h1>
-      <p className="mt-1 text-stone-700 dark:text-stone-400">{t("home.subtitle")}</p>
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{t("browse.title")}</h1>
+      <p className="mt-1 text-stone-700 dark:text-stone-400">{t("browse.subtitle")}</p>
 
       <div className="mt-4 flex gap-1.5 overflow-x-auto pb-1">
         {CATEGORIES.map((c) => {
