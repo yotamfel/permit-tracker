@@ -27,13 +27,35 @@ class CountryStatsOut(BaseModel):
     count: int
 
 
+class DailyPurchaseStatsOut(BaseModel):
+    date: date
+    count: int
+    revenue_usd: float
+
+
+class RecentPurchaseOut(BaseModel):
+    id: uuid.UUID
+    destination_name: str
+    buyer_email: str
+    amount_usd: float
+    created_at: datetime
+
+
 class PurchaseStatsOut(BaseModel):
     total_purchases: int
     total_revenue_usd: float
+    purchases_today: int
+    purchases_last_7_days: int
+    purchases_last_30_days: int
     total_accounts: int
     accounts_created_last_7_days: int
     by_destination: list[DestinationPurchaseStatsOut]
     by_country: list[CountryStatsOut]
+    # Daily buckets for the last 30 days, oldest first, zero-filled for days
+    # with no purchases - lets the frontend chart a continuous line/bars
+    # without gaps.
+    daily_purchases: list[DailyPurchaseStatsOut]
+    recent_purchases: list[RecentPurchaseOut]
 
 
 class DestinationFeedbackStatsOut(BaseModel):

@@ -46,10 +46,12 @@ from app.schemas.admin import (
     AdminTranslationOut,
     AdminUserPurchaseOut,
     CountryStatsOut,
+    DailyPurchaseStatsOut,
     DestinationFeedbackStatsOut,
     DestinationPurchaseStatsOut,
     FeedbackStatsOut,
     PurchaseStatsOut,
+    RecentPurchaseOut,
     ReviewQueueItemOut,
     SourceFetchFailureOut,
 )
@@ -867,7 +869,8 @@ def purchase_stats(db: Session = Depends(get_db)) -> PurchaseStatsOut:
     ]
     rows.sort(key=lambda r: r.purchase_count, reverse=True)
 
-    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    now = datetime.now(timezone.utc)
+    seven_days_ago = now - timedelta(days=7)
     total_accounts = db.query(User).count()
     recent_accounts = db.query(User).filter(User.created_at >= seven_days_ago).count()
 
@@ -877,13 +880,54 @@ def purchase_stats(db: Session = Depends(get_db)) -> PurchaseStatsOut:
     country_rows = [CountryStatsOut(country=c, count=n) for c, n in country_counts.items()]
     country_rows.sort(key=lambda r: r.count, reverse=True)
 
+    today = now.date()
+    thirty_days_ago = now - timedelta(days=30)
+    daily_buckets = {today - timedelta(days=i): {"count": 0, "revenue": 0.0} for i in range(30)}
+    purchases_today = purchases_7d = purchases_30d = 0
+    for p in completed:
+        if p.created_at >= thirty_days_ago:
+            purchases_30d += 1
+            bucket = daily_buckets.get(p.created_at.date())
+            if bucket is not None:
+                bucket["count"] += 1
+                bucket["revenue"] += float(p.amount_usd)
+        if p.created_at >= seven_days_ago:
+            purchases_7d += 1
+        if p.created_at.date() == today:
+            purchases_today += 1
+
+    daily_rows = [
+        DailyPurchaseStatsOut(date=d, count=v["count"], revenue_usd=round(v["revenue"], 2))
+        for d, v in sorted(daily_buckets.items())
+    ]
+
+    users_by_id = {u.id: u for u in db.query(User).filter(User.id.in_({p.user_id for p in completed})).all()}
+    recent = sorted(completed, key=lambda p: p.created_at, reverse=True)[:20]
+    recent_rows = [
+        RecentPurchaseOut(
+            id=p.id,
+            destination_name=destinations[p.destination_id].name
+            if p.destination_id in destinations
+            else "(deleted destination)",
+            buyer_email=users_by_id[p.user_id].email if p.user_id in users_by_id else "(deleted user)",
+            amount_usd=float(p.amount_usd),
+            created_at=p.created_at,
+        )
+        for p in recent
+    ]
+
     return PurchaseStatsOut(
         total_purchases=len(completed),
         total_revenue_usd=round(sum(float(p.amount_usd) for p in completed), 2),
+        purchases_today=purchases_today,
+        purchases_last_7_days=purchases_7d,
+        purchases_last_30_days=purchases_30d,
         total_accounts=total_accounts,
         accounts_created_last_7_days=recent_accounts,
         by_destination=rows,
         by_country=country_rows,
+        daily_purchases=daily_rows,
+        recent_purchases=recent_rows,
     )
 
 

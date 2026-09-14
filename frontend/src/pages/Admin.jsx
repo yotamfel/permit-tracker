@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/AuthContext";
 import AdminFollowUpCalendar from "../components/AdminFollowUpCalendar";
@@ -738,6 +739,18 @@ function UsersTab() {
   );
 }
 
+function DailyPurchasesTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const { date, count, revenue_usd } = payload[0].payload;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="font-medium">{date}</div>
+      <div>{count} purchase{count === 1 ? "" : "s"}</div>
+      <div>${revenue_usd} revenue</div>
+    </div>
+  );
+}
+
 function StatsTab() {
   const [stats, setStats] = useState(null);
 
@@ -749,7 +762,7 @@ function StatsTab() {
 
   return (
     <div className="mt-6">
-      <div className="mb-6 flex gap-8">
+      <div className="mb-6 flex flex-wrap gap-8">
         <div>
           <div className="text-2xl font-bold">{stats.total_purchases}</div>
           <div className="text-sm text-slate-500 dark:text-slate-300">Total purchases</div>
@@ -757,6 +770,18 @@ function StatsTab() {
         <div>
           <div className="text-2xl font-bold">${stats.total_revenue_usd}</div>
           <div className="text-sm text-slate-500 dark:text-slate-300">Total revenue</div>
+        </div>
+        <div>
+          <div className="text-2xl font-bold">{stats.purchases_today}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Purchases today</div>
+        </div>
+        <div>
+          <div className="text-2xl font-bold">{stats.purchases_last_7_days}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Purchases (7 days)</div>
+        </div>
+        <div>
+          <div className="text-2xl font-bold">{stats.purchases_last_30_days}</div>
+          <div className="text-sm text-slate-500 dark:text-slate-300">Purchases (30 days)</div>
         </div>
         <div>
           <div className="text-2xl font-bold">{stats.total_accounts}</div>
@@ -768,6 +793,46 @@ function StatsTab() {
         </div>
       </div>
 
+      <h2 className="mb-3 text-lg font-semibold">Purchases per day (last 30 days)</h2>
+      <div className="mb-8 h-64 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={stats.daily_purchases} margin={{ left: -20 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-800" />
+            <XAxis dataKey="date" tickFormatter={(d) => d.slice(5)} tick={{ fontSize: 12 }} interval={2} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+            <Tooltip content={<DailyPurchasesTooltip />} />
+            <Bar dataKey="count" name="Purchases" fill="#d97706" radius={[3, 3, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <h2 className="mb-3 text-lg font-semibold">Recent purchases</h2>
+      {stats.recent_purchases.length === 0 ? (
+        <p className="mb-8 text-sm text-slate-500 dark:text-slate-300">No purchases yet.</p>
+      ) : (
+        <table className="mb-8 w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-300">
+              <th className="pb-2">Date</th>
+              <th className="pb-2">Destination</th>
+              <th className="pb-2">Buyer</th>
+              <th className="pb-2">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stats.recent_purchases.map((row) => (
+              <tr key={row.id} className="border-b border-slate-100 dark:border-slate-900">
+                <td className="py-2">{new Date(row.created_at).toLocaleString()}</td>
+                <td className="py-2">{row.destination_name}</td>
+                <td className="py-2">{row.buyer_email}</td>
+                <td className="py-2">${row.amount_usd}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <h2 className="mb-3 text-lg font-semibold">Purchases by destination</h2>
       {stats.by_destination.length === 0 ? (
         <p className="text-sm text-slate-500 dark:text-slate-300">No purchases yet.</p>
       ) : (
