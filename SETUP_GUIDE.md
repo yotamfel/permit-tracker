@@ -37,20 +37,35 @@ migrations/seeding/tests directly.
    destination on the site is the same price, so this single Price ID covers all of
    them. Copy the Price ID (`pri_...`).
 3. Developer Tools → Authentication → create an **API key** (this is the server-side
-   secret - keep it out of any client-side code).
-4. Developer Tools → Notifications → add a destination:
+   secret - keep it out of any client-side code) with exactly: Customers (Read +
+   Write), Transactions (Write only) - nothing else. Also create a separate
+   **client-side token** there (safe to expose in frontend code - it's what
+   Paddle.js uses in the browser to open the checkout overlay).
+4. Checkout → Checkout settings → **Default payment link** - required before any
+   transaction/checkout can be created at all, even with a custom `checkout.url`.
+   Set it to `https://myslotscout.com` (Sandbox accepts any domain, including
+   localhost, but using the real domain here means one less thing to redo for
+   Production later).
+5. Checkout → Website Approval → Domain Approval → **Add a new domain** →
+   `myslotscout.com` → Submit for Approval (Sandbox approves near-instantly;
+   Production can take longer). A transaction's `checkout.url` 400s with
+   `transaction_checkout_url_domain_is_not_approved` until this is done, even
+   after the default payment link above is set - they're two separate checks.
+6. Developer Tools → Notifications → add a destination:
    - URL: `https://<your-railway-backend-url>/api/webhooks/paddle`
    - Events: `transaction.completed`, `transaction.payment_failed`, `adjustment.updated`
    - Copy the **notification's own secret key** (starts `pdl_ntfset_...` in the UI,
      used as the webhook signing secret)
-5. Give me the API key, webhook secret, and Price ID (as `PADDLE_API_KEY`,
-   `PADDLE_WEBHOOK_SECRET`, `PADDLE_PRICE_ID`).
-6. When you're ready for real payments: Paddle requires a short account verification
+7. Give me the API key, client-side token, webhook secret, and Price ID (as
+   `PADDLE_API_KEY`, `VITE_PADDLE_CLIENT_TOKEN`, `PADDLE_WEBHOOK_SECRET`,
+   `PADDLE_PRICE_ID`).
+8. When you're ready for real payments: Paddle requires a short account verification
    (business details, ~1-2 business days) before you can go live. Once approved,
-   switch to **Production** in the Paddle dashboard, repeat steps 2-4 there (Sandbox
-   and Production have entirely separate catalogs/keys), and remove the
+   switch to **Production** in the Paddle dashboard, repeat steps 2-6 there (Sandbox
+   and Production have entirely separate catalogs/keys/domain approvals), remove the
    `PADDLE_API_BASE_URL` override (or set it explicitly to `https://api.paddle.com`)
-   so requests go to the live API.
+   so requests go to the live API, and set `VITE_PADDLE_ENVIRONMENT` to anything
+   other than `sandbox` (or unset it) on the frontend.
 
 ## 4. Resend (email)
 

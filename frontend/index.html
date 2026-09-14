@@ -36,16 +36,17 @@
         try {
           // English-only for now (see README.md) - re-add locale/dir detection here
           // when the language switcher in Header.jsx is un-hidden.
-          var theme = localStorage.getItem("theme") || "system";
-          var isDark =
-            theme === "dark" ||
-            (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          // Matches ThemeContext.jsx's normalizeTheme: only "dark" is dark,
+          // everything else (including a leftover pre-"System"-removal value
+          // or no stored value at all) renders light.
+          var isDark = localStorage.getItem("theme") === "dark";
           if (isDark) document.documentElement.classList.add("dark");
         } catch (e) {}
       })();
     </script>
     <!-- hl=en forces English regardless of browser locale, to match the site's English-only launch -->
     <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
+    <script src="https://cdn.paddle.com/paddle/v2/paddle.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet" />
