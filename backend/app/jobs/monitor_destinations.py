@@ -29,17 +29,18 @@ logger = logging.getLogger(__name__)
 MAX_EXCERPT_CHARS = 20_000
 REQUEST_TIMEOUT_SECONDS = 20
 
-# These two government hosts (Corcovado/Manuel Antonio's SINAC pages, Machu
-# Picchu's official site) don't send their intermediate TLS certificate -
-# something browsers tolerate (they already cache common intermediates) but
-# httpx's strict verification rejects outright. Confirmed 2026-09-14 this
-# reproduces from multiple networks, so it's a real server misconfiguration,
-# not transient. Explicit, narrow exception per the site owner's decision:
-# retry without verification ONLY for these already-known hosts, for this
-# read-only public-content monitoring fetch only (never for anything that
-# submits data or credentials). Do not add a host here without confirming the
+# These government hosts (Corcovado/Manuel Antonio's SINAC pages, Machu
+# Picchu's official site, Kenya Wildlife Service) don't send their
+# intermediate TLS certificate - something browsers tolerate (they already
+# cache common intermediates) but httpx's strict verification rejects
+# outright. Confirmed 2026-09-14 this reproduces from multiple networks, so
+# it's a real server misconfiguration, not transient. Explicit, narrow
+# exception per the site owner's decision: retry without verification ONLY
+# for these already-known hosts, for this read-only public-content
+# monitoring fetch only (never for anything that submits data or
+# credentials). Do not add a host here without confirming the
 # failure is genuinely a cert-chain issue (see the ConnectError branch below).
-INSECURE_FALLBACK_HOSTS = {"www.sinac.go.cr", "www.machupicchu.gob.pe"}
+INSECURE_FALLBACK_HOSTS = {"www.sinac.go.cr", "www.machupicchu.gob.pe", "kws.go.ke"}
 
 
 def extract_visible_text(html: str) -> str:
