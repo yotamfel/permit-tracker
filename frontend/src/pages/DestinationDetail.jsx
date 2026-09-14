@@ -468,7 +468,7 @@ export default function DestinationDetail() {
           </>
         ) : (
           <>
-            {!user && <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">Log in to unlock this destination.</p>}
+            {!user && <p className="mb-3 text-sm text-stone-800 dark:text-stone-300">Log in to unlock this destination.</p>}
             {destination.previously_owned && (
               <p className="mb-3 rounded-lg bg-stone-100 px-3 py-2 text-sm text-stone-700 dark:bg-stone-800 dark:text-stone-300">
                 Your access to this destination has ended for this cycle. If you think that's a mistake,{" "}
@@ -478,7 +478,7 @@ export default function DestinationDetail() {
                 .
               </p>
             )}
-            <p className="mb-3 text-sm text-stone-500 dark:text-stone-400">{t("destination.risk_framing")}</p>
+            <p className="mb-3 text-sm text-stone-800 dark:text-stone-300">{t("destination.risk_framing")}</p>
             <button
               onClick={handleUnlock}
               disabled={!user}

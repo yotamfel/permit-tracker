@@ -43,6 +43,12 @@ export default function Home() {
     <div>
       <section className="border-b border-stone-200 bg-gradient-to-b from-amber-50 to-white dark:border-stone-800 dark:from-stone-900 dark:to-stone-950">
         <div className="mx-auto max-w-5xl px-4 py-16 text-center sm:py-24">
+          <div
+            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 text-4xl shadow-sm dark:bg-amber-900/40"
+            aria-hidden="true"
+          >
+            🧭
+          </div>
           <h1 className="text-4xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 sm:text-5xl">
             {t("home.title")}
           </h1>
