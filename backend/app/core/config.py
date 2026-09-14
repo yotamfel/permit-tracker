@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # Paddle Billing (Merchant of Record) - paddle_api_key is the server-side
     # API key used to create transactions; paddle_webhook_secret verifies the
     # "Paddle-Signature" header on incoming webhooks; paddle_price_id is the
-    # single $4.99 Price object every destination unlock uses (all
+    # single flat-priced Price object every destination unlock uses (all
     # destinations are priced identically, so one Price covers all of them).
     paddle_api_key: str = ""
     paddle_webhook_secret: str = ""

@@ -118,7 +118,7 @@ class AdminDestinationIn(BaseModel):
     source_url: str | None = None
     # Shown to users as "Apply here" once they've unlocked the destination.
     application_url: str | None = None
-    price_usd: float = 4.99
+    price_usd: float = 6.99
     is_published: bool = False
     # The typical months (1-12) this experience actually happens, distinct
     # from the application/release dates in mechanism_config. end < start

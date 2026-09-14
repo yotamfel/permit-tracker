@@ -173,7 +173,7 @@ function LockedMockup() {
       </div>
       <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-stone-900/50">
         <span className="rounded-full bg-amber-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm">
-          Unlock for $4.99
+          Unlock for $6.99
         </span>
       </div>
     </MockCard>

@@ -30,7 +30,7 @@ def run() -> None:
                 competitiveness_level=entry["competitiveness_level"],
                 source_url=entry["source_url"],
                 is_published=True,
-                price_usd=4.99,
+                price_usd=6.99,
             )
             db.add(d)
             db.flush()  # assign d.id

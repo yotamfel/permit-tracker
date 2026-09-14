@@ -33,7 +33,7 @@ migrations/seeding/tests directly.
    `PADDLE_API_BASE_URL=https://sandbox-api.paddle.com` (the app defaults to the
    production API URL).
 2. Catalog → Products → create one product (e.g. "SlotScout destination unlock"),
-   then add one **Price** to it: $4.99 USD, one-time (not recurring) - every
+   then add one **Price** to it: $6.99 USD, one-time (not recurring) - every
    destination on the site is the same price, so this single Price ID covers all of
    them. Copy the Price ID (`pri_...`).
 3. Developer Tools → Authentication → create an **API key** (this is the server-side

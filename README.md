@@ -10,7 +10,7 @@ the originals under `~/Downloads`; keep them as the source of truth for scope qu
 
 ## Decisions made while building (per the spec's own "flag back to the user" list)
 
-- **Pricing:** flat $4.99 per destination (not tiered by competitiveness).
+- **Pricing:** flat $6.99 per destination (not tiered by competitiveness).
 - **Auth:** custom FastAPI JWT (email + password), not Clerk/Supabase Auth.
 - **Email:** Resend.
 - **Destination count:** the spec's §10 list is headed "30 MVP Destinations" but only names 29

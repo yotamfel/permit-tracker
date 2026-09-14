@@ -102,7 +102,7 @@ def run() -> None:
                 competitiveness_level=competitiveness,
                 source_url=None,
                 is_published=False,
-                price_usd=4.99,
+                price_usd=6.99,
             )
             db.add(d)
             db.flush()

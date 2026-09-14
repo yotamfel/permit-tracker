@@ -38,7 +38,7 @@ class Destination(UUIDPKMixin, TimestampMixin, Base):
     application_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    price_usd: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=4.99)
+    price_usd: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, default=6.99)
     # Set by the weekly monitoring job when it can't fetch source_url (e.g. the
     # site blocks automated requests, like Aconcagua's official page returning
     # 403) - flags that this destination needs a human to check it periodically

@@ -52,7 +52,7 @@ def get_or_create_customer_id(email: str) -> str:
 
 
 def create_transaction(destination_id: str, destination_name: str, user_id: str, customer_id: str) -> str:
-    """Creates a Paddle transaction for the flat $4.99 destination-unlock price and
+    """Creates a Paddle transaction for the flat destination-unlock price and
     returns the hosted checkout URL to redirect the browser to."""
     resp = httpx.post(
         f"{settings.paddle_api_base_url}/transactions",
