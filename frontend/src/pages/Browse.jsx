@@ -74,7 +74,8 @@ export default function Browse() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [panelOpen, setPanelOpen] = useState(false);
-  const [sortBy, setSortBy] = useState("soonest");
+  const [sortBy, setSortBy] = useState("name");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     // The full catalog is an account perk - guests get a small taste on the
@@ -117,7 +118,9 @@ export default function Browse() {
     const now = Date.now();
     // Within-a-filter: OR (match any selected value). Across filters: AND.
     const opensSoonMsList = filters.opensSoon.map((v) => Number(v) * 24 * 60 * 60 * 1000);
+    const query = search.trim().toLowerCase();
     return destinations.filter((d) => {
+      if (query && !`${d.name} ${d.country}`.toLowerCase().includes(query)) return false;
       if (filters.country.length && !filters.country.includes(d.country)) return false;
       if (filters.category.length && !filters.category.includes(d.category)) return false;
       if (filters.region.length && !filters.region.includes(regionFor(d.country))) return false;
@@ -131,7 +134,7 @@ export default function Browse() {
       }
       return true;
     });
-  }, [destinations, filters]);
+  }, [destinations, filters, search]);
 
   const sorted = useMemo(() => sortDestinations(filtered, sortBy), [filtered, sortBy]);
 
@@ -166,6 +169,17 @@ export default function Browse() {
 
       <div className="sticky top-0 z-30 -mx-4 mt-4 bg-stone-50/95 px-4 py-3 backdrop-blur dark:bg-stone-950/95">
         <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or country..."
+              aria-label="Search destinations"
+              className="w-56 rounded-full border border-stone-300 bg-white px-3 py-1.5 text-sm text-stone-900 placeholder:text-stone-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500"
+            />
+          </div>
+
           <button
             type="button"
             onClick={() => setPanelOpen((o) => !o)}
@@ -199,10 +213,13 @@ export default function Browse() {
             </span>
           ))}
 
-          {activeChips.length > 0 && (
+          {(activeChips.length > 0 || search) && (
             <button
               type="button"
-              onClick={() => setFilters(EMPTY_FILTERS)}
+              onClick={() => {
+                setFilters(EMPTY_FILTERS);
+                setSearch("");
+              }}
               className="text-sm text-stone-500 underline hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
             >
               Clear all
