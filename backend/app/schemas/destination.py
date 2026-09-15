@@ -52,6 +52,7 @@ class DestinationCardOut(BaseModel):
     price_usd: float
     next_known_release: datetime | None
     is_owned: bool
+    is_watching: bool = False
     season_start_month: int | None = None
     season_end_month: int | None = None
     # Public even for guests / unpublished-preview contexts - a safety warning
@@ -87,6 +88,7 @@ class DestinationDetailOut(BaseModel):
     last_verified_at: datetime | None
     price_usd: float
     is_owned: bool
+    is_watching: bool = False
     # True when the user has a completed purchase for this destination whose
     # cycle has since lapsed - lets the frontend say "your access ended" (with
     # a contact-us prompt) rather than showing the plain unlock CTA as if

@@ -18,6 +18,7 @@ from app.models.translation import Translation
 from app.models.user import User
 from app.models.user_checklist_item import UserChecklistItem
 from app.models.user_file import UserFile, UserFileAttachment
+from app.models.watchlist_item import WatchlistItem
 
 __all__ = [
     "AdminFollowUp",
@@ -43,4 +44,5 @@ __all__ = [
     "UserChecklistItem",
     "UserFile",
     "UserFileAttachment",
+    "WatchlistItem",
 ]

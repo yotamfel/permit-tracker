@@ -27,6 +27,7 @@ from app.services.checklist_completion import completed_prep_item_ids, toggle_co
 from app.services.i18n import translate_bulk, translate_one_entity_multi_type
 from app.services.ownership import owned_destination_ids, user_owns_destination, user_previously_purchased
 from app.services.release_date import compute_next_release, compute_release_dates_in_month
+from app.services.watchlist import watched_destination_ids
 
 router = APIRouter(prefix="/api/destinations", tags=["destinations"])
 
@@ -54,6 +55,7 @@ def list_destinations(
 
     names = translate_bulk(db, "destination.name", [d.id for d in destinations], locale)
     owned_ids = owned_destination_ids(db, user, [d.id for d in destinations])
+    watched_ids = watched_destination_ids(db, user, [d.id for d in destinations])
 
     out = []
     for d in destinations:
@@ -69,6 +71,7 @@ def list_destinations(
                 price_usd=float(d.price_usd),
                 next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
                 is_owned=d.id in owned_ids,
+                is_watching=d.id in watched_ids,
                 season_start_month=d.season_start_month,
                 season_end_month=d.season_end_month,
                 safety_advisory=d.safety_advisory,
@@ -125,6 +128,7 @@ def get_destination(
 
     is_owned = user_owns_destination(db, user, destination_id)
     previously_owned = False if is_owned else user_previously_purchased(db, user, destination_id)
+    is_watching = bool(watched_destination_ids(db, user, [destination_id]))
 
     texts = translate_one_entity_multi_type(
         db,
@@ -198,6 +202,7 @@ def get_destination(
         last_verified_at=d.last_verified_at,
         price_usd=float(d.price_usd),
         is_owned=is_owned,
+        is_watching=is_watching,
         previously_owned=previously_owned,
         next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
         mechanism_config=d.mechanism_config,

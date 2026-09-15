@@ -23,6 +23,7 @@ export default function Account() {
   const { user, refreshMe } = useAuth();
   const [purchases, setPurchases] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [watchlist, setWatchlist] = useState([]);
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -40,8 +41,14 @@ export default function Account() {
     api.get("/api/me/purchases").then((res) => setPurchases(res.data));
     loadSubscriptions();
     loadFiles();
+    api.get("/api/me/watchlist").then((res) => setWatchlist(res.data));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const unwatch = async (destinationId) => {
+    await api.delete(`/api/watchlist/${destinationId}`);
+    setWatchlist((cur) => cur.filter((d) => d.id !== destinationId));
+  };
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -163,6 +170,30 @@ export default function Account() {
                 </span>
                 <button onClick={() => removeAlert(s.id)} className="text-xs text-red-600 underline">
                   remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Watching</h2>
+        {watchlist.length === 0 ? (
+          <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
+            Not watching any destinations yet - hit "Watch" on a destination page to keep an eye on it without
+            unlocking it.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1.5">
+            {watchlist.map((d) => (
+              <li key={d.id} className="flex items-center gap-2 text-sm">
+                <Link to={`/destinations/${d.id}`} className="underline text-stone-800 dark:text-stone-200">
+                  {d.name}
+                </Link>
+                <span className="text-xs text-stone-500 dark:text-stone-400">{d.country}</span>
+                <button onClick={() => unwatch(d.id)} className="text-xs text-red-600 underline">
+                  unwatch
                 </button>
               </li>
             ))}

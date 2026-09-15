@@ -45,6 +45,21 @@ export default function DestinationDetail() {
     api.get("/api/me/files").then((res) => setFiles(res.data));
   }, [user]);
 
+  const toggleWatch = async () => {
+    if (!user || !destination) return;
+    const nowWatching = !destination.is_watching;
+    setDestination((d) => ({ ...d, is_watching: nowWatching }));
+    try {
+      if (nowWatching) {
+        await api.post(`/api/watchlist/${id}`);
+      } else {
+        await api.delete(`/api/watchlist/${id}`);
+      }
+    } catch {
+      setDestination((d) => ({ ...d, is_watching: !nowWatching }));
+    }
+  };
+
   useEffect(() => {
     load();
     refreshFiles();
@@ -503,13 +518,23 @@ export default function DestinationDetail() {
               </p>
             )}
             <p className="mb-3 text-sm text-stone-800 dark:text-stone-300">{t("destination.risk_framing")}</p>
-            <button
-              onClick={handleUnlock}
-              disabled={!user}
-              className="rounded-full bg-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 disabled:opacity-50"
-            >
-              {t("destination.unlock_cta", { price: destination.price_usd })}
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleUnlock}
+                disabled={!user}
+                className="rounded-full bg-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 disabled:opacity-50"
+              >
+                {t("destination.unlock_cta", { price: destination.price_usd })}
+              </button>
+              {user && (
+                <button
+                  onClick={toggleWatch}
+                  className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+                >
+                  {destination.is_watching ? "✓ Watching" : "👁 Watch"}
+                </button>
+              )}
+            </div>
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           </>
         )}

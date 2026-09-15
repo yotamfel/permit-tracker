@@ -6,7 +6,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy.orm import Session
 
 import app.models  # noqa: F401 - registers every model so cross-model relationships resolve regardless of route import order
-from app.api import admin, auth, checkout, contact, destinations, feedback, subscriptions, user_files, webhooks
+from app.api import admin, auth, checkout, contact, destinations, feedback, subscriptions, user_files, watchlist, webhooks
 from app.core.config import get_settings
 from app.core.deps import get_db
 from app.core.monitoring import init_sentry
@@ -59,6 +59,7 @@ app.include_router(contact.router)
 app.include_router(admin.router)
 app.include_router(feedback.router)
 app.include_router(user_files.router)
+app.include_router(watchlist.router)
 
 
 @app.get("/api/health")
