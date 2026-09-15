@@ -15,6 +15,8 @@ import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Methodology from "./pages/Methodology";
+import Guides from "./pages/Guides";
+import GuideDetail from "./pages/GuideDetail";
 import NotFound from "./pages/NotFound";
 import OnboardingGuide from "./components/OnboardingGuide";
 import CookieConsent from "./components/CookieConsent";
@@ -50,6 +52,8 @@ export default function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/methodology" element={<Methodology />} />
+          <Route path="/guides" element={<Guides />} />
+          <Route path="/guides/:slug" element={<GuideDetail />} />
           <Route
             path="/admin"
             element={

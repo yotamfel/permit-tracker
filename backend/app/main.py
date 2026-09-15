@@ -75,7 +75,29 @@ def health() -> dict:
 def sitemap(db: Session = Depends(get_db)) -> Response:
     settings = get_settings()
     base = settings.frontend_url.rstrip("/")
-    urls = [f"{base}{p}" for p in ["/", "/catalog", "/signup", "/contact", "/terms", "/privacy", "/methodology"]]
+    # Keep in sync with frontend/src/data/guides.js - no shared source since
+    # guide content lives entirely in the frontend, matching /methodology.
+    guide_slugs = [
+        "how-permit-lotteries-work",
+        "operator-quotas-explained",
+        "avoid-losing-your-permit-deposit",
+        "lottery-vs-fcfs-vs-fixed-date",
+        "travel-insurance-for-remote-permits",
+    ]
+    urls = [
+        f"{base}{p}"
+        for p in [
+            "/",
+            "/catalog",
+            "/signup",
+            "/contact",
+            "/terms",
+            "/privacy",
+            "/methodology",
+            "/guides",
+            *[f"/guides/{slug}" for slug in guide_slugs],
+        ]
+    ]
     published_ids = db.query(Destination.id).filter(Destination.is_published.is_(True)).all()
     urls += [f"{base}/destinations/{d_id}" for (d_id,) in published_ids]
     body = "".join(f"<url><loc>{u}</loc></url>" for u in urls)

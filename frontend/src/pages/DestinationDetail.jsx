@@ -7,6 +7,7 @@ import { useAuth } from "../lib/AuthContext";
 import { getMechanismStats, NO_RELEASE_DATE_TYPES } from "../lib/mechanismConfig";
 import CompetitivenessNote from "../components/CompetitivenessNote";
 import SeoHead from "../components/SeoHead";
+import { guidesForMechanismType } from "../data/guides";
 
 // Same set as NO_RELEASE_DATE_TYPES - these mechanisms also need a travel_date
 // from the user before an alert can be computed (see app/services/alerts.py).
@@ -192,6 +193,7 @@ export default function DestinationDetail() {
 
   const purchaseStatus = searchParams.get("purchase");
   const needsTravelDate = TRAVEL_DATE_REQUIRED.has(destination.mechanism_type);
+  const relatedGuides = guidesForMechanismType(destination.mechanism_type);
   const seoDescription =
     destination.description ||
     `Everything you need to prepare for ${destination.name} (${destination.country}) - application checklist, key dates, and alerts before the window opens.`;
@@ -370,6 +372,19 @@ export default function DestinationDetail() {
             <div className="absolute inset-0 flex items-center justify-center bg-stone-50/70 dark:bg-stone-900/70">
               <span className="text-xs text-stone-500 dark:text-stone-400">{t("destination.mechanism_locked")}</span>
             </div>
+          </div>
+        )}
+        {relatedGuides.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            {relatedGuides.map((g) => (
+              <Link
+                key={g.slug}
+                to={`/guides/${g.slug}`}
+                className="text-amber-700 underline hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300"
+              >
+                {g.title} →
+              </Link>
+            ))}
           </div>
         )}
       </section>
