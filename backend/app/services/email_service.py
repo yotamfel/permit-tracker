@@ -7,14 +7,53 @@ from app.core.config import get_settings
 settings = get_settings()
 resend.api_key = settings.email_provider_api_key
 
+# Bare "from": settings.email_from has no display name, so most mail clients
+# fall back to showing the address's local-part (e.g. "alerts") as the
+# sender name instead of the brand.
+_FROM = f"SlotScout <{settings.email_from}>"
+
+_FONT = "-apple-system,Segoe UI,Helvetica,Arial,sans-serif"
+_TEXT_STYLE = f"margin:0 0 16px;font-size:15px;line-height:1.5;color:#1c1917;font-family:{_FONT}"
+_MUTED_STYLE = f"margin:0;font-size:12px;color:#a8a29e;font-family:{_FONT}"
+
+
+def _wrap_email(inner_html: str) -> str:
+    """Shared branded shell (dark header + white card) every outgoing email
+    renders inside - table-based layout for compatibility with email clients
+    that don't support flexbox/grid (notably Outlook)."""
+    return f"""
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f4;padding:32px 16px">
+      <tr><td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;font-family:{_FONT}">
+          <tr><td style="background:#292524;padding:20px 24px">
+            <span style="font-size:18px;font-weight:700;color:#ffffff">\U0001F9ED SlotScout</span>
+          </td></tr>
+          <tr><td style="padding:28px 24px 24px">
+            {inner_html}
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+    """
+
+
+def _button(url: str, label: str) -> str:
+    return f"""
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px">
+      <tr><td style="border-radius:999px;background:#d97706">
+        <a href="{url}" style="display:inline-block;padding:10px 20px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;font-family:{_FONT}">{label}</a>
+      </td></tr>
+    </table>
+    """
+
 
 def send_alert_email(to_email: str, destination_name: str, body_html: str) -> None:
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": [to_email],
             "subject": f"SlotScout alert: {destination_name}",
-            "html": body_html,
+            "html": _wrap_email(body_html),
         }
     )
 
@@ -28,14 +67,14 @@ def send_contact_notification(
     safe_from_email = html.escape(from_email)
     safe_message = html.escape(message)
     urgent_line = (
-        f"<p><strong>URGENT - sent from the {html.escape(destination_name)} page.</strong></p>"
+        f"<p style='{_TEXT_STYLE}'><strong>URGENT - sent from the {html.escape(destination_name)} page.</strong></p>"
         if destination_name
         else ""
     )
     body = (
         f"{urgent_line}"
-        f"<p><strong>{safe_name}</strong> ({safe_from_email}) sent a message via the contact form:</p>"
-        f"<p>{safe_message}</p>"
+        f"<p style='{_TEXT_STYLE}'><strong>{safe_name}</strong> ({safe_from_email}) sent a message via the contact form:</p>"
+        f"<p style='{_TEXT_STYLE}'>{safe_message}</p>"
     )
     subject = (
         f"[URGENT - {destination_name}] SlotScout contact form: {name}"
@@ -44,26 +83,27 @@ def send_contact_notification(
     )
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": admin_emails,
             "subject": subject,
-            "html": body,
+            "html": _wrap_email(body),
         }
     )
 
 
 def send_password_reset_email(to_email: str, reset_url: str) -> None:
     body = (
-        f"<p>We received a request to reset your SlotScout password.</p>"
-        f'<p><a href="{reset_url}">Click here to choose a new password</a>. This link expires in 1 hour.</p>'
-        f"<p style='color:#777;font-size:12px'>If you didn't request this, you can safely ignore this email.</p>"
+        f"<p style='{_TEXT_STYLE}'>We received a request to reset your SlotScout password.</p>"
+        f"{_button(reset_url, 'Choose a new password')}"
+        f"<p style='{_MUTED_STYLE}'>This link expires in 1 hour. If you didn't request this, you can safely "
+        f"ignore this email.</p>"
     )
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": [to_email],
             "subject": "Reset your SlotScout password",
-            "html": body,
+            "html": _wrap_email(body),
         }
     )
 
@@ -72,17 +112,19 @@ def send_post_release_feedback_email(to_email: str, destination_name: str, respo
     yes_url = f"{respond_url_base}?succeeded=true"
     no_url = f"{respond_url_base}?succeeded=false"
     body = (
-        f"<p>The application window for <strong>{destination_name}</strong> opened a day ago - did you get in?</p>"
-        f'<p><a href="{yes_url}">Yes, I got it</a> &nbsp;|&nbsp; <a href="{no_url}">No, I missed it</a></p>'
-        f"<p style='color:#777;font-size:12px'>Clicking either link takes you to a page with one more quick "
-        f"question and an optional comment box.</p>"
+        f"<p style='{_TEXT_STYLE}'>The application window for <strong>{destination_name}</strong> opened a day "
+        f"ago - did you get in?</p>"
+        f'<p style="margin:0 0 16px"><a href="{yes_url}" style="color:#d97706;font-weight:600;text-decoration:none">Yes, I got it</a>'
+        f'&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{no_url}" style="color:#78716c;font-weight:600;text-decoration:none">No, I missed it</a></p>'
+        f"<p style='{_MUTED_STYLE}'>Clicking either link takes you to a page with one more quick question and "
+        f"an optional comment box.</p>"
     )
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": [to_email],
             "subject": f"How did it go with {destination_name}?",
-            "html": body,
+            "html": _wrap_email(body),
         }
     )
 
@@ -91,20 +133,20 @@ def send_source_fetch_failure_email(admin_emails: list[str], destination_name: s
     if not admin_emails:
         return
     body = (
-        f"<p>The weekly monitoring job couldn't fetch the source page for "
+        f"<p style='{_TEXT_STYLE}'>The weekly monitoring job couldn't fetch the source page for "
         f"<strong>{destination_name}</strong> - it may be blocking automated requests, or the URL may have "
         f"changed or broken.</p>"
-        f"<p><strong>Source:</strong> {source_url}<br/><strong>Error:</strong> {error}</p>"
-        f"<p>Automated change-detection won't work for this destination until this is resolved. It now shows "
-        f"under \"Needs manual check\" in the admin Monitoring diffs tab - worth checking it by hand "
-        f"periodically, or fixing/replacing the source URL if it's simply wrong.</p>"
+        f"<p style='{_TEXT_STYLE}'><strong>Source:</strong> {source_url}<br/><strong>Error:</strong> {error}</p>"
+        f"<p style='{_TEXT_STYLE}'>Automated change-detection won't work for this destination until this is "
+        f'resolved. It now shows under "Needs manual check" in the admin Monitoring diffs tab - worth checking '
+        f"it by hand periodically, or fixing/replacing the source URL if it's simply wrong.</p>"
     )
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": admin_emails,
             "subject": f"SlotScout: can't monitor {destination_name} automatically",
-            "html": body,
+            "html": _wrap_email(body),
         }
     )
 
@@ -114,37 +156,40 @@ def send_follow_up_reminder_email(admin_emails: list[str], items: list[dict]) ->
     if not admin_emails or not items:
         return
     rows = "".join(
-        f"<li><strong>{i['destination_name']}</strong> - {i['title']}"
-        + (f"<br/><span style='color:#666;font-size:13px'>{i['notes']}</span>" if i.get("notes") else "")
+        f"<li style='margin-bottom:8px'><strong>{i['destination_name']}</strong> - {i['title']}"
+        + (f"<br/><span style='color:#78716c;font-size:13px'>{i['notes']}</span>" if i.get("notes") else "")
         + "</li>"
         for i in items
     )
-    body = f"<p>You scheduled these for today - worth checking:</p><ul>{rows}</ul>"
+    body = (
+        f"<p style='{_TEXT_STYLE}'>You scheduled these for today - worth checking:</p>"
+        f"<ul style='margin:0 0 16px;padding-left:20px;font-size:15px;line-height:1.5;color:#1c1917;font-family:{_FONT}'>{rows}</ul>"
+    )
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": admin_emails,
             "subject": f"SlotScout: {len(items)} follow-up{'s' if len(items) != 1 else ''} due today",
-            "html": body,
+            "html": _wrap_email(body),
         }
     )
 
 
 def send_destination_updated_email(to_email: str, destination_name: str, diff_summary: str) -> None:
     body = (
-        f"<p>Something changed on <strong>{destination_name}</strong>, a destination you've unlocked - "
-        f"here's what's new:</p>"
-        f"<pre style='white-space:pre-wrap;font-size:13px;background:#f5f5f5;padding:8px;border-radius:6px'>"
-        f"{html.escape(diff_summary)}</pre>"
-        f"<p style='color:#777;font-size:12px'>This is a one-off update notice, separate from your regular "
-        f"pre-release alert.</p>"
+        f"<p style='{_TEXT_STYLE}'>Something changed on <strong>{destination_name}</strong>, a destination "
+        f"you've unlocked - here's what's new:</p>"
+        f"<pre style='white-space:pre-wrap;font-size:13px;background:#f5f5f4;padding:12px;border-radius:8px;"
+        f"font-family:{_FONT};color:#1c1917;margin:0 0 16px'>{html.escape(diff_summary)}</pre>"
+        f"<p style='{_MUTED_STYLE}'>This is a one-off update notice, separate from your regular pre-release "
+        f"alert.</p>"
     )
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": [to_email],
             "subject": f"SlotScout: {destination_name} was updated",
-            "html": body,
+            "html": _wrap_email(body),
         }
     )
 
@@ -152,46 +197,39 @@ def send_destination_updated_email(to_email: str, destination_name: str, diff_su
 def send_purchase_confirmation_email(
     to_email: str,
     destination_name: str,
-    amount_usd: float,
     checklist_url: str,
     days_remaining: int,
-    application_url: str | None = None,
-    operators: list[dict] | None = None,
     referral_code: str | None = None,
 ) -> None:
-    parts = [
-        f"<p>Hey! Your <strong>{destination_name}</strong> checklist is unlocked - thanks for the ${amount_usd:.2f}.</p>",
-        f'<p><a href="{checklist_url}">Head over to your full prep checklist</a>.</p>',
-        f"<p>Your access is open for the next {days_remaining} days.</p>",
-    ]
-    if application_url:
-        parts.append(
-            f"<p>When you're ready, here's the official application site: "
-            f'<a href="{application_url}">{application_url}</a></p>'
-        )
-    elif operators:
-        op_list = "".join(
-            f"<li>{o['name']}" + (f' - <a href="{o["url"]}">{o["url"]}</a>' if o.get("url") else "") + "</li>"
-            for o in operators
-        )
-        parts.append(
-            f"<p>There's no single official booking site for this one - book through one of these operators:</p>"
-            f"<ul>{op_list}</ul>"
-        )
-    if referral_code:
-        parts.append(
-            f"<p>Traveling with friends? Give them this code for $3.99 instead of $6.99 on any destination "
-            f"(good for up to 3 uses): <strong>{referral_code}</strong></p>"
-        )
-    parts.append(
-        "<p style='color:#777;font-size:12px'>Questions? Just reply to this email or use the contact form on the site.</p>"
+    referral_block = (
+        f"""
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:12px">
+          <tr><td style="padding:16px 20px;font-family:{_FONT};font-size:14px;color:#78350f">
+            Traveling with friends? Give them this code for <strong>$3.99</strong> instead of $6.99 on any
+            destination (good for up to 3 uses):
+            <div style="margin-top:8px;font-size:18px;font-weight:700;letter-spacing:1px;color:#92400e">{referral_code}</div>
+          </td></tr>
+        </table>
+        """
+        if referral_code
+        else ""
+    )
+    body = (
+        f"<p style='{_TEXT_STYLE}'>Hey! Your <strong>{destination_name}</strong> checklist is unlocked and ready "
+        f"to go.</p>"
+        f"{_button(checklist_url, 'View your checklist')}"
+        f"<p style='margin:0;font-size:14px;color:#57534e;font-family:{_FONT}'>Your access is open for the next "
+        f"<strong>{days_remaining} days</strong>.</p>"
+        f"{referral_block}"
+        f"<p style='{_MUTED_STYLE};margin-top:16px'>Questions? Just reply to this email or use the contact form "
+        f"on the site.</p>"
     )
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": [to_email],
             "subject": f"You're all set for {destination_name}",
-            "html": "".join(parts),
+            "html": _wrap_email(body),
         }
     )
 
@@ -201,16 +239,16 @@ def send_contact_reply(to_email: str, to_name: str, original_message: str, reply
     safe_reply_message = html.escape(reply_message)
     safe_original_message = html.escape(original_message)
     body = (
-        f"<p>Hi {safe_to_name},</p>"
-        f"<p>{safe_reply_message}</p>"
-        f"<hr/>"
-        f"<p style='color:#777;font-size:12px'>Your original message: {safe_original_message}</p>"
+        f"<p style='{_TEXT_STYLE}'>Hi {safe_to_name},</p>"
+        f"<p style='{_TEXT_STYLE}'>{safe_reply_message}</p>"
+        f"<hr style='border:none;border-top:1px solid #e7e5e4;margin:0 0 16px'/>"
+        f"<p style='{_MUTED_STYLE}'>Your original message: {safe_original_message}</p>"
     )
     resend.Emails.send(
         {
-            "from": settings.email_from,
+            "from": _FROM,
             "to": [to_email],
             "subject": "Re: your message to SlotScout",
-            "html": body,
+            "html": _wrap_email(body),
         }
     )

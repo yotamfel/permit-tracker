@@ -10,7 +10,6 @@ from app.core.config import get_settings
 from app.core.deps import get_db
 from app.models.alert_subscription import AlertSubscription
 from app.models.destination import Destination
-from app.models.destination_operator import DestinationOperator
 from app.models.enums import PurchaseStatus
 from app.models.purchase import Purchase
 from app.models.user import User
@@ -122,24 +121,11 @@ def _send_purchase_confirmation(db: Session, buyer: User, purchase: Purchase) ->
     )
     days_remaining = max((access_until - datetime.now(timezone.utc)).days, 0)
 
-    operators = None
-    if not destination.application_url:
-        operators = [
-            {"name": o.name, "url": o.url}
-            for o in db.query(DestinationOperator)
-            .filter(DestinationOperator.destination_id == destination.id)
-            .order_by(DestinationOperator.order_index)
-            .all()
-        ]
-
     send_purchase_confirmation_email(
         buyer.email,
         destination.name,
-        float(purchase.amount_usd),
         f"{settings.frontend_url}/destinations/{destination.id}",
         days_remaining,
-        application_url=destination.application_url,
-        operators=operators,
         referral_code=buyer.referral_code,
     )
 
