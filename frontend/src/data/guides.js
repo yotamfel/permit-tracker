@@ -26,20 +26,26 @@ export const GUIDES = [
       {
         heading: "Group applications",
         paragraphs: [
-          "Many permit lotteries let you apply as a group under one lead applicant, and the whole group wins or loses together. This matters two ways: if you're joining someone else's application, your odds are whatever the group's odds are, not your own separate entry. And if you're the lead applicant, some systems weight larger groups differently (occasionally worse odds, since a big group takes more of a limited quota) - check the specific rules rather than assuming.",
+          "Many permit lotteries let you apply as a group under one lead applicant, and the whole group wins or loses together. If you're joining someone else's application, your odds are whatever the group's odds are, not a separate entry of your own. Whether group size itself affects your odds varies by system - some weight larger groups differently, but plenty of lotteries draw applications at random with no group-size adjustment at all. Don't assume either way; the specific rules for that lottery will say.",
         ],
       },
       {
         heading: "What actually improves your odds",
         paragraphs: [
-          "Since the draw itself is random, the only real lever you control is what you apply for. Off-peak dates, less popular routes or entry points, and smaller party sizes are typically less contested than the obvious peak-season, headline options - applying for those can mean meaningfully better odds for a trip that's still very much worth taking.",
+          "Since the draw itself is random, the only real lever you control is what you apply for. Off-peak dates and less popular routes or entry points are typically far less contested than the obvious peak-season, headline options - sometimes dramatically so. A well-known example: the lottery for The Wave (Coyote Buttes North, USA) runs at roughly 2-3% odds in peak spring and fall months, but odds rise substantially in the off-season - the exact same permit, just a much better bet outside peak demand.",
           "Listing multiple acceptable date ranges, where the system allows it, also helps - you're effectively entering several smaller draws instead of one big one for a single popular date.",
         ],
       },
       {
         heading: "If you don't get in",
         paragraphs: [
-          "A single lost draw isn't necessarily the end of the plan. Some systems run a second-chance or waitlist draw for slots that unclaimed winners forfeit, and applying again next season is always an option since the draw has no memory of past losses working against you.",
+          "A single lost draw isn't necessarily the end of the plan. Many systems run a separate, smaller \"second-chance\" or daily lottery for slots that unclaimed winners forfeit or that weren't allocated in the main draw - both Half Dome (Yosemite) and The Wave run exactly this kind of daily backup lottery alongside their main seasonal one. Applying again next season is always an option too, since the draw has no memory of past losses working against you.",
+        ],
+      },
+      {
+        heading: "In practice: how a real lottery runs",
+        paragraphs: [
+          "Yosemite's Half Dome permit lottery is a useful concrete example of the whole cycle: the preseason application window runs through March, results come out in mid-April, and winners get a short window of roughly two weeks to accept and pay before the permit is released. Applicants who don't win the preseason lottery - or who decide to go later - can also try the separate daily lottery, which opens a couple of days ahead of each hiking date for whatever capacity remains.",
         ],
       },
     ],
@@ -60,7 +66,8 @@ export const GUIDES = [
       {
         heading: "How the quota gets divided",
         paragraphs: [
-          "Operators typically apply for or bid on a slice of the annual quota ahead of each season, and the split can change year to year as licenses are renewed, added, or revoked. That's part of why the specific list of legitimate operators for a destination is worth rechecking each season rather than assuming last year's list still holds.",
+          "The details vary a lot by destination, but the general pattern is that licensed operators coordinate through a shared booking system or governing body rather than each just claiming spots independently - and that coordination is what actually enforces the cap. A well-documented real example is Antarctica: member operators of IAATO (the industry's own association, working within the Antarctic Treaty System) schedule every landing site visit for the entire season into one shared database, with per-site visitor caps enforced across all operators at once, precisely to prevent any single site from being overwhelmed regardless of how many different companies are running trips there.",
+          "Licenses, allocations, and even which sites are open at all can also be revised between seasons as guidelines are updated - part of why the specific list of legitimate operators and what they're permitted to do is worth rechecking each season rather than assuming last year's list still holds.",
         ],
       },
       {
@@ -88,7 +95,7 @@ export const GUIDES = [
       {
         heading: "Why permit deposits are usually non-refundable",
         paragraphs: [
-          "Once an authority allocates you a permit, it's typically counted against that season's total quota - meaning your spot may not simply pass to someone else if you cancel, especially close to the date. That's the main reason most permit fees, once paid, are treated as final rather than a normal refundable reservation.",
+          "Once an authority allocates you a permit, it's typically counted against that season's total quota - meaning your spot may not simply pass to someone else if you cancel, especially close to the date. That's the main reason most permit fees, once paid, are treated as final rather than a normal refundable reservation. This isn't a niche policy either: non-refundable permit or application fees, usually in the modest $6-$20 range for entry-level cases, are standard practice at Yosemite (Half Dome), Sequoia & Kings Canyon, Olympic, and Glacier National Parks, among many others.",
         ],
       },
       {
@@ -100,7 +107,7 @@ export const GUIDES = [
       {
         heading: "What you can usually do if plans change",
         paragraphs: [
-          "Some (not all) systems allow rebooking an unused permit to a future date or season, sometimes for a fee, and occasionally allow transferring a named permit to a different person. None of this is universal - it depends entirely on the specific authority's rules, so it's worth checking the exact terms before assuming either option is available to you.",
+          "Free date changes are the exception, not the rule. Most systems that do offer any flexibility work by cancelling your existing reservation and having you pay again for a new date, rather than transferring the original payment - that's the standard approach at parks like Glacier and Olympic. Some go further and rule it out explicitly: several U.S. Forest Service permit systems state outright that fees are non-transferable with no rain checks for weather, illness, or any other change of plans. None of this is universal, so always check the exact terms for the specific permit before assuming any flexibility exists.",
         ],
       },
       {
@@ -148,6 +155,12 @@ export const GUIDES = [
           "The issuing authority's own official page for the permit will state this directly, usually under a heading like \"how to apply\" or \"reservation system.\" Each destination page on SlotScout also tags the mechanism type directly, precisely so you don't have to dig through an official site to figure out which strategy applies.",
         ],
       },
+      {
+        heading: "In practice: the same park can run all three at once",
+        paragraphs: [
+          "Yosemite's wilderness permit system is a good real-world illustration of why this distinction matters: roughly 60% of permits for a given trailhead are released months ahead through a lottery, while the remaining permits are held back and released on a rolling first-come-first-served basis a set number of days before each date. Two people hiking the exact same trail on the exact same day can be going through completely different processes - one who planned early and won a lottery slot, one who booked on a rolling window a few days out - and each needed a different strategy to get there.",
+        ],
+      },
     ],
   },
   {
@@ -160,7 +173,7 @@ export const GUIDES = [
       {
         heading: "Why standard travel insurance often isn't enough",
         paragraphs: [
-          "Most general travel insurance policies are written for ordinary trip risks - lost luggage, flight delays, routine medical care - and explicitly exclude \"hazardous activities\" or trekking above a stated altitude, commonly somewhere in the 3,500-4,500m range depending on the insurer. A policy that would cover you perfectly well for a city trip can be worthless for the exact activity a remote permit is for.",
+          "Most general travel insurance policies are written for ordinary trip risks - lost luggage, flight delays, routine medical care - and explicitly exclude \"hazardous activities\" or trekking above a stated altitude. Standard and mid-tier policies commonly cut off somewhere in the 3,000-5,000m range depending on the insurer, which already excludes plenty of popular trekking routes - dedicated high-altitude or mountaineering tiers exist specifically to extend that ceiling, sometimes as high as 6,000-8,000m, but usually cost more and have to be selected deliberately rather than assumed. A policy that covers you perfectly well for a city trip can be worthless for the exact activity a remote permit is for.",
         ],
       },
       {
