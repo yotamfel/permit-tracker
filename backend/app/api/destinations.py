@@ -389,15 +389,12 @@ def get_checklist_pdf(
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Unlock this destination first")
 
     checklist = get_checklist(destination_id, db, locale, user)
-    texts = translate_one_entity_multi_type(
-        db, ["destination.name", "destination.mechanism_explanation"], d.id, locale
-    )
+    texts = translate_one_entity_multi_type(db, ["destination.name"], d.id, locale)
     name = texts.get("destination.name", d.name)
 
     pdf_bytes = build_checklist_pdf(
         name=name,
         country=d.country,
-        mechanism_explanation=texts.get("destination.mechanism_explanation"),
         next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
         items=checklist.items,
     )
