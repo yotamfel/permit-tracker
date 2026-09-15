@@ -1,16 +1,25 @@
 import logging
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.deps import get_db
+from app.models.alert_subscription import AlertSubscription
+from app.models.destination import Destination
+from app.models.destination_operator import DestinationOperator
 from app.models.enums import PurchaseStatus
 from app.models.purchase import Purchase
 from app.models.user import User
+from app.services.email_service import send_purchase_confirmation_email
 from app.services.paddle_service import verify_webhook_signature
+from app.services.purchase_cycle import purchase_active_until
 from app.services.referral import ensure_referral_code
+
+settings = get_settings()
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 logger = logging.getLogger(__name__)
@@ -89,8 +98,50 @@ def _handle_transaction_completed(event: dict, db: Session) -> dict:
     buyer = db.get(User, uuid.UUID(user_id))
     if buyer is not None:
         ensure_referral_code(db, buyer)
+        try:
+            _send_purchase_confirmation(db, buyer, pending)
+        except Exception:
+            logger.exception("Failed to send purchase confirmation email for purchase %s", pending.id)
 
     return {"status": "completed"}
+
+
+def _send_purchase_confirmation(db: Session, buyer: User, purchase: Purchase) -> None:
+    destination = db.get(Destination, purchase.destination_id)
+    if destination is None:
+        return
+
+    subscription = (
+        db.query(AlertSubscription)
+        .filter(AlertSubscription.user_id == buyer.id, AlertSubscription.destination_id == destination.id)
+        .first()
+    )
+    travel_date = subscription.travel_date if subscription else None
+    access_until = purchase_active_until(
+        destination, purchase.created_at, travel_date, admin_override_until=purchase.admin_override_until
+    )
+    days_remaining = max((access_until - datetime.now(timezone.utc)).days, 0)
+
+    operators = None
+    if not destination.application_url:
+        operators = [
+            {"name": o.name, "url": o.url}
+            for o in db.query(DestinationOperator)
+            .filter(DestinationOperator.destination_id == destination.id)
+            .order_by(DestinationOperator.order_index)
+            .all()
+        ]
+
+    send_purchase_confirmation_email(
+        buyer.email,
+        destination.name,
+        float(purchase.amount_usd),
+        f"{settings.frontend_url}/destinations/{destination.id}",
+        days_remaining,
+        application_url=destination.application_url,
+        operators=operators,
+        referral_code=buyer.referral_code,
+    )
 
 
 def _handle_payment_failed(event: dict, db: Session) -> dict:

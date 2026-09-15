@@ -149,6 +149,53 @@ def send_destination_updated_email(to_email: str, destination_name: str, diff_su
     )
 
 
+def send_purchase_confirmation_email(
+    to_email: str,
+    destination_name: str,
+    amount_usd: float,
+    checklist_url: str,
+    days_remaining: int,
+    application_url: str | None = None,
+    operators: list[dict] | None = None,
+    referral_code: str | None = None,
+) -> None:
+    parts = [
+        f"<p>Hey! Your <strong>{destination_name}</strong> checklist is unlocked - thanks for the ${amount_usd:.2f}.</p>",
+        f'<p><a href="{checklist_url}">Head over to your full prep checklist</a>.</p>',
+        f"<p>Your access is open for the next {days_remaining} days.</p>",
+    ]
+    if application_url:
+        parts.append(
+            f"<p>When you're ready, here's the official application site: "
+            f'<a href="{application_url}">{application_url}</a></p>'
+        )
+    elif operators:
+        op_list = "".join(
+            f"<li>{o['name']}" + (f' - <a href="{o["url"]}">{o["url"]}</a>' if o.get("url") else "") + "</li>"
+            for o in operators
+        )
+        parts.append(
+            f"<p>There's no single official booking site for this one - book through one of these operators:</p>"
+            f"<ul>{op_list}</ul>"
+        )
+    if referral_code:
+        parts.append(
+            f"<p>Traveling with friends? Give them this code for $3.99 instead of $6.99 on any destination "
+            f"(good for up to 3 uses): <strong>{referral_code}</strong></p>"
+        )
+    parts.append(
+        "<p style='color:#777;font-size:12px'>Questions? Just reply to this email or use the contact form on the site.</p>"
+    )
+    resend.Emails.send(
+        {
+            "from": settings.email_from,
+            "to": [to_email],
+            "subject": f"You're all set for {destination_name}",
+            "html": "".join(parts),
+        }
+    )
+
+
 def send_contact_reply(to_email: str, to_name: str, original_message: str, reply_message: str) -> None:
     safe_to_name = html.escape(to_name)
     safe_reply_message = html.escape(reply_message)
