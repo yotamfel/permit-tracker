@@ -22,7 +22,6 @@ const ROWS = [
         ? `${MONTH_NAMES[d.season_start_month - 1]} - ${MONTH_NAMES[d.season_end_month - 1]}`
         : "-",
   },
-  { label: "Unlock price", render: (d) => `$${d.price_usd.toFixed(2)}` },
   { label: "Safety advisory", render: (d) => d.safety_advisory || "-" },
 ];
 
