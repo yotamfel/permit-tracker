@@ -5,6 +5,7 @@ import { useAuth } from "../lib/AuthContext";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 import CountryPicker from "../components/CountryPicker";
 import SeoHead from "../components/SeoHead";
+import { trackEvent } from "../lib/analytics";
 
 export default function Signup() {
   const { t } = useTranslation();
@@ -22,6 +23,7 @@ export default function Signup() {
     setError("");
     try {
       await signup(email, password, termsAccepted, country);
+      trackEvent("sign_up", { method: "email" });
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.detail || t("auth.error"));

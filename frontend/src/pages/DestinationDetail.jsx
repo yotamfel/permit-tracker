@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { trackEvent } from "../lib/analytics";
 import { useAuth } from "../lib/AuthContext";
 import { getMechanismStats, NO_RELEASE_DATE_TYPES } from "../lib/mechanismConfig";
 import CompetitivenessNote from "../components/CompetitivenessNote";
@@ -65,8 +66,33 @@ export default function DestinationDetail() {
     refreshFiles();
   }, [load, refreshFiles]);
 
+  useEffect(() => {
+    // Dedup on the Paddle transaction id so a page refresh (the "payment
+    // received - refresh in a few seconds" flow) doesn't double-count the
+    // same purchase in analytics.
+    if (searchParams.get("purchase") !== "success") return;
+    const txnId = searchParams.get("_ptxn");
+    const dedupKey = txnId ? `purchase_tracked_${txnId}` : null;
+    let alreadyTracked = false;
+    try {
+      alreadyTracked = dedupKey ? !!sessionStorage.getItem(dedupKey) : false;
+    } catch {
+      // sessionStorage inaccessible (private browsing, etc.) - fall through
+      // and track anyway rather than silently dropping the event.
+    }
+    if (alreadyTracked) return;
+    trackEvent("purchase", { destination_id: id });
+    try {
+      if (dedupKey) sessionStorage.setItem(dedupKey, "1");
+    } catch {
+      // Non-fatal - worst case a refresh double-counts this one purchase.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const handleUnlock = async () => {
     setError("");
+    trackEvent("unlock_click", { destination_id: id });
     try {
       const res = await api.post(`/api/checkout/${id}`);
       window.location.href = res.data.checkout_url;
