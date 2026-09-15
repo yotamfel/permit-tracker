@@ -463,8 +463,9 @@ export default function DestinationDetail() {
         <section className="mt-6 rounded-2xl border border-stone-200 p-5 dark:border-stone-800">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Book through one of these operators</h2>
           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-            There's no single official booking site for {destination.name} - these are the legitimate operators.
-            We don't favor any one of them.
+            There's no single official booking site for {destination.name} - these are a few legitimate,
+            verified operators, not a complete or exhaustive list. Other licensed operators may exist too.
+            We have no partnership or affiliation with any operator listed here, and don't favor any one of them.
           </p>
           <ul className="mt-3 space-y-2">
             {destination.operators.map((op, i) => (
