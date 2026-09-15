@@ -67,7 +67,7 @@ export default function OnboardingGuide() {
               <span
                 key={i}
                 className={`h-1.5 w-1.5 rounded-full ${
-                  i === step ? "bg-amber-600" : "bg-stone-200 dark:bg-stone-700"
+                  i === step ? "bg-amber-700" : "bg-stone-200 dark:bg-stone-700"
                 }`}
               />
             ))}
@@ -91,7 +91,7 @@ export default function OnboardingGuide() {
                 </button>
                 <button
                   onClick={() => setStep((s) => s + 1)}
-                  className="rounded-full bg-amber-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
+                  className="rounded-full bg-amber-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-amber-800"
                 >
                   Next
                 </button>
@@ -99,7 +99,7 @@ export default function OnboardingGuide() {
             ) : (
               <button
                 onClick={handleClose}
-                className="rounded-full bg-amber-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
+                className="rounded-full bg-amber-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-amber-800"
               >
                 Get started
               </button>
@@ -172,7 +172,7 @@ function LockedMockup() {
         <p>☐ Daily lottery entry (pre-season)</p>
       </div>
       <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-stone-900/50">
-        <span className="rounded-full bg-amber-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm">
+        <span className="rounded-full bg-amber-700 px-4 py-1.5 text-xs font-semibold text-white shadow-sm">
           Unlock for $6.99
         </span>
       </div>
@@ -191,7 +191,7 @@ function ChecklistMockup() {
         <div key={item.text} className="flex items-center gap-2 py-1">
           <span
             className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] ${
-              item.done ? "border-amber-600 bg-amber-600 text-white" : "border-stone-300 dark:border-stone-600"
+              item.done ? "border-amber-600 bg-amber-700 text-white" : "border-stone-300 dark:border-stone-600"
             }`}
           >
             {item.done ? "✓" : ""}
@@ -224,7 +224,7 @@ function AlertMockup() {
       <div className="mt-2 rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-[10px] text-stone-600 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300">
         1 week before ▾
       </div>
-      <div className="mt-2 inline-block rounded-full bg-amber-600 px-3 py-1 text-[10px] font-semibold text-white">
+      <div className="mt-2 inline-block rounded-full bg-amber-700 px-3 py-1 text-[10px] font-semibold text-white">
         Set alert
       </div>
     </MockCard>

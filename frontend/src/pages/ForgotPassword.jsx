@@ -42,7 +42,7 @@ export default function ForgotPassword() {
           <button
             type="submit"
             disabled={status === "sending"}
-            className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+            className="rounded-full bg-amber-700 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-800 disabled:opacity-50"
           >
             {status === "sending" ? "Sending..." : "Send reset link"}
           </button>

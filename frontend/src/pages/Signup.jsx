@@ -116,7 +116,7 @@ export default function Signup() {
         <button
           type="submit"
           disabled={!termsAccepted}
-          className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-amber-700 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {t("auth.submit_signup")}
         </button>

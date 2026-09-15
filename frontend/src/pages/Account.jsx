@@ -239,7 +239,7 @@ export default function Account() {
       <section className="mt-8">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">My files</h2>
-          <label className="cursor-pointer rounded-full bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+          <label className="cursor-pointer rounded-full bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800">
             {uploading ? "Uploading..." : "+ Upload file"}
             <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf" onChange={handleUpload} disabled={uploading} className="hidden" />
           </label>

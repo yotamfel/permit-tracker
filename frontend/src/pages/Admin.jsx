@@ -1113,7 +1113,7 @@ function InquiriesTab() {
                       )}
                       <button
                         onClick={() => setOpenReplyId(openReplyId === m.id ? null : m.id)}
-                        className="rounded bg-amber-600 px-2 py-1 text-xs text-white"
+                        className="rounded bg-amber-700 px-2 py-1 text-xs text-white"
                       >
                         {m.admin_reply ? "Reply again" : "Reply"}
                       </button>
@@ -1141,7 +1141,7 @@ function InquiriesTab() {
                           />
                           <button
                             onClick={() => sendReply(m.id)}
-                            className="rounded bg-amber-600 px-3 py-1.5 text-xs font-medium text-white"
+                            className="rounded bg-amber-700 px-3 py-1.5 text-xs font-medium text-white"
                           >
                             Send email reply
                           </button>

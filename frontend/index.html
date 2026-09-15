@@ -44,8 +44,9 @@
         } catch (e) {}
       })();
     </script>
-    <!-- hl=en forces English regardless of browser locale, to match the site's English-only launch -->
-    <script src="https://accounts.google.com/gsi/client?hl=en" async defer></script>
+    <!-- Google Identity Services script is loaded on demand by
+         GoogleSignInButton.jsx instead of globally here - it's ~97KB and
+         every page except Login/Signup was paying for it unused. -->
     <script src="https://cdn.paddle.com/paddle/v2/paddle.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

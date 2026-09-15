@@ -83,7 +83,7 @@ export default function Login() {
             Forgot password?
           </Link>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <button type="submit" className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700">
+          <button type="submit" className="rounded-full bg-amber-700 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-800">
             {t("auth.submit_login")}
           </button>
         </form>

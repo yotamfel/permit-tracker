@@ -11,7 +11,7 @@ export default function NotFound() {
         The page you're looking for doesn't exist or may have moved.
       </p>
       <div className="mt-6 flex gap-3">
-        <Link to="/" className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700">
+        <Link to="/" className="rounded-full bg-amber-700 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-800">
           Go home
         </Link>
         <Link

@@ -38,7 +38,7 @@ export default function App() {
     <div className="flex min-h-screen flex-col bg-stone-50 dark:bg-stone-950">
       <Header />
       <OnboardingGuide />
-      <div className="flex-1">
+      <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/catalog" element={<Browse />} />
@@ -72,7 +72,7 @@ export default function App() {
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </div>
+      </main>
       <Footer />
       <CookieConsent />
     </div>

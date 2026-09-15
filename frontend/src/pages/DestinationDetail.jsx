@@ -448,7 +448,7 @@ export default function DestinationDetail() {
             href={destination.application_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-block rounded-full bg-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-700"
+            className="inline-block rounded-full bg-amber-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-800"
           >
             Continue to the official application site ↗
           </a>
@@ -563,7 +563,7 @@ export default function DestinationDetail() {
               )}
               <button
                 type="submit"
-                className="rounded-full bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+                className="rounded-full bg-amber-700 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-800"
               >
                 {t("alert.submit")}
               </button>
@@ -587,7 +587,7 @@ export default function DestinationDetail() {
               <button
                 onClick={handleUnlock}
                 disabled={!user}
-                className="rounded-full bg-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 disabled:opacity-50"
+                className="rounded-full bg-amber-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-800 disabled:opacity-50"
               >
                 {t("destination.unlock_cta", { price: destination.price_usd })}
               </button>
@@ -668,7 +668,7 @@ function DestinationContactSection({ destinationId, destinationName, userEmail }
             <button
               type="submit"
               disabled={status === "sending"}
-              className="rounded-full bg-amber-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+              className="rounded-full bg-amber-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-800 disabled:opacity-50"
             >
               {status === "sending" ? "Sending..." : "Send"}
             </button>
