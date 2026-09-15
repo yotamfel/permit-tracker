@@ -22,7 +22,7 @@ const ROWS = [
         ? `${MONTH_NAMES[d.season_start_month - 1]} - ${MONTH_NAMES[d.season_end_month - 1]}`
         : "-",
   },
-  { label: "Safety advisory", render: (d) => d.safety_advisory || "-" },
+  { label: "Safety advisory", render: (d) => d.safety_advisory || "-", hasValue: (d) => Boolean(d.safety_advisory) },
 ];
 
 export default function Compare() {
@@ -85,7 +85,7 @@ export default function Compare() {
               </tr>
             </thead>
             <tbody>
-              {ROWS.map((row) => (
+              {ROWS.filter((row) => !row.hasValue || destinations.some(row.hasValue)).map((row) => (
                 <tr key={row.label}>
                   <td className="border-b border-stone-200 p-2 font-medium text-stone-600 dark:border-stone-800 dark:text-stone-400">
                     {row.label}

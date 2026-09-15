@@ -10,13 +10,17 @@ import SeoHead from "../components/SeoHead";
 
 export default function Login() {
   const { t, i18n } = useTranslation();
-  const { login } = useAuth();
+  const { user, loading: authLoading, login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [featured, setFeatured] = useState([]);
+
+  useEffect(() => {
+    if (!authLoading && user) navigate("/", { replace: true });
+  }, [authLoading, user, navigate]);
 
   useEffect(() => {
     api

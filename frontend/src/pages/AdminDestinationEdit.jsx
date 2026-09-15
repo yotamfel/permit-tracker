@@ -35,6 +35,7 @@ export default function AdminDestinationEdit() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [pendingRemove, setPendingRemove] = useState(null); // { kind, id }
 
   const load = useCallback(() => {
     api.get(`/admin/api/destinations/${id}`).then((res) =>
@@ -120,10 +121,7 @@ export default function AdminDestinationEdit() {
     load();
   };
 
-  const deleteChecklistItem = async (itemId) => {
-    await api.delete(`/admin/api/checklist-items/${itemId}`);
-    load();
-  };
+  const deleteChecklistItem = (itemId) => setPendingRemove({ kind: "checklist-item", id: itemId });
 
   const addChecklistItem = async (section, itemType, text) => {
     if (!text.trim()) return;
@@ -144,10 +142,7 @@ export default function AdminDestinationEdit() {
     load();
   };
 
-  const deleteSource = async (sourceId) => {
-    await api.delete(`/admin/api/sources/${sourceId}`);
-    load();
-  };
+  const deleteSource = (sourceId) => setPendingRemove({ kind: "source", id: sourceId });
 
   const addSource = async () => {
     await api.post("/admin/api/sources", { destination_id: id, order_index: sources.length, url: "", note: "" });
@@ -167,10 +162,7 @@ export default function AdminDestinationEdit() {
     load();
   };
 
-  const deleteAlternative = async (altId) => {
-    await api.delete(`/admin/api/alternatives/${altId}`);
-    load();
-  };
+  const deleteAlternative = (altId) => setPendingRemove({ kind: "alternative", id: altId });
 
   const addOperator = async () => {
     await api.post("/admin/api/operators", { destination_id: id, name: "", url: "", note: "", order_index: operators.length });
@@ -183,10 +175,7 @@ export default function AdminDestinationEdit() {
     load();
   };
 
-  const deleteOperator = async (opId) => {
-    await api.delete(`/admin/api/operators/${opId}`);
-    load();
-  };
+  const deleteOperator = (opId) => setPendingRemove({ kind: "operator", id: opId });
 
   const attachRequirement = async (generalRequirementId) => {
     await api.post("/admin/api/destination-requirements", {
@@ -219,8 +208,27 @@ export default function AdminDestinationEdit() {
     load();
   };
 
-  const detachRequirement = async (attachmentId) => {
-    await api.delete(`/admin/api/destination-requirements/${attachmentId}`);
+  const detachRequirement = (attachmentId) => setPendingRemove({ kind: "requirement", id: attachmentId });
+
+  const REMOVE_ENDPOINTS = {
+    "checklist-item": "checklist-items",
+    source: "sources",
+    alternative: "alternatives",
+    operator: "operators",
+    requirement: "destination-requirements",
+  };
+  const REMOVE_MESSAGES = {
+    "checklist-item": "Remove this checklist item? This cannot be undone.",
+    source: "Remove this source? This cannot be undone.",
+    alternative: "Remove this alternative destination? This cannot be undone.",
+    operator: "Remove this operator? This cannot be undone.",
+    requirement: "Detach this requirement from the destination? This cannot be undone.",
+  };
+
+  const confirmRemove = async () => {
+    const { kind, id: removeId } = pendingRemove;
+    setPendingRemove(null);
+    await api.delete(`/admin/api/${REMOVE_ENDPOINTS[kind]}/${removeId}`);
     load();
   };
 
@@ -338,7 +346,7 @@ export default function AdminDestinationEdit() {
                   value={s.url ?? ""}
                   onChange={(e) => updateSource(s.id, { url: e.target.value })}
                   placeholder="https://... (optional - not every source is a URL)"
-                  className="flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 dark:border-stone-800"
+                  className="min-w-0 flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 dark:border-stone-800"
                 />
                 <button onClick={() => deleteSource(s.id)} className="shrink-0 text-red-600 underline">
                   remove
@@ -556,7 +564,7 @@ export default function AdminDestinationEdit() {
             placeholder="Why it's a good alternative (optional)"
             value={newAltNote}
             onChange={(e) => setNewAltNote(e.target.value)}
-            className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
+            className="min-w-0 flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
           />
           <button onClick={addAlternative} className="rounded bg-stone-700 px-3 py-1 text-xs text-white">
             + add
@@ -589,7 +597,7 @@ export default function AdminDestinationEdit() {
                   value={op.name}
                   onChange={(e) => updateOperator(op.id, { name: e.target.value })}
                   placeholder="Operator name"
-                  className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
+                  className="min-w-0 flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
                 />
                 <button onClick={() => deleteOperator(op.id)} className="text-xs text-red-600 underline">
                   remove
@@ -606,13 +614,13 @@ export default function AdminDestinationEdit() {
                   value={op.phone ?? ""}
                   onChange={(e) => updateOperator(op.id, { phone: e.target.value })}
                   placeholder="Phone (optional - verified only)"
-                  className="flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+                  className="min-w-0 flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
                 />
                 <input
                   value={op.email ?? ""}
                   onChange={(e) => updateOperator(op.id, { email: e.target.value })}
                   placeholder="Email (optional - verified only)"
-                  className="flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
+                  className="min-w-0 flex-1 rounded border border-stone-200 bg-transparent px-2 py-1 text-xs text-stone-600 dark:border-stone-800 dark:text-stone-400"
                 />
               </div>
               <input
@@ -668,6 +676,13 @@ export default function AdminDestinationEdit() {
         message={discardWarning}
         onConfirm={discard}
         onCancel={() => setShowDiscardConfirm(false)}
+      />
+      <ConfirmDialog
+        open={!!pendingRemove}
+        message={pendingRemove && REMOVE_MESSAGES[pendingRemove.kind]}
+        confirmLabel="Remove"
+        onConfirm={confirmRemove}
+        onCancel={() => setPendingRemove(null)}
       />
     </div>
   );
@@ -818,7 +833,7 @@ function ChecklistGroup({ title, items, onUpdate, onDelete, onAdd }) {
               <input
                 value={item.text_key}
                 onChange={(e) => onUpdate(item.id, { text_key: e.target.value })}
-                className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
+                className="min-w-0 flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
               />
               <label className="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
                 <input
@@ -857,7 +872,7 @@ function ChecklistGroup({ title, items, onUpdate, onDelete, onAdd }) {
           placeholder="e.g. Valid passport (6+ months)"
           value={newItemText}
           onChange={(e) => setNewItemText(e.target.value)}
-          className="flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
+          className="min-w-0 flex-1 rounded border border-stone-300 bg-transparent px-2 py-1 dark:border-stone-700"
         />
         <button onClick={handleAdd} className="rounded bg-stone-700 px-3 py-1 text-xs text-white">
           + add

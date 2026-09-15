@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../lib/AuthContext";
@@ -9,7 +9,7 @@ import { trackEvent } from "../lib/analytics";
 
 export default function Signup() {
   const { t } = useTranslation();
-  const { signup } = useAuth();
+  const { user, loading: authLoading, signup } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,6 +17,10 @@ export default function Signup() {
   const [country, setCountry] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!authLoading && user) navigate("/", { replace: true });
+  }, [authLoading, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

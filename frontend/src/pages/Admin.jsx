@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -192,6 +192,8 @@ function ReportsTab() {
   const [reports, setReports] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [search, setSearch] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const latestRequestedType = useRef(null);
 
   useEffect(() => {
     api.get("/admin/api/reports/agent-types").then((res) => {
@@ -202,7 +204,14 @@ function ReportsTab() {
 
   const load = () => {
     if (!selectedType) return;
-    api.get("/admin/api/reports", { params: { agent_type: selectedType } }).then((res) => setReports(res.data));
+    const requestedType = selectedType;
+    latestRequestedType.current = requestedType;
+    api.get("/admin/api/reports", { params: { agent_type: requestedType } }).then((res) => {
+      // Ignore this response if the user has since switched to another agent
+      // type - otherwise a slower, stale request can overwrite newer data.
+      if (latestRequestedType.current !== requestedType) return;
+      setReports(res.data);
+    });
   };
 
   useEffect(() => {
@@ -210,7 +219,9 @@ function ReportsTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedType]);
 
-  const deleteReport = async (id) => {
+  const confirmDeleteReport = async () => {
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
     await api.delete(`/admin/api/reports/${id}`);
     load();
   };
@@ -304,7 +315,7 @@ function ReportsTab() {
                           <p className="mt-1 whitespace-pre-wrap">{r.recommendation}</p>
                         </div>
                       )}
-                      <button onClick={() => deleteReport(r.id)} className="text-xs text-red-600 underline">
+                      <button onClick={() => setPendingDeleteId(r.id)} className="text-xs text-red-600 underline">
                         Delete report
                       </button>
                     </div>
@@ -315,6 +326,12 @@ function ReportsTab() {
           </ul>
         </>
       )}
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        message="Delete this report? This cannot be undone."
+        onConfirm={confirmDeleteReport}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

@@ -20,7 +20,7 @@ function formatSize(bytes) {
 
 export default function Account() {
   const { t } = useTranslation();
-  const { user, refreshMe } = useAuth();
+  const { user, loading: authLoading, refreshMe } = useAuth();
   const [purchases, setPurchases] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
@@ -105,6 +105,7 @@ export default function Account() {
     setDeleteRequested(true);
   };
 
+  if (authLoading) return null;
   if (!user) return <div className="mx-auto max-w-3xl px-4 py-8">Log in to see your account.</div>;
 
   return (
