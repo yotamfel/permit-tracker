@@ -96,6 +96,12 @@ export default function Home() {
               text="Set an alert and we'll email you before the application window opens."
             />
           </div>
+          <p className="mt-8 text-sm text-stone-500 dark:text-stone-400">
+            Curious how permit lotteries, quotas, and deposits actually work?{" "}
+            <Link to="/guides" className="text-amber-700 underline hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300">
+              Read our guides →
+            </Link>
+          </p>
         </div>
       </section>
     </div>
