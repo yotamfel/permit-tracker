@@ -14,6 +14,7 @@ import Account from "./pages/Account";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import Methodology from "./pages/Methodology";
 import NotFound from "./pages/NotFound";
 import OnboardingGuide from "./components/OnboardingGuide";
 import CookieConsent from "./components/CookieConsent";
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/methodology" element={<Methodology />} />
           <Route
             path="/admin"
             element={

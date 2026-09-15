@@ -6,6 +6,9 @@ export default function Footer() {
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm text-stone-500 dark:text-stone-400">
         <span>© {new Date().getFullYear()} SlotScout</span>
         <nav className="flex gap-4">
+          <Link to="/methodology" className="hover:text-amber-700 dark:hover:text-amber-400">
+            How We Rate Competitiveness
+          </Link>
           <Link to="/terms" className="hover:text-amber-700 dark:hover:text-amber-400">
             Terms of Service
           </Link>

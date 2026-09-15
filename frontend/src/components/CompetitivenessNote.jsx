@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export const COMPETITIVENESS_INFO = {
   low: {
     label: "Low competitiveness",
@@ -28,6 +30,9 @@ export default function CompetitivenessNote({ level }) {
     <div className="mt-4 flex items-center gap-2 text-sm">
       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${info.color}`}>{info.label}</span>
       <span className="text-stone-600 dark:text-stone-400">{info.text}</span>
+      <Link to="/methodology" className="text-xs text-amber-700 underline dark:text-amber-400">
+        How we calculate this →
+      </Link>
     </div>
   );
 }
