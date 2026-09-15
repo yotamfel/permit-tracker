@@ -75,7 +75,7 @@ def health() -> dict:
 def sitemap(db: Session = Depends(get_db)) -> Response:
     settings = get_settings()
     base = settings.frontend_url.rstrip("/")
-    urls = [f"{base}{p}" for p in ["/", "/signup", "/contact", "/terms", "/privacy"]]
+    urls = [f"{base}{p}" for p in ["/", "/catalog", "/signup", "/contact", "/terms", "/privacy", "/methodology"]]
     published_ids = db.query(Destination.id).filter(Destination.is_published.is_(True)).all()
     urls += [f"{base}/destinations/{d_id}" for (d_id,) in published_ids]
     body = "".join(f"<url><loc>{u}</loc></url>" for u in urls)
