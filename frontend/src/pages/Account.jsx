@@ -32,6 +32,8 @@ export default function Account() {
   const [deleteRequested, setDeleteRequested] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
   const [showDeleteForm, setShowDeleteForm] = useState(false);
+  const [referralCode, setReferralCode] = useState(null);
+  const [referralCopied, setReferralCopied] = useState(false);
 
   const loadFiles = () => api.get("/api/me/files").then((res) => setFiles(res.data));
   const loadSubscriptions = () => api.get("/api/subscriptions").then((res) => setSubscriptions(res.data));
@@ -42,8 +44,20 @@ export default function Account() {
     loadSubscriptions();
     loadFiles();
     api.get("/api/me/watchlist").then((res) => setWatchlist(res.data));
+    api.get("/api/me/referral").then((res) => setReferralCode(res.data.code));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const copyReferralCode = async () => {
+    try {
+      await navigator.clipboard.writeText(referralCode);
+      setReferralCopied(true);
+      setTimeout(() => setReferralCopied(false), 2000);
+    } catch {
+      // Clipboard access can fail (permissions, insecure context) - the code is
+      // still visible on screen to copy by hand, so this is a non-issue.
+    }
+  };
 
   const unwatch = async (destinationId) => {
     await api.delete(`/api/watchlist/${destinationId}`);
@@ -152,6 +166,27 @@ export default function Account() {
           </ul>
         )}
       </section>
+
+      {referralCode && (
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Invite a travel companion</h2>
+          <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+            Give this code to up to 3 friends - they enter it at checkout and unlock any destination for $3.99
+            instead of $6.99.
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <code className="rounded-lg border border-stone-300 bg-stone-100 px-3 py-1.5 text-sm font-semibold tracking-wide dark:border-stone-700 dark:bg-stone-800">
+              {referralCode}
+            </code>
+            <button
+              onClick={copyReferralCode}
+              className="rounded-full border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+            >
+              {referralCopied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">My alerts</h2>

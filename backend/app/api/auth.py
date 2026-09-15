@@ -21,6 +21,7 @@ from app.schemas.auth import (
     LoginRequest,
     MeOut,
     MeUpdateRequest,
+    ReferralOut,
     ResetPasswordRequest,
     SignupRequest,
     TokenResponse,
@@ -151,6 +152,11 @@ def get_me(user: User = Depends(get_current_user), db: Session = Depends(get_db)
     out = MeOut.model_validate(user)
     out.is_admin = is_admin(db, user)
     return out
+
+
+@me_router.get("/referral", response_model=ReferralOut)
+def get_referral(user: User = Depends(get_current_user)) -> ReferralOut:
+    return ReferralOut(code=user.referral_code)
 
 
 @me_router.patch("", response_model=MeOut)

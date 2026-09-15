@@ -8,7 +8,9 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_db
 from app.models.enums import PurchaseStatus
 from app.models.purchase import Purchase
+from app.models.user import User
 from app.services.paddle_service import verify_webhook_signature
+from app.services.referral import ensure_referral_code
 
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
 logger = logging.getLogger(__name__)
@@ -83,6 +85,10 @@ def _handle_transaction_completed(event: dict, db: Session) -> dict:
         db.rollback()
         # Concurrent webhook delivery already inserted this transaction_id.
         return {"status": "already_processed"}
+
+    buyer = db.get(User, uuid.UUID(user_id))
+    if buyer is not None:
+        ensure_referral_code(db, buyer)
 
     return {"status": "completed"}
 

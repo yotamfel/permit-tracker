@@ -30,3 +30,8 @@ class User(UUIDPKMixin, TimestampMixin, Base):
     # Cached Paddle customer id (ctm_...) so checkout doesn't need a
     # get-or-create-by-email round trip to Paddle on every purchase.
     paddle_customer_id: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    # A shareable "bring a travel companion" discount code, lazily created
+    # (see app.services.referral) the first time this user completes a
+    # purchase - null until then.
+    referral_code: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    referral_discount_id: Mapped[str | None] = mapped_column(String, nullable=True)

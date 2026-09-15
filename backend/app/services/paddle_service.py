@@ -77,6 +77,30 @@ def create_transaction(destination_id: str, destination_name: str, user_id: str,
     return checkout_url
 
 
+def create_flat_discount(
+    *, code: str, amount_cents: str, currency_code: str, usage_limit: int, description: str
+) -> str:
+    """Creates a Paddle discount code with a flat amount off, capped at
+    usage_limit redemptions, and returns its Paddle discount id (dsc_...)."""
+    resp = httpx.post(
+        f"{settings.paddle_api_base_url}/discounts",
+        headers=_auth_headers(),
+        json={
+            "type": "flat",
+            "amount": amount_cents,
+            "currency_code": currency_code,
+            "code": code,
+            "usage_limit": usage_limit,
+            "enabled_for_checkout": True,
+            "description": description,
+        },
+        timeout=15,
+    )
+    if resp.status_code >= 400:
+        raise PaddleError(f"Paddle discount creation failed ({resp.status_code}): {resp.text}")
+    return resp.json()["data"]["id"]
+
+
 def verify_webhook_signature(payload: bytes, signature_header: str) -> bool:
     """Verifies the `Paddle-Signature: ts=<unix_ts>;h1=<hex_hmac>` header per
     https://developer.paddle.com/webhooks/about/signature-verification/."""

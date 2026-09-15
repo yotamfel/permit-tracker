@@ -52,6 +52,10 @@ class MeOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ReferralOut(BaseModel):
+    code: str | None = None
+
+
 class MeUpdateRequest(BaseModel):
     preferred_locale: str | None = None
     theme_preference: ThemePreference | None = None
