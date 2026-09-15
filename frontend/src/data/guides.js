@@ -2,6 +2,12 @@
 // separate from destination pages to avoid duplicating the mechanism/prep
 // info already on each destination's own page. Linked contextually from
 // DestinationDetail.jsx based on mechanismTypes, and listed at /guides.
+
+// Bump whenever guide content is substantively edited - used for the
+// Article JSON-LD dateModified. Keep in sync with GUIDES_LAST_MODIFIED in
+// backend/app/main.py (used for the sitemap's <lastmod>).
+export const GUIDES_LAST_UPDATED = "2026-09-15";
+
 export const GUIDES = [
   {
     slug: "how-permit-lotteries-work",

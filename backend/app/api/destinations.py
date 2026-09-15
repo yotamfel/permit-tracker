@@ -75,6 +75,7 @@ def list_destinations(
                 is_watching=d.id in watched_ids,
                 season_start_month=d.season_start_month,
                 season_end_month=d.season_end_month,
+                created_at=d.created_at,
                 safety_advisory=d.safety_advisory,
                 image_url=d.image_url,
                 image_credit_name=d.image_credit_name,

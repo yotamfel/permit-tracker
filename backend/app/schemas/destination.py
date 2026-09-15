@@ -53,6 +53,7 @@ class DestinationCardOut(BaseModel):
     next_known_release: datetime | None
     is_owned: bool
     is_watching: bool = False
+    created_at: datetime
     season_start_month: int | None = None
     season_end_month: int | None = None
     # Public even for guests / unpublished-preview contexts - a safety warning

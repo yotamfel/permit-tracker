@@ -27,12 +27,15 @@ function OverlayBadge({ className, children, compact, title }) {
   );
 }
 
+const NEW_BADGE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+
 export default function DestinationCard({ d, compact = false }) {
   const { t } = useTranslation();
   const category = CATEGORY_INFO[d.category] || DEFAULT_CATEGORY;
   const competitivenessInfo = COMPETITIVENESS_INFO[d.competitiveness_level];
   const competitivenessLabel = d.competitiveness_level ? t(`competitiveness_level.${d.competitiveness_level}`) : null;
   const competitivenessText = COMPETITIVENESS_TEXT[d.competitiveness_level];
+  const isNew = d.created_at && Date.now() - new Date(d.created_at).getTime() < NEW_BADGE_WINDOW_MS;
 
   return (
     <Link
@@ -59,6 +62,9 @@ export default function DestinationCard({ d, compact = false }) {
         )}
         {!compact && (
           <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
+            {isNew && (
+              <OverlayBadge className="text-amber-800 dark:text-amber-300">🆕 New</OverlayBadge>
+            )}
             <OverlayBadge className={`uppercase tracking-wide ${category.text}`}>
               <span aria-hidden="true">{category.icon}</span>
               {t(`category.${d.category}`)}

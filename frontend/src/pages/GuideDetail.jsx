@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import SeoHead from "../components/SeoHead";
-import { getGuide } from "../data/guides";
+import { getGuide, GUIDES_LAST_UPDATED } from "../data/guides";
 import NotFound from "./NotFound";
 
 export default function GuideDetail() {
@@ -11,7 +11,19 @@ export default function GuideDetail() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <SeoHead title={guide.title} description={guide.description} path={`/guides/${guide.slug}`} />
+      <SeoHead
+        title={guide.title}
+        description={guide.description}
+        path={`/guides/${guide.slug}`}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: guide.title,
+          description: guide.description,
+          dateModified: GUIDES_LAST_UPDATED,
+          publisher: { "@type": "Organization", name: "SlotScout" },
+        }}
+      />
       <Link to="/guides" className="text-sm text-stone-500 hover:text-amber-700 dark:text-stone-400 dark:hover:text-amber-400">
         ← All guides
       </Link>

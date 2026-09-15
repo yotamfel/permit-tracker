@@ -71,6 +71,12 @@ def health() -> dict:
 # frontend/vercel.json) - a sitemap only counts for a domain when it's
 # reachable at <that domain>/sitemap.xml, so this can't just live on the
 # API's own Railway domain.
+# Bumped by hand whenever the guide articles are substantively edited (last:
+# the 2026-09-15 fact-check/expansion pass) - not auto-derived since guide
+# content lives in the frontend, with no shared timestamp source.
+GUIDES_LAST_MODIFIED = "2026-09-15"
+
+
 @app.get("/sitemap.xml")
 def sitemap(db: Session = Depends(get_db)) -> Response:
     settings = get_settings()
@@ -84,22 +90,19 @@ def sitemap(db: Session = Depends(get_db)) -> Response:
         "lottery-vs-fcfs-vs-fixed-date",
         "travel-insurance-for-remote-permits",
     ]
-    urls = [
-        f"{base}{p}"
-        for p in [
-            "/",
-            "/catalog",
-            "/signup",
-            "/contact",
-            "/terms",
-            "/privacy",
-            "/methodology",
-            "/guides",
-            *[f"/guides/{slug}" for slug in guide_slugs],
-        ]
+    # (loc, lastmod) pairs - lastmod is None where we have no real modification
+    # date to report, since inventing one would be a false freshness signal.
+    urls: list[tuple[str, str | None]] = [
+        (f"{base}{p}", None)
+        for p in ["/", "/catalog", "/signup", "/contact", "/terms", "/privacy", "/methodology", "/guides"]
     ]
-    published_ids = db.query(Destination.id).filter(Destination.is_published.is_(True)).all()
-    urls += [f"{base}/destinations/{d_id}" for (d_id,) in published_ids]
-    body = "".join(f"<url><loc>{u}</loc></url>" for u in urls)
+    urls += [(f"{base}/guides/{slug}", GUIDES_LAST_MODIFIED) for slug in guide_slugs]
+    destinations = (
+        db.query(Destination.id, Destination.updated_at).filter(Destination.is_published.is_(True)).all()
+    )
+    urls += [(f"{base}/destinations/{d_id}", updated_at.date().isoformat()) for (d_id, updated_at) in destinations]
+    body = "".join(
+        f"<url><loc>{loc}</loc>{f'<lastmod>{lastmod}</lastmod>' if lastmod else ''}</url>" for loc, lastmod in urls
+    )
     xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</urlset>'
     return Response(content=xml, media_type="application/xml")
