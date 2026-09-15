@@ -148,7 +148,7 @@ export default function Account() {
         ) : (
           <ul className="mt-2 space-y-1.5">
             {purchases.map((p) => (
-              <li key={p.id} className="flex items-center gap-2">
+              <li key={p.id} className="flex flex-wrap items-center gap-2">
                 <Link to={`/destinations/${p.destination_id}`} className="underline text-stone-800 dark:text-stone-200">
                   {p.destination_name}
                 </Link>
@@ -195,7 +195,7 @@ export default function Account() {
         ) : (
           <ul className="mt-2 space-y-1.5">
             {subscriptions.map((s) => (
-              <li key={s.id} className="flex items-center gap-2 text-sm">
+              <li key={s.id} className="flex flex-wrap items-center gap-2 text-sm">
                 <Link to={`/destinations/${s.destination_id}`} className="underline text-stone-800 dark:text-stone-200">
                   {s.destination_name}
                 </Link>
@@ -222,7 +222,7 @@ export default function Account() {
         ) : (
           <ul className="mt-2 space-y-1.5">
             {watchlist.map((d) => (
-              <li key={d.id} className="flex items-center gap-2 text-sm">
+              <li key={d.id} className="flex flex-wrap items-center gap-2 text-sm">
                 <Link to={`/destinations/${d.id}`} className="underline text-stone-800 dark:text-stone-200">
                   {d.name}
                 </Link>

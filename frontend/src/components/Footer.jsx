@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="border-t border-stone-200 dark:border-stone-800">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm text-stone-500 dark:text-stone-400">
         <span>© {new Date().getFullYear()} SlotScout</span>
-        <nav className="flex gap-4">
+        <nav className="flex flex-wrap gap-x-4 gap-y-2">
           <Link to="/methodology" className="hover:text-amber-700 dark:hover:text-amber-400">
             How We Rate Competitiveness
           </Link>
