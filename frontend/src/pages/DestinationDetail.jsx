@@ -108,6 +108,22 @@ export default function DestinationDetail() {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    try {
+      const res = await api.get(`/api/destinations/${id}/checklist.pdf`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${destination.name.toLowerCase().replace(/\s+/g, "-")}-checklist.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setError(t("auth.error"));
+    }
+  };
+
   const handleToggleItem = async (prepItemId, isCustom) => {
     // Optimistic update, then reconcile with the server response.
     setChecklist((c) => ({
@@ -432,15 +448,23 @@ export default function DestinationDetail() {
         </section>
       )}
 
-      {destination.is_owned && destination.next_known_release && (
-        <section className="mt-4">
+      {destination.is_owned && (
+        <section className="mt-4 flex flex-wrap items-center gap-3">
+          {destination.next_known_release && (
+            <button
+              onClick={handleAddToCalendar}
+              className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 px-4 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
+            >
+              <span aria-hidden="true">📅</span> Add to calendar
+            </button>
+          )}
           <button
-            onClick={handleAddToCalendar}
+            onClick={handleDownloadPdf}
             className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 px-4 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800"
           >
-            <span aria-hidden="true">📅</span> Add to calendar
+            <span aria-hidden="true">📄</span> Download PDF
           </button>
-          {calendarStatus && <p className="mt-1.5 text-xs text-emerald-700 dark:text-emerald-400">{calendarStatus}</p>}
+          {calendarStatus && <p className="w-full text-xs text-emerald-700 dark:text-emerald-400">{calendarStatus}</p>}
         </section>
       )}
 

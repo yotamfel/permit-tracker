@@ -24,6 +24,7 @@ from app.schemas.destination import (
     UserChecklistItemIn,
 )
 from app.services.checklist_completion import completed_prep_item_ids, toggle_completion
+from app.services.checklist_pdf import build_checklist_pdf, safe_filename
 from app.services.i18n import translate_bulk, translate_one_entity_multi_type
 from app.services.ownership import owned_destination_ids, user_owns_destination, user_previously_purchased
 from app.services.release_date import compute_next_release, compute_release_dates_in_month
@@ -369,6 +370,42 @@ def get_checklist(
         )
 
     return DestinationChecklistOut(is_owned=True, items=items)
+
+
+@router.get("/{destination_id}/checklist.pdf")
+def get_checklist_pdf(
+    destination_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    locale: str = Depends(get_locale),
+    user: User = Depends(get_current_user),
+) -> Response:
+    """Owners only - a printable/offline summary of the same checklist shown
+    on the destination page, for reference without a signal (e.g. at a
+    trailhead or in a government office)."""
+    d = db.get(Destination, destination_id)
+    if d is None or not d.is_published:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
+    if not user_owns_destination(db, user, destination_id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Unlock this destination first")
+
+    checklist = get_checklist(destination_id, db, locale, user)
+    texts = translate_one_entity_multi_type(
+        db, ["destination.name", "destination.mechanism_explanation"], d.id, locale
+    )
+    name = texts.get("destination.name", d.name)
+
+    pdf_bytes = build_checklist_pdf(
+        name=name,
+        country=d.country,
+        mechanism_explanation=texts.get("destination.mechanism_explanation"),
+        next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
+        items=checklist.items,
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{safe_filename(name)}_checklist.pdf"'},
+    )
 
 
 @router.post("/{destination_id}/checklist/{prep_item_id}/toggle")
