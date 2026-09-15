@@ -29,7 +29,7 @@ function OverlayBadge({ className, children, compact, title }) {
 
 const NEW_BADGE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
 
-export default function DestinationCard({ d, compact = false }) {
+export default function DestinationCard({ d, compact = false, compareSelected, onToggleCompare }) {
   const { t } = useTranslation();
   const category = CATEGORY_INFO[d.category] || DEFAULT_CATEGORY;
   const competitivenessInfo = COMPETITIVENESS_INFO[d.competitiveness_level];
@@ -111,6 +111,19 @@ export default function DestinationCard({ d, compact = false }) {
               {t("browse.unlock_for", { price: d.price_usd })}
             </div>
           ))}
+        {!compact && onToggleCompare && (
+          <span
+            className="mt-2 flex w-fit items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleCompare(d.id);
+            }}
+          >
+            <input type="checkbox" checked={!!compareSelected} readOnly className="pointer-events-none h-3.5 w-3.5" />
+            Compare
+          </span>
+        )}
       </div>
     </Link>
   );

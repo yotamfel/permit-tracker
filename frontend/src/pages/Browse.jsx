@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { useAuth } from "../lib/AuthContext";
 import { regionFor } from "../lib/regions";
 import { MONTH_NAMES, monthInSeason } from "../lib/months";
 import { CATEGORY_INFO, DEFAULT_CATEGORY } from "../lib/categoryInfo";
 import DestinationCard from "../components/DestinationCard";
 import SeoHead from "../components/SeoHead";
+
+const MAX_COMPARE = 3;
 
 const CATEGORIES = [
   "trek",
@@ -67,12 +71,21 @@ function sortDestinations(list, sortBy) {
 
 export default function Browse() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [panelOpen, setPanelOpen] = useState(false);
   const [sortBy, setSortBy] = useState("name");
   const [search, setSearch] = useState("");
+  const [compareIds, setCompareIds] = useState([]);
+
+  const toggleCompare = (id) => {
+    setCompareIds((cur) =>
+      cur.includes(id) ? cur.filter((c) => c !== id) : cur.length < MAX_COMPARE ? [...cur, id] : cur
+    );
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -277,8 +290,38 @@ export default function Browse() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {sorted.map((d) => (
-            <DestinationCard key={d.id} d={d} />
+            <DestinationCard
+              key={d.id}
+              d={d}
+              onToggleCompare={user ? toggleCompare : undefined}
+              compareSelected={compareIds.includes(d.id)}
+            />
           ))}
+        </div>
+      )}
+
+      {compareIds.length > 0 && (
+        <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
+          <div className="flex items-center gap-3 rounded-full border border-stone-200 bg-white px-4 py-2 shadow-lg dark:border-stone-800 dark:bg-stone-900">
+            <span className="text-sm text-stone-700 dark:text-stone-300">
+              {compareIds.length} selected {compareIds.length < MAX_COMPARE && `(up to ${MAX_COMPARE})`}
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate(`/compare?ids=${compareIds.join(",")}`)}
+              disabled={compareIds.length < 2}
+              className="rounded-full bg-amber-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Compare
+            </button>
+            <button
+              type="button"
+              onClick={() => setCompareIds([])}
+              className="text-sm text-stone-500 underline hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
+            >
+              Clear
+            </button>
+          </div>
         </div>
       )}
     </div>
