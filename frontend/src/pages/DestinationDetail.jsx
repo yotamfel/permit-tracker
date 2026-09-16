@@ -13,6 +13,18 @@ import { guidesForMechanismType } from "../data/guides";
 // from the user before an alert can be computed (see app/services/alerts.py).
 const TRAVEL_DATE_REQUIRED = NO_RELEASE_DATE_TYPES;
 
+// schema.org's MerchantReturnPolicy requires an explicit country list (up to
+// 50, no "worldwide" value exists) - Paddle sells to essentially every major
+// market as Merchant of Record, so this lists the ~50 largest by population/
+// GDP as a practical stand-in for "everywhere we realistically sell."
+const RETURN_POLICY_COUNTRIES = [
+  "US", "CN", "IN", "ID", "PK", "BR", "NG", "BD", "RU", "MX",
+  "JP", "PH", "ET", "EG", "VN", "CD", "TR", "IR", "DE", "TH",
+  "GB", "TZ", "FR", "ZA", "IT", "KE", "MM", "CO", "KR", "ES",
+  "UG", "AR", "DZ", "SD", "UA", "IQ", "AF", "PL", "CA", "MA",
+  "SA", "UZ", "PE", "AO", "MY", "MZ", "GH", "YE", "NP", "IL",
+];
+
 const LEAD_TIME_OPTIONS = [
   { minutes: 20160, label: "2 weeks before" },
   { minutes: 10080, label: "1 week before" },
@@ -211,12 +223,18 @@ export default function DestinationDetail() {
           name: `${destination.name} destination unlock`,
           description: seoDescription,
           image: destination.image_url || undefined,
+          brand: { "@type": "Brand", name: "SlotScout" },
           offers: {
             "@type": "Offer",
             price: destination.price_usd,
             priceCurrency: "USD",
             availability: "https://schema.org/InStock",
             url: `https://www.myslotscout.com/destinations/${id}`,
+            hasMerchantReturnPolicy: {
+              "@type": "MerchantReturnPolicy",
+              returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+              applicableCountry: RETURN_POLICY_COUNTRIES,
+            },
           },
         }}
       />
