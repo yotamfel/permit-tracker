@@ -24,6 +24,12 @@ export default function Pricing() {
           No subscription, no recurring charge. Unlocking a destination covers its current application cycle
           (the upcoming release, lottery, or travel window) plus a 60-day grace period afterward.
         </p>
+        <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
+          For destinations with a fixed release date (a lottery or scheduled release), the 60 days start from
+          that date. For destinations that don't have one, it's based on the travel date you set when you
+          create an alert - if you don't set one, the 60 days start from your purchase date instead. You can
+          change your travel date at any time, which recalculates the window accordingly.
+        </p>
 
         <h2 className="mt-6 text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
           What's included

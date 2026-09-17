@@ -71,7 +71,11 @@ export default function Terms() {
           <p className="mt-2">
             A payment unlocks a destination for its current application cycle - broadly, the upcoming release,
             lottery, or travel window the destination is being tracked for - plus a grace period afterward (normally
-            60 days) to give you time to act on the outcome. Once that period ends, the destination locks again and
+            60 days) to give you time to act on the outcome. For destinations with no fixed release date, that
+            60-day period is measured from the travel date you set when creating an alert; if you never set one,
+            it's measured from your purchase date instead. You can change your travel date at any time, which
+            recalculates the window - including shortening it, if the new date is earlier than expected. Once the
+            period ends, the destination locks again and
             a new payment is required to unlock the next cycle. If you believe a destination locked in error, contact
             us via the destination page or the{" "}
             <a href="/contact" className="text-amber-700 underline dark:text-amber-400">
