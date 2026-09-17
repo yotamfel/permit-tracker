@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Account from "./pages/Account";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
+import Pricing from "./pages/Pricing";
 import Privacy from "./pages/Privacy";
 import Methodology from "./pages/Methodology";
 import Guides from "./pages/Guides";
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/account" element={<Account />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/methodology" element={<Methodology />} />
           <Route path="/guides" element={<Guides />} />

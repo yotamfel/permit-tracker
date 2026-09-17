@@ -12,7 +12,8 @@ export default function Privacy() {
       <div className="mt-6 space-y-6 text-stone-800 dark:text-stone-300">
         <Section title="1. Overview">
           <p>
-            This Privacy Policy explains what information SlotScout ("we," "us") collects when you use our
+            SlotScout ("we," "us") is operated by Yotam Feldheim, an individual based in Israel. This Privacy
+            Policy explains what information we collect when you use our
             website, how we use it, and the choices you have. By using the Service you agree to this Policy and to
             our{" "}
             <a href="/terms" target="_blank" rel="noreferrer" className="text-amber-700 underline dark:text-amber-400">

@@ -94,7 +94,7 @@ def sitemap(db: Session = Depends(get_db)) -> Response:
     # date to report, since inventing one would be a false freshness signal.
     urls: list[tuple[str, str | None]] = [
         (f"{base}{p}", None)
-        for p in ["/", "/catalog", "/signup", "/contact", "/terms", "/privacy", "/methodology", "/guides"]
+        for p in ["/", "/catalog", "/signup", "/contact", "/terms", "/privacy", "/methodology", "/guides", "/pricing"]
     ]
     urls += [(f"{base}/guides/{slug}", GUIDES_LAST_MODIFIED) for slug in guide_slugs]
     destinations = (

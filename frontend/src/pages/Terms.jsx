@@ -12,7 +12,8 @@ export default function Terms() {
       <div className="mt-6 space-y-6 text-stone-800 dark:text-stone-300">
         <Section title="1. Acceptance of these terms">
           <p>
-            These Terms of Service ("Terms") govern your use of SlotScout (the "Service"). By creating an
+            SlotScout (the "Service") is operated by Yotam Feldheim, an individual based in Israel. These Terms of
+            Service ("Terms") govern your use of the Service. By creating an
             account or using the Service, you agree to these Terms and to our{" "}
             <a href="/privacy" target="_blank" rel="noreferrer" className="text-amber-700 underline dark:text-amber-400">
               Privacy Policy
@@ -57,7 +58,7 @@ export default function Terms() {
           </p>
         </Section>
 
-        <Section title="5. Purchases and payment">
+        <Section title="5. Purchases and payment" id="refund-policy">
           <p>
             Some destinations require a payment to unlock full checklist details, mechanism explanations, and
             related tools. Payments are processed by a third-party payment provider; we do not receive or store your
@@ -171,9 +172,9 @@ export default function Terms() {
   );
 }
 
-function Section({ title, children }) {
+function Section({ title, id, children }) {
   return (
-    <section>
+    <section id={id}>
       <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">{title}</h2>
       <div className="mt-2 text-sm leading-relaxed">{children}</div>
     </section>

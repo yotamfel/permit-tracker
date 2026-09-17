@@ -12,8 +12,14 @@ export default function Footer() {
           <Link to="/methodology" className="hover:text-amber-700 dark:hover:text-amber-400">
             How We Rate Competitiveness
           </Link>
+          <Link to="/pricing" className="hover:text-amber-700 dark:hover:text-amber-400">
+            Pricing
+          </Link>
           <Link to="/terms" className="hover:text-amber-700 dark:hover:text-amber-400">
             Terms of Service
+          </Link>
+          <Link to="/terms#refund-policy" className="hover:text-amber-700 dark:hover:text-amber-400">
+            Refund Policy
           </Link>
           <Link to="/privacy" className="hover:text-amber-700 dark:hover:text-amber-400">
             Privacy Policy
