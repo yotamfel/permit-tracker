@@ -202,6 +202,64 @@ export const GUIDES = [
       },
     ],
   },
+  {
+    slug: "141-permits-by-the-numbers",
+    title: "141 Permits, By the Numbers",
+    description:
+      "We pulled real statistics from our own catalog of 141 tracked destinations to see what 'hard to get' actually looks like in aggregate - which mechanisms dominate, who really runs these systems, and which single numbers are the most extreme in the whole catalog.",
+    mechanismTypes: "all",
+    sections: [
+      {
+        heading: "The most common mechanism isn't a lottery",
+        paragraphs: [
+          "Across the 141 destinations we currently track, the single most common access mechanism is plain first-come-first-served booking (28% of the catalog), narrowly ahead of guided-tour-only access (27%) - destinations where there's no individual permit to apply for at all, only a licensed operator who handles it. True lotteries, the mechanism most people probably picture first when they think \"hard to get permit,\" account for just 8.5% of the catalog on their own, or 11.3% including the smaller recurring-lottery category (a lottery that runs on a repeating weekly or monthly cycle instead of once a year). Fixed-annual-date releases (a single announced date and time when booking opens, first-come after that) make up 12.8%, and rolling-window bookings (opening a fixed number of days ahead of your travel date, on a rolling basis) another 11.3%.",
+          "The practical takeaway: for most destinations in this catalog, the actual obstacle isn't luck, it's process - knowing exactly when a window opens, or which of a small set of licensed operators to book through - rather than winning a random draw.",
+        ],
+      },
+      {
+        heading: "Treks dominate the catalog, but not everything is a hiking trail",
+        paragraphs: [
+          "Multi-day treks make up 39% of the catalog (55 of 141 destinations) - by far the largest single category - followed by tourist attractions like palaces, castles, and iconic buildings at 22% (31 destinations). The remaining 39% spans wildlife safaris (16), national park entries (8), thru-hikes (7), endurance events (6), diving (6), and seasonal nature events like mass turtle nestings or wildlife migrations (5). The catalog has deliberately grown beyond \"outdoor permits\" into any destination where getting in requires navigating a genuine access mechanism - a government building tour with a multi-week request process is, bureaucratically, not that different from a trekking permit.",
+        ],
+      },
+      {
+        heading: "Government still runs three-quarters of these systems",
+        paragraphs: [
+          "74% of tracked destinations (105 of 141) are issued directly by a government body - a national park service, a ministry, a park authority. Another 14% (20 destinations) are what we classify as \"mixed\" authority - typically a government agency operating jointly with an indigenous community or a treaty organization, as with Ciudad Perdida in Colombia (Colombian park authority plus the Kogi and Wiwa communities whose territory the trek crosses) or Antarctica (the international Antarctic Treaty System, self-regulated in practice by IAATO, the operators' own association). Purely commercial issuers - a private company or attraction operator, with no government permit layer at all - make up just 9% (13 destinations), and tribal-only authorities (indigenous governance with no government co-issuer) are the rarest at 2% (3 destinations).",
+        ],
+      },
+      {
+        heading: "The most exclusive number in the catalog",
+        paragraphs: [
+          "Among destinations with a fixed daily numeric quota, the smallest are Fernando de Noronha (Brazil) and Mountain Gorilla Trekking in Rwanda's Volcanoes National Park, tied at 96 people admitted per day - a genuinely tiny number for what are both major, world-famous destinations. For comparison, Komodo National Park's new 2026 quota system (1,000 visitors/day across the whole park) looks positively generous by contrast, even though it's still a hard cap.",
+        ],
+      },
+      {
+        heading: "Some places want a full year's notice",
+        paragraphs: [
+          "Rwanda's gorilla trekking permits can be booked up to 365 days ahead of a travel date - the longest advance-booking window in the entire catalog. A cluster of other destinations (the Vatican Necropolis, the Statue of Liberty's Crown, Sipadan, Bwindi's gorilla trekking, the High Sierra Trail, and both Corcovado and Chirripó in Costa Rica) all sit at a 180-day (roughly 6-month) window. If a destination on your list allows booking this far out, the practical lesson is straightforward: the booking window opening is often the real event to plan around, well before the trip itself.",
+        ],
+      },
+      {
+        heading: "The most paperwork-heavy destination we track",
+        paragraphs: [
+          "Across the whole catalog, the average destination's prep checklist runs 10.2 items. The single most demanding is the Green and Yampa Rivers in Dinosaur National Monument (USA) at 24 checklist items - a multi-day, self-guided river-permit system with an unusually long list of gear, registration, and safety requirements even by the standards of self-guided wilderness permits. Three of the next four most demanding destinations (Three Capes Track and Overland Track in Tasmania, Berg Lake Trail in British Columbia) are multi-day treks with their own hut/campsite booking layered on top of the base permit - a pattern worth noticing if you're choosing between similar-looking treks and want to gauge prep effort in advance.",
+        ],
+      },
+      {
+        heading: "When there's no single official way to book",
+        paragraphs: [
+          "29 of the 141 destinations - about 1 in 5 - have no single official booking link at all, because multiple legitimate, independent operators are licensed to run the same permitted access (Ciudad Perdida's licensed trek operators, or the several IAATO-member ships running Antarctic Peninsula landings, are typical examples). For these, we list several verified operators directly rather than picking one to link to - the actual access mechanism is \"book with any licensed operator,\" not \"go to this one website,\" and pretending otherwise would misrepresent how the system actually works.",
+        ],
+      },
+      {
+        heading: "26 destinations we rate 'very high' competitiveness",
+        paragraphs: [
+          "18% of the catalog (26 destinations) carries our most competitive rating, meaning demand consistently and significantly outstrips supply - not just \"book ahead,\" but a real chance of missing out even with reasonable planning. The list spans very different mechanisms: lotteries with famously long odds (the Inca Trail, Havasupai Falls), fixed-date releases that sell out in minutes (L'Étape du Tour), and guided-access destinations where the operators themselves are booked solid a year out (Sipadan, Milford Track). The common thread isn't the mechanism - it's that no amount of understanding the system removes the underlying scarcity.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getGuide(slug) {
