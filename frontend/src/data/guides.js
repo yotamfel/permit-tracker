@@ -6,7 +6,7 @@
 // Bump whenever guide content is substantively edited - used for the
 // Article JSON-LD dateModified. Keep in sync with GUIDES_LAST_MODIFIED in
 // backend/app/main.py (used for the sitemap's <lastmod>).
-export const GUIDES_LAST_UPDATED = "2026-09-15";
+export const GUIDES_LAST_UPDATED = "2026-09-17";
 
 export const GUIDES = [
   {
@@ -219,13 +219,19 @@ export const GUIDES = [
       {
         heading: "Treks dominate the catalog, but not everything is a hiking trail",
         paragraphs: [
-          "Multi-day treks make up 39% of the catalog (55 of 141 destinations) - by far the largest single category - followed by tourist attractions like palaces, castles, and iconic buildings at 22% (31 destinations). The remaining 39% spans wildlife safaris (16), national park entries (8), thru-hikes (7), endurance events (6), diving (6), and seasonal nature events like mass turtle nestings or wildlife migrations (5). The catalog has deliberately grown beyond \"outdoor permits\" into any destination where getting in requires navigating a genuine access mechanism - a government building tour with a multi-week request process is, bureaucratically, not that different from a trekking permit.",
+          "Multi-day treks make up 39% of the catalog (55 of 141 destinations) - by far the largest single category - followed by tourist attractions like palaces, castles, and iconic buildings at 22% (31 destinations). The remaining 39% spans wildlife safaris (16), national park entries (8), camping (7), thru-hikes (7), endurance events (6), diving (6), and seasonal nature events like mass turtle nestings or wildlife migrations (5). The catalog has deliberately grown beyond \"outdoor permits\" into any destination where getting in requires navigating a genuine access mechanism - a government building tour with a multi-week request process is, bureaucratically, not that different from a trekking permit.",
         ],
       },
       {
         heading: "Government still runs three-quarters of these systems",
         paragraphs: [
           "74% of tracked destinations (105 of 141) are issued directly by a government body - a national park service, a ministry, a park authority. Another 14% (20 destinations) are what we classify as \"mixed\" authority - typically a government agency operating jointly with an indigenous community or a treaty organization, as with Ciudad Perdida in Colombia (Colombian park authority plus the Kogi and Wiwa communities whose territory the trek crosses) or Antarctica (the international Antarctic Treaty System, self-regulated in practice by IAATO, the operators' own association). Purely commercial issuers - a private company or attraction operator, with no government permit layer at all - make up just 9% (13 destinations), and tribal-only authorities (indigenous governance with no government co-issuer) are the rarest at 2% (3 destinations).",
+        ],
+      },
+      {
+        heading: "Nepal is where the mechanism itself changes",
+        paragraphs: [
+          "Break the catalog down by country and one pattern jumps out immediately: of the 12 Nepal treks we track, 9 are guided-tour-only - Manaslu Circuit, Nar Phu Valley, Tsum Valley, Upper Dolpo, Upper Mustang, Kanchenjunga Base Camp, Langtang Valley, Makalu Base Camp, and the Annapurna Circuit - the highest concentration of that mechanism for any country in the catalog with a meaningful number of destinations. That's not a quirk of how we list them; Nepal's government legally requires a licensed local agency for foreigners entering most of these restricted areas, so there's no individual application to walk through the way there is for, say, a US national park permit - the actual process is choosing and booking with an agency, not filling out a government form yourself. Only three Nepal destinations we track can still be arranged independently: Everest Base Camp, the Everest summit climbing permit itself, and Rara Lake.",
         ],
       },
       {
@@ -243,13 +249,13 @@ export const GUIDES = [
       {
         heading: "The most paperwork-heavy destination we track",
         paragraphs: [
-          "Across the whole catalog, the average destination's prep checklist runs 10.2 items. The single most demanding is the Green and Yampa Rivers in Dinosaur National Monument (USA) at 24 checklist items - a multi-day, self-guided river-permit system with an unusually long list of gear, registration, and safety requirements even by the standards of self-guided wilderness permits. Three of the next four most demanding destinations (Three Capes Track and Overland Track in Tasmania, Berg Lake Trail in British Columbia) are multi-day treks with their own hut/campsite booking layered on top of the base permit - a pattern worth noticing if you're choosing between similar-looking treks and want to gauge prep effort in advance.",
+          "Across the whole catalog, the average destination's prep checklist runs 10.2 items (1,442 checklist items across 141 destinations). The single most demanding is the Green and Yampa Rivers in Dinosaur National Monument (USA) at 24 checklist items - a multi-day, self-guided river-permit system with an unusually long list of gear, registration, and safety requirements even by the standards of self-guided wilderness permits. Next come Three Capes Track (20 items) and Overland Track (19) in Tasmania, then La Marmotte, the French Alpine cycling sportive (18), and a three-way tie at 17 between Berg Lake Trail in British Columbia, GR20 in Corsica, and the self-guided Grand Canyon Colorado River permit. Four of those five are multi-day treks or self-guided expeditions with their own hut, campsite, or permit-stacking layered on top of the base checklist - the outlier is La Marmotte, whose length comes from race logistics (medical certificate, timing chip, bike specifications) rather than wilderness permitting.",
         ],
       },
       {
         heading: "When there's no single official way to book",
         paragraphs: [
-          "29 of the 141 destinations - about 1 in 5 - have no single official booking link at all, because multiple legitimate, independent operators are licensed to run the same permitted access (Ciudad Perdida's licensed trek operators, or the several IAATO-member ships running Antarctic Peninsula landings, are typical examples). For these, we list several verified operators directly rather than picking one to link to - the actual access mechanism is \"book with any licensed operator,\" not \"go to this one website,\" and pretending otherwise would misrepresent how the system actually works.",
+          "28 of the 141 destinations - about 1 in 5 - have no single official booking link at all, because multiple legitimate, independent operators are licensed to run the same permitted access (Ciudad Perdida's licensed trek operators, or the several IAATO-member ships running Antarctic Peninsula landings, are typical examples). For these, we list several verified operators directly rather than picking one to link to - the actual access mechanism is \"book with any licensed operator,\" not \"go to this one website,\" and pretending otherwise would misrepresent how the system actually works.",
         ],
       },
       {
