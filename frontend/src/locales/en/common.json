@@ -15,7 +15,7 @@
   "home": {
     "title": "Don't let paperwork cost you the trip of a lifetime",
     "subtitle": "Documents, deadlines, and alerts for the world's hardest-to-get permits — all in one place.",
-    "examples": "140+ destinations tracked, incl. Half Dome, Torres del Paine, Aconcagua, Antarctica"
+    "examples": "{{count}}+ destinations tracked, incl. Half Dome, Torres del Paine, Aconcagua, Antarctica"
   },
   "browse": {
     "title": "Catalog",

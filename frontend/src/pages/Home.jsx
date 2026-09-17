@@ -12,6 +12,7 @@ import { pickFeatured } from "../lib/pickFeatured";
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [featured, setFeatured] = useState([]);
+  const [destinationCount, setDestinationCount] = useState(null);
   const { user, loading } = useAuth();
   const { openIfFirstVisit } = useOnboarding();
 
@@ -23,9 +24,10 @@ export default function Home() {
   }, [user]);
 
   useEffect(() => {
-    api
-      .get("/api/destinations", { params: { locale: i18n.language } })
-      .then((res) => setFeatured(pickFeatured(res.data, 4)));
+    api.get("/api/destinations", { params: { locale: i18n.language } }).then((res) => {
+      setFeatured(pickFeatured(res.data, 4));
+      setDestinationCount(Math.floor(res.data.length / 10) * 10);
+    });
   }, [i18n.language]);
 
   if (loading) return null;
@@ -45,7 +47,11 @@ export default function Home() {
             {t("home.title")}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-stone-700 dark:text-stone-400">{t("home.subtitle")}</p>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-stone-500 dark:text-stone-500">{t("home.examples")}</p>
+          {destinationCount > 0 && (
+            <p className="mx-auto mt-2 max-w-xl text-sm text-stone-500 dark:text-stone-500">
+              {t("home.examples", { count: destinationCount })}
+            </p>
+          )}
           <Link
             to="/catalog"
             className="mt-8 inline-block rounded-full bg-amber-700 px-8 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-amber-800"
