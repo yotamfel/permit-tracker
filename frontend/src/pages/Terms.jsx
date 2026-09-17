@@ -73,8 +73,8 @@ export default function Terms() {
             lottery, or travel window the destination is being tracked for - plus a grace period afterward (normally
             60 days) to give you time to act on the outcome. For destinations with no fixed release date, that
             60-day period is measured from the travel date you set when creating an alert; if you never set one,
-            it's measured from your purchase date instead. You can change your travel date at any time, which
-            recalculates the window - including shortening it, if the new date is earlier than expected. Once the
+            it's measured from your purchase date instead. You can set or change that travel date within 7 days
+            of your purchase; after that it's locked, and you'll need to contact us to update it. Once the
             period ends, the destination locks again and
             a new payment is required to unlock the next cycle. If you believe a destination locked in error, contact
             us via the destination page or the{" "}

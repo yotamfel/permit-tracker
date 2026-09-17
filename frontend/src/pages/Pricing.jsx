@@ -28,7 +28,7 @@ export default function Pricing() {
           For destinations with a fixed release date (a lottery or scheduled release), the 60 days start from
           that date. For destinations that don't have one, it's based on the travel date you set when you
           create an alert - if you don't set one, the 60 days start from your purchase date instead. You can
-          change your travel date at any time, which recalculates the window accordingly.
+          set or change that travel date within 7 days of your purchase; after that, contact us to update it.
         </p>
 
         <h2 className="mt-6 text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">

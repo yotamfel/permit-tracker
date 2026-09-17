@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -6,12 +7,23 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_db
 from app.models.alert_subscription import AlertSubscription
 from app.models.destination import Destination
-from app.models.enums import MechanismType
+from app.models.enums import MechanismType, PurchaseStatus
+from app.models.purchase import Purchase
 from app.models.user import User
 from app.schemas.subscription import LEAD_TIME_PRESET_MINUTES, SubscriptionCreateRequest, SubscriptionListOut, SubscriptionOut
 from app.services.ownership import user_owns_destination
 
 router = APIRouter(prefix="/api/subscriptions", tags=["subscriptions"])
+
+# Once this many days have passed since the purchase that unlocked a
+# no-fixed-date destination, the user can no longer self-service set or
+# change their travel_date - doing so would let them keep pushing the date
+# forward forever and extend a single $6.99 purchase's access indefinitely
+# (purchase_cycle.py recomputes the 60-day window live off whatever
+# travel_date is currently on file). Past this window, they have to contact
+# support so an admin can review and apply a manual override
+# (POST /admin/api/purchases/{id}/override) instead.
+TRAVEL_DATE_EDIT_WINDOW_DAYS = 7
 
 
 @router.get("", response_model=list[SubscriptionListOut])
@@ -67,6 +79,25 @@ def create_subscription(
     # model) - re-submitting (including a double-submit race on the button)
     # updates the existing alert instead of creating a duplicate.
     sub = db.query(AlertSubscription).filter_by(user_id=user.id, destination_id=d.id).first()
+
+    if d.mechanism_type in TRAVEL_DATE_REQUIRED_TYPES and body.travel_date != (sub.travel_date if sub else None):
+        purchase = (
+            db.query(Purchase)
+            .filter(
+                Purchase.user_id == user.id,
+                Purchase.destination_id == d.id,
+                Purchase.status == PurchaseStatus.completed,
+            )
+            .order_by(Purchase.created_at.desc())
+            .first()
+        )
+        if purchase is not None and datetime.now(timezone.utc) > purchase.created_at + timedelta(days=TRAVEL_DATE_EDIT_WINDOW_DAYS):
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                f"Your travel date can only be set or changed within {TRAVEL_DATE_EDIT_WINDOW_DAYS} days of "
+                "purchase. Contact us via the Contact page to update it after that.",
+            )
+
     if sub is None:
         sub = AlertSubscription(user_id=user.id, destination_id=d.id)
         db.add(sub)
