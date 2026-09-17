@@ -44,10 +44,18 @@ NO_FIXED_DATE_TYPES = {MechanismType(v) for v in _NO_FIXED_DATE_TYPE_VALUES}
 
 
 def _already_notified_recently(db, subscription_id, lead_time_minutes: int) -> bool:
+    """Dedupes per (subscription, lead_time) - a subscription with several
+    lead times fires one independent alert per lead time against the same
+    release moment, so a send at the 1-week mark must not suppress the
+    1-day-mark send that's still to come."""
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=max(lead_time_minutes, 1))
     return (
         db.query(NotificationLog)
-        .filter(NotificationLog.subscription_id == subscription_id, NotificationLog.sent_at >= cutoff)
+        .filter(
+            NotificationLog.subscription_id == subscription_id,
+            NotificationLog.lead_time_minutes == lead_time_minutes,
+            NotificationLog.sent_at >= cutoff,
+        )
         .first()
         is not None
     )
@@ -76,43 +84,47 @@ def run() -> None:
             release_moment = _release_moment(d, sub)
             if release_moment is None:
                 continue
-            trigger_moment = release_moment - timedelta(minutes=sub.lead_time_minutes)
-            if trigger_moment > now:
-                continue
-
-            if _already_notified_recently(db, sub.id, sub.lead_time_minutes):
-                continue
 
             is_book_early = d.mechanism_type in NO_FIXED_DATE_TYPES | {MechanismType.rolling_window}
-            if is_book_early:
-                body = (
-                    f"<p>Reminder: book <strong>{d.name}</strong> as early as possible for your "
-                    f"upcoming travel date ({sub.travel_date}). This destination has no fixed "
-                    f"release window, so availability can close well in advance.</p>"
-                )
-            else:
-                body = (
-                    f"<p>The application/release window for <strong>{d.name}</strong> opens soon "
-                    f"(around {release_moment.strftime('%Y-%m-%d %H:%M %Z')}). "
-                    f"You asked to be notified {_format_lead_time(sub.lead_time_minutes)} in advance.</p>"
-                )
 
-            status = NotificationStatus.sent
-            try:
-                send_alert_email(user.email, d.name, body)
-            except Exception:
-                logger.exception("Failed to send alert email for subscription %s", sub.id)
-                status = NotificationStatus.failed
+            for lead_time_minutes in sub.lead_time_minutes_list:
+                trigger_moment = release_moment - timedelta(minutes=lead_time_minutes)
+                if trigger_moment > now:
+                    continue
 
-            db.add(
-                NotificationLog(
-                    subscription_id=sub.id,
-                    sent_at=datetime.now(timezone.utc),
-                    channel="email",
-                    status=status,
+                if _already_notified_recently(db, sub.id, lead_time_minutes):
+                    continue
+
+                if is_book_early:
+                    body = (
+                        f"<p>Reminder: book <strong>{d.name}</strong> as early as possible for your "
+                        f"upcoming travel date ({sub.travel_date}). This destination has no fixed "
+                        f"release window, so availability can close well in advance.</p>"
+                    )
+                else:
+                    body = (
+                        f"<p>The application/release window for <strong>{d.name}</strong> opens soon "
+                        f"(around {release_moment.strftime('%Y-%m-%d %H:%M %Z')}). "
+                        f"You asked to be notified {_format_lead_time(lead_time_minutes)} in advance.</p>"
+                    )
+
+                status = NotificationStatus.sent
+                try:
+                    send_alert_email(user.email, d.name, body)
+                except Exception:
+                    logger.exception("Failed to send alert email for subscription %s", sub.id)
+                    status = NotificationStatus.failed
+
+                db.add(
+                    NotificationLog(
+                        subscription_id=sub.id,
+                        sent_at=datetime.now(timezone.utc),
+                        channel="email",
+                        status=status,
+                        lead_time_minutes=lead_time_minutes,
+                    )
                 )
-            )
-            db.commit()
+                db.commit()
     finally:
         db.close()
 

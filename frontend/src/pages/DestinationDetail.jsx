@@ -41,7 +41,7 @@ export default function DestinationDetail() {
   const [destination, setDestination] = useState(null);
   const [checklist, setChecklist] = useState(null);
   const [error, setError] = useState("");
-  const [subscription, setSubscription] = useState({ lead_time_minutes: 10080, travel_date: "" });
+  const [subscription, setSubscription] = useState({ lead_time_minutes_list: [10080], travel_date: "" });
   const [alertMessage, setAlertMessage] = useState("");
   const [calendarStatus, setCalendarStatus] = useState("");
   const [files, setFiles] = useState([]);
@@ -120,7 +120,7 @@ export default function DestinationDetail() {
     try {
       await api.post("/api/subscriptions", {
         destination_id: id,
-        lead_time_minutes: Number(subscription.lead_time_minutes),
+        lead_time_minutes_list: subscription.lead_time_minutes_list,
         travel_date: subscription.travel_date || null,
       });
       setAlertMessage(t("alert.success"));
@@ -553,20 +553,29 @@ export default function DestinationDetail() {
             <p className="font-semibold text-emerald-600 dark:text-emerald-400">✓ {t("destination.already_owned")}</p>
             <form onSubmit={handleSubscribe} className="mt-4 space-y-3">
               <h3 className="font-semibold text-stone-900 dark:text-stone-100">{t("alert.title")}</h3>
-              <label className="block text-sm text-stone-800 dark:text-stone-300">
-                {t("alert.lead_time")}
-                <select
-                  value={subscription.lead_time_minutes}
-                  onChange={(e) => setSubscription((s) => ({ ...s, lead_time_minutes: e.target.value }))}
-                  className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-stone-900 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
-                >
+              <fieldset className="block text-sm text-stone-800 dark:text-stone-300">
+                <legend>{t("alert.lead_time")}</legend>
+                <div className="mt-1 space-y-1">
                   {LEAD_TIME_OPTIONS.map((opt) => (
-                    <option key={opt.minutes} value={opt.minutes}>
+                    <label key={opt.minutes} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={subscription.lead_time_minutes_list.includes(opt.minutes)}
+                        onChange={(e) =>
+                          setSubscription((s) => ({
+                            ...s,
+                            lead_time_minutes_list: e.target.checked
+                              ? [...s.lead_time_minutes_list, opt.minutes]
+                              : s.lead_time_minutes_list.filter((m) => m !== opt.minutes),
+                          }))
+                        }
+                        className="rounded border-stone-300 dark:border-stone-700"
+                      />
                       {opt.label}
-                    </option>
+                    </label>
                   ))}
-                </select>
-              </label>
+                </div>
+              </fieldset>
               {needsTravelDate && (
                 <label className="block text-sm text-stone-800 dark:text-stone-300">
                   {t("alert.travel_date")}
@@ -582,7 +591,8 @@ export default function DestinationDetail() {
               )}
               <button
                 type="submit"
-                className="rounded-full bg-amber-700 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-800"
+                disabled={subscription.lead_time_minutes_list.length === 0}
+                className="rounded-full bg-amber-700 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-800 disabled:opacity-50"
               >
                 {t("alert.submit")}
               </button>

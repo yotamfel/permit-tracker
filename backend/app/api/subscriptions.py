@@ -37,7 +37,7 @@ def list_my_subscriptions(user: User = Depends(get_current_user), db: Session = 
                 id=s.id,
                 destination_id=s.destination_id,
                 destination_name=d.name if d else "(deleted destination)",
-                lead_time_minutes=s.lead_time_minutes,
+                lead_time_minutes_list=s.lead_time_minutes_list,
                 is_active=s.is_active,
                 travel_date=s.travel_date,
             )
@@ -72,8 +72,10 @@ def create_subscription(
             f"travel_date is required to set an alert for mechanism_type={d.mechanism_type.value}",
         )
 
-    if body.lead_time_minutes not in LEAD_TIME_PRESET_MINUTES:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "lead_time_minutes must be one of the offered presets")
+    if not body.lead_time_minutes_list:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Select at least one lead time")
+    if not set(body.lead_time_minutes_list) <= LEAD_TIME_PRESET_MINUTES:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "lead_time_minutes_list must only contain offered presets")
 
     # Upsert: one alert per user+destination (see the unique constraint on the
     # model) - re-submitting (including a double-submit race on the button)
@@ -101,7 +103,7 @@ def create_subscription(
     if sub is None:
         sub = AlertSubscription(user_id=user.id, destination_id=d.id)
         db.add(sub)
-    sub.lead_time_minutes = body.lead_time_minutes
+    sub.lead_time_minutes_list = sorted(set(body.lead_time_minutes_list))
     sub.travel_date = body.travel_date
     sub.is_active = True
     db.commit()

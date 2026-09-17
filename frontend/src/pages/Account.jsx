@@ -201,7 +201,9 @@ export default function Account() {
                   {s.destination_name}
                 </Link>
                 <span className="text-xs text-stone-500 dark:text-stone-400">
-                  {LEAD_TIME_LABELS[s.lead_time_minutes] || `${s.lead_time_minutes} min before`}
+                  {s.lead_time_minutes_list
+                    .map((m) => LEAD_TIME_LABELS[m] || `${m} min before`)
+                    .join(", ")}
                   {s.travel_date && ` · travel date ${s.travel_date}`}
                 </span>
                 <button onClick={() => removeAlert(s.id)} className="text-xs text-red-600 underline">

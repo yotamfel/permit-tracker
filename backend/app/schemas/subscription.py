@@ -9,14 +9,14 @@ LEAD_TIME_PRESET_MINUTES = {20160, 10080, 4320, 1440, 30}
 
 class SubscriptionCreateRequest(BaseModel):
     destination_id: uuid.UUID
-    lead_time_minutes: int = 10080
+    lead_time_minutes_list: list[int] = [10080]
     travel_date: date | None = None  # required for mechanism types with no fixed release date
 
 
 class SubscriptionOut(BaseModel):
     id: uuid.UUID
     destination_id: uuid.UUID
-    lead_time_minutes: int
+    lead_time_minutes_list: list[int]
     is_active: bool
     travel_date: date | None
 

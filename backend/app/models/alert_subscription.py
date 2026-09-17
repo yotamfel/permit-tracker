@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import Boolean, Date, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import ARRAY, Boolean, Date, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,8 +24,11 @@ class AlertSubscription(UUIDPKMixin, TimestampMixin, Base):
     )
     # Minutes rather than days, so short lead times (e.g. 30 minutes before an
     # exact release time) are representable. Presets: 20160 (2wk), 10080 (1wk),
-    # 4320 (3d), 1440 (1d), 30 (30min) - see app/api/subscriptions.py.
-    lead_time_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=10080)
+    # 4320 (3d), 1440 (1d), 30 (30min) - see app/api/subscriptions.py. A user
+    # can pick more than one preset, so this fires a separate alert email for
+    # each one against the same release moment (dispatch_alerts.py dedupes
+    # per lead time via notification_log.lead_time_minutes).
+    lead_time_minutes_list: Mapped[list[int]] = mapped_column(ARRAY(Integer), nullable=False, default=list)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     # For mechanism types with no computable release date (guided_tour_only,
     # first_come_first_served): the user supplies their intended travel date,

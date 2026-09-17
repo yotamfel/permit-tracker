@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -21,3 +21,9 @@ class NotificationLog(UUIDPKMixin, TimestampMixin, Base):
     status: Mapped[NotificationStatus] = mapped_column(
         Enum(NotificationStatus, name="notification_status"), nullable=False
     )
+    # Which of the subscription's (possibly several) lead times this specific
+    # notification was for - null on rows logged before multi-lead-time
+    # support existed. Lets dispatch_alerts.py dedupe per lead time instead of
+    # per subscription, now that one subscription can fire more than once
+    # against the same release moment.
+    lead_time_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)

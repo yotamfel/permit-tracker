@@ -81,7 +81,7 @@
   },
   "alert": {
     "title": "Get notified before it opens",
-    "lead_time": "Notify me this many days before",
+    "lead_time": "Notify me before (pick one or more)",
     "travel_date": "Your intended travel date",
     "travel_date_help": "This destination has no fixed release date - alerts are based on your travel date instead. Your unlock also stays active until 60 days after this date (or 60 days after your purchase, if you never set one). You can set or change it within 7 days of your purchase; after that, contact us via the Contact page to update it.",
     "submit": "Set alert",
