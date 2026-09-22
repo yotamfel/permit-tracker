@@ -72,6 +72,9 @@
     "not_yet_verified": "Not yet verified",
     "unlock_cta": "Unlock for ${{price}}",
     "risk_framing": "One wrong date can cost you the whole trip. This costs less than a dinner out.",
+    "travel_date_required_label": "When are you planning to go?",
+    "travel_date_required_help": "This destination has no fixed release date, so we use your travel date to set your 60-day access window. You can change it within 7 days of purchase.",
+    "travel_date_required_error": "Enter your travel date to unlock this destination.",
     "calendar_downloaded": "Calendar file downloaded - check your downloads folder.",
     "unlocking": "Redirecting to checkout...",
     "already_owned": "You've unlocked this destination",
@@ -83,7 +86,7 @@
     "title": "Get notified before it opens",
     "lead_time": "Notify me before (pick one or more)",
     "travel_date": "Your intended travel date",
-    "travel_date_help": "This destination has no fixed release date - alerts are based on your travel date instead. Your unlock also stays active until 60 days after this date (or 60 days after your purchase, if you never set one). You can set or change it within 7 days of your purchase; after that, contact us via the Contact page to update it.",
+    "travel_date_help": "This destination has no fixed release date, so alerts and your 60-day access window are both based on your travel date instead. You can change it within 7 days of your purchase; after that, contact us via the Contact page to update it.",
     "submit": "Set alert",
     "success": "Alert set! We'll email you.",
     "delete": "Remove alert"

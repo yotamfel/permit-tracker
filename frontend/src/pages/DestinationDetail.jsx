@@ -121,9 +121,15 @@ export default function DestinationDetail() {
 
   const handleUnlock = async () => {
     setError("");
+    if (needsTravelDate && !subscription.travel_date) {
+      setError(t("destination.travel_date_required_error"));
+      return;
+    }
     trackEvent("unlock_click", { destination_id: id });
     try {
-      const res = await api.post(`/api/checkout/${id}`);
+      const res = await api.post(`/api/checkout/${id}`, {
+        travel_date: needsTravelDate ? subscription.travel_date : null,
+      });
       window.location.href = res.data.checkout_url;
     } catch (e) {
       setError(e.response?.data?.detail || t("auth.error"));
@@ -630,6 +636,19 @@ export default function DestinationDetail() {
               </p>
             )}
             <p className="mb-3 text-sm text-stone-800 dark:text-stone-300">{t("destination.risk_framing")}</p>
+            {needsTravelDate && user && (
+              <label className="mb-3 block text-sm text-stone-800 dark:text-stone-300">
+                {t("destination.travel_date_required_label")}
+                <input
+                  type="date"
+                  required
+                  value={subscription.travel_date}
+                  onChange={(e) => setSubscription((s) => ({ ...s, travel_date: e.target.value }))}
+                  className="mt-1 block w-full max-w-xs rounded-lg border border-stone-300 bg-transparent px-2 py-1.5 dark:border-stone-700"
+                />
+                <span className="text-xs text-stone-500 dark:text-stone-400">{t("destination.travel_date_required_help")}</span>
+              </label>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={handleUnlock}

@@ -4,13 +4,14 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.subscriptions import TRAVEL_DATE_REQUIRED_TYPES
 from app.core.deps import get_current_user, get_db
 from app.models.alert_subscription import AlertSubscription
 from app.models.destination import Destination
 from app.models.enums import Platform, PurchaseStatus
 from app.models.purchase import Purchase
 from app.models.user import User
-from app.schemas.purchase import CheckoutSessionOut, PurchaseOut
+from app.schemas.purchase import CheckoutCreateRequest, CheckoutSessionOut, PurchaseOut
 from app.services.paddle_service import PaddleError, create_transaction, get_or_create_customer_id
 from app.services.purchase_cycle import purchase_still_active
 
@@ -20,11 +21,20 @@ logger = logging.getLogger(__name__)
 
 @router.post("/api/checkout/{destination_id}", response_model=CheckoutSessionOut)
 def create_checkout(
-    destination_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    destination_id: uuid.UUID,
+    body: CheckoutCreateRequest = CheckoutCreateRequest(),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ) -> CheckoutSessionOut:
     d = db.get(Destination, destination_id)
     if d is None or not d.is_published:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Destination not found")
+
+    subscription = (
+        db.query(AlertSubscription)
+        .filter(AlertSubscription.user_id == user.id, AlertSubscription.destination_id == destination_id)
+        .first()
+    )
 
     # Only block re-purchase if a completed purchase is still within its
     # cycle - a lapsed one must NOT block buying again for the next cycle
@@ -40,16 +50,24 @@ def create_checkout(
         .first()
     )
     if latest_purchase is not None:
-        subscription = (
-            db.query(AlertSubscription)
-            .filter(AlertSubscription.user_id == user.id, AlertSubscription.destination_id == destination_id)
-            .first()
-        )
-        travel_date = subscription.travel_date if subscription else None
+        prior_travel_date = subscription.travel_date if subscription else None
         if purchase_still_active(
-            d, latest_purchase.created_at, travel_date, admin_override_until=latest_purchase.admin_override_until
+            d, latest_purchase.created_at, prior_travel_date, admin_override_until=latest_purchase.admin_override_until
         ):
             raise HTTPException(status.HTTP_409_CONFLICT, "Destination already unlocked")
+
+    # Destinations with no computable release date anchor the 60-day access
+    # window (purchase_cycle.py) on the user's travel_date - without one, it
+    # falls back to the purchase timestamp itself, which can close access
+    # long before the user actually needs it. Require it up front instead of
+    # letting someone buy without ever setting one.
+    travel_date = body.travel_date or (subscription.travel_date if subscription else None)
+    if d.mechanism_type in TRAVEL_DATE_REQUIRED_TYPES and travel_date is None:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "A travel date is required before purchasing this destination, so your access window lines up "
+            "with your actual trip.",
+        )
 
     try:
         if user.paddle_customer_id is None:
@@ -66,6 +84,14 @@ def create_checkout(
     except PaddleError as exc:
         logger.error("Paddle transaction creation failed for destination %s: %s", destination_id, exc)
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Could not start checkout - please try again") from exc
+
+    if body.travel_date is not None and (subscription is None or subscription.travel_date != body.travel_date):
+        if subscription is None:
+            subscription = AlertSubscription(
+                user_id=user.id, destination_id=d.id, lead_time_minutes_list=[10080], is_active=True
+            )
+            db.add(subscription)
+        subscription.travel_date = body.travel_date
 
     pending = Purchase(
         user_id=user.id,
