@@ -5,15 +5,36 @@
 // wiring is needed: the existing `window.location.href = checkout_url`
 // redirect in DestinationDetail.jsx already lands on a URL Paddle.js will
 // recognize once this has run.
+// window.Paddle exists as soon as the <script> tag finishes its own top-level
+// execution, but paddle.js does further async internal setup after that -
+// calling Environment.set() immediately (synchronously, on the very first
+// tick window.Paddle exists) gets silently overridden back to Paddle's own
+// sandbox default once that internal setup runs. Re-asserting it for a few
+// seconds after window.Paddle first appears sidesteps needing to know
+// Paddle's actual internal "ready" signal. Environment.set() is just a
+// config flag, safe to call repeatedly; Initialize() is called once, after
+// that window, so it isn't racing the same internal setup.
+const ENVIRONMENT = import.meta.env.VITE_PADDLE_ENVIRONMENT === "sandbox" ? "sandbox" : "production";
+
+function reassertEnvironment(attemptsLeft = 16) {
+  if (!window.Paddle) {
+    if (attemptsLeft <= 0) return;
+    setTimeout(() => reassertEnvironment(attemptsLeft - 1), 150);
+    return;
+  }
+  window.Paddle.Environment.set(ENVIRONMENT);
+  if (attemptsLeft > 0) {
+    setTimeout(() => reassertEnvironment(attemptsLeft - 1), 150);
+  }
+}
+
 export function initPaddle() {
   const token = import.meta.env.VITE_PADDLE_CLIENT_TOKEN;
-  if (!token || !window.Paddle) return;
+  if (!token) return;
 
-  // Paddle.js defaults to sandbox unless explicitly told otherwise - set this
-  // either way rather than only handling the sandbox case, or a missing/blank
-  // VITE_PADDLE_ENVIRONMENT silently sends real production transactions to
-  // Paddle's sandbox checkout service (which 403s, since they don't exist
-  // there).
-  window.Paddle.Environment.set(import.meta.env.VITE_PADDLE_ENVIRONMENT === "sandbox" ? "sandbox" : "production");
-  window.Paddle.Initialize({ token });
+  reassertEnvironment();
+  setTimeout(() => {
+    if (!window.Paddle) return;
+    window.Paddle.Initialize({ token });
+  }, 2500);
 }
