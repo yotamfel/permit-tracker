@@ -9,8 +9,11 @@ export function initPaddle() {
   const token = import.meta.env.VITE_PADDLE_CLIENT_TOKEN;
   if (!token || !window.Paddle) return;
 
-  if (import.meta.env.VITE_PADDLE_ENVIRONMENT === "sandbox") {
-    window.Paddle.Environment.set("sandbox");
-  }
+  // Paddle.js defaults to sandbox unless explicitly told otherwise - set this
+  // either way rather than only handling the sandbox case, or a missing/blank
+  // VITE_PADDLE_ENVIRONMENT silently sends real production transactions to
+  // Paddle's sandbox checkout service (which 403s, since they don't exist
+  // there).
+  window.Paddle.Environment.set(import.meta.env.VITE_PADDLE_ENVIRONMENT === "sandbox" ? "sandbox" : "production");
   window.Paddle.Initialize({ token });
 }

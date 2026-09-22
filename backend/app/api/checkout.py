@@ -67,8 +67,6 @@ def create_checkout(
         logger.error("Paddle transaction creation failed for destination %s: %s", destination_id, exc)
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Could not start checkout - please try again") from exc
 
-    logger.error("DEBUG Paddle checkout_url for destination %s: %s", destination_id, checkout_url)
-
     pending = Purchase(
         user_id=user.id,
         destination_id=d.id,
