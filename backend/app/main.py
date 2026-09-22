@@ -74,7 +74,7 @@ def health() -> dict:
 # Bumped by hand whenever the guide articles are substantively edited (last:
 # the 2026-09-15 fact-check/expansion pass) - not auto-derived since guide
 # content lives in the frontend, with no shared timestamp source.
-GUIDES_LAST_MODIFIED = "2026-09-15"
+GUIDES_LAST_MODIFIED = "2026-09-22"
 
 
 @app.get("/sitemap.xml")
