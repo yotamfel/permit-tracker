@@ -65,7 +65,41 @@ if this sits unused for a while.
 >
 > Would love feedback on the product itself, and happy to answer anything about the build/stack/payment setup for anyone tackling something similar.
 
+## Facebook groups
+
+Wikivoyage deprioritized (external links there are `rel="nofollow"` - no SEO
+backlink value, and a fresh account posting a commercial link risks getting
+flagged as spam; not worth the effort right now). Facebook groups are a
+better bet: a warm, high-intent audience, and many groups explicitly allow
+self-promo posts or have a regular self-promo thread. Claude has no Facebook
+access, so these are drafts to paste in yourself once you've found/joined
+relevant groups.
+
+**Candidate groups to look for:** Yosemite Hiking / Backpacking groups (Half
+Dome permits come up constantly), Pacific Crest Trail groups (e.g. "PCT
+Class of [year]"), Torres del Paine / Patagonia trekking groups, Everest
+Base Camp trekking groups, general backpacking/trip-planning groups (e.g.
+"Backpacking Trip Planning", "Solo Female Travelers"), "National Park
+Permits & Planning"-type groups if any exist. Check each group's rules
+before posting - some ban self-promo outright, some only allow it in a
+designated thread/day.
+
+**Draft #1 - hiking/permit-specific groups (e.g. Yosemite, PCT, Patagonia):**
+
+> Anyone else get caught out by a permit lottery deadline before? I nearly missed the Half Dome window because the closing date was buried in a PDF I didn't find until two days before it shut.
+>
+> Ended up building [SlotScout](http://myslotscout.com) to track this stuff - 141 permits/trips with hard windows (national parks, treks, a few lotteries), with a free email alert before each one opens. Free to browse and set alerts; $6.99 one-time if you want the full prep checklist for a specific trip.
+>
+> Figured this group would know exactly the pain I'm talking about. Happy to add a destination if it's missing, and would genuinely love feedback.
+
+**Draft #2 - general travel-planning groups:**
+
+> Sharing something I built after almost blowing a bucket-list trip - I nearly missed the application window for the Half Dome permit lottery because I found the deadline through a random forum comment, with two days to spare.
+>
+> Built [SlotScout](http://myslotscout.com) so that doesn't happen again - it tracks 141 permits/lotteries/quotas that sell out fast (national parks, treks, a few "opens for 10 minutes" events) and sends an alert before each window opens. Free to browse and set alerts; $6.99 one-time for the full checklist on a specific destination if you want it.
+>
+> Would love to know if there's a permit system that's burned you that I should add.
+
 ## Still to prepare
 
-- Wikivoyage edit (which page(s), what to add)
 - Creator outreach list + pitch text
