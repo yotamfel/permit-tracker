@@ -392,10 +392,10 @@ export default function AdminDestinationEdit() {
       />
 
       <textarea
-        rows={3}
+        rows={8}
         value={form.description ?? ""}
         onChange={(e) => set("description", e.target.value)}
-        placeholder="Description shown to everyone, before unlock"
+        placeholder="Description shown to everyone, before unlock (press Enter for a new paragraph)"
         className="mt-4 block w-full rounded-lg border border-stone-300 bg-transparent px-2 py-1 text-stone-700 dark:border-stone-700 dark:text-stone-300"
       />
 

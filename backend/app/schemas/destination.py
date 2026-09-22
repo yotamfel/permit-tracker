@@ -104,6 +104,10 @@ class DestinationDetailOut(BaseModel):
     # documents, 2 registration steps" - computed from "general" + "specific"
     # checklist sections (not "good_to_know", which isn't required for the permit).
     checklist_item_counts: dict[str, int] = {}
+    # "good_to_know" tips are informational extras, not required prep, so they're
+    # excluded from checklist_item_counts above - but the count itself (not the
+    # tip text) is free to show pre-purchase as an extra value signal.
+    good_to_know_count: int = 0
     # Only populated when is_owned is True - gated server-side, not just hidden in
     # the UI. source_url is intentionally never exposed here - we don't want to
     # send unlocked users elsewhere; application_url is the "apply here" action

@@ -145,9 +145,12 @@ def get_destination(
     # Checklist "shape" teaser (spec addendum §1.2) - counts only, general +
     # specific (not good_to_know, which isn't required for the permit).
     checklist_item_counts: dict[str, int] = {}
+    good_to_know_count = 0
     for item in d.checklist_items:
         if item.section.value == "specific":
             checklist_item_counts[item.item_type.value] = checklist_item_counts.get(item.item_type.value, 0) + 1
+        elif item.section.value == "good_to_know":
+            good_to_know_count += 1
     general_count = (
         db.query(DestinationRequirement).filter(DestinationRequirement.destination_id == destination_id).count()
     )
@@ -209,6 +212,7 @@ def get_destination(
         next_known_release=compute_next_release(d.mechanism_type.value, d.mechanism_config),
         mechanism_config=d.mechanism_config,
         checklist_item_counts=checklist_item_counts,
+        good_to_know_count=good_to_know_count,
         application_url=d.application_url if is_owned else None,
         operators=operators,
         alternatives=alternatives,

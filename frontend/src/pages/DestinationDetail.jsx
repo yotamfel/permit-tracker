@@ -334,7 +334,15 @@ export default function DestinationDetail() {
       <p className="text-stone-500 dark:text-stone-400">{destination.country}</p>
 
       {destination.description && (
-        <p className="mt-4 max-w-prose text-stone-800 leading-relaxed dark:text-stone-300">{destination.description}</p>
+        <div className="mt-4 max-w-prose space-y-3 text-stone-800 leading-relaxed dark:text-stone-300">
+          {destination.description
+            .split(/\n+/)
+            .map((para) => para.trim())
+            .filter(Boolean)
+            .map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+        </div>
       )}
 
       <CompetitivenessNote level={destination.competitiveness_level} />
@@ -452,7 +460,9 @@ export default function DestinationDetail() {
             </div>
             {Object.keys(destination.checklist_item_counts).length > 0 && (
               <p className="mt-3 text-sm font-medium text-stone-800 dark:text-stone-300">
-                This permit requires: {formatChecklistCounts(destination.checklist_item_counts)}
+                Checklist includes {totalChecklistCount(destination.checklist_item_counts)} items to prep
+                {destination.good_to_know_count > 0 &&
+                  ` - plus ${destination.good_to_know_count} more thing${destination.good_to_know_count === 1 ? "" : "s"} worth knowing before you go`}
               </p>
             )}
             <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">{t("destination.checklist_locked")}</p>
@@ -712,18 +722,8 @@ function DestinationContactSection({ destinationId, destinationName, userEmail }
   );
 }
 
-const CHECKLIST_COUNT_LABELS = {
-  document: (n) => `${n} document${n === 1 ? "" : "s"}`,
-  action: (n) => `${n} registration step${n === 1 ? "" : "s"}`,
-  gear: (n) => `${n} gear item${n === 1 ? "" : "s"}`,
-  payment: (n) => `${n} payment${n === 1 ? "" : "s"}`,
-  general_requirement: (n) => `${n} general requirement${n === 1 ? "" : "s"}`,
-};
-
-function formatChecklistCounts(counts) {
-  return Object.entries(counts)
-    .map(([type, n]) => (CHECKLIST_COUNT_LABELS[type] ? CHECKLIST_COUNT_LABELS[type](n) : `${n} ${type}`))
-    .join(", ");
+function totalChecklistCount(counts) {
+  return Object.values(counts).reduce((sum, n) => sum + n, 0);
 }
 
 function ChecklistProgress({ items }) {
