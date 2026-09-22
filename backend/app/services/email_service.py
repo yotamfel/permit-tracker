@@ -1,4 +1,5 @@
 import html
+from datetime import datetime
 
 import resend
 
@@ -198,7 +199,7 @@ def send_purchase_confirmation_email(
     to_email: str,
     destination_name: str,
     checklist_url: str,
-    days_remaining: int,
+    access_until: datetime,
     referral_code: str | None = None,
 ) -> None:
     referral_block = (
@@ -218,8 +219,8 @@ def send_purchase_confirmation_email(
         f"<p style='{_TEXT_STYLE}'>Hey! Your <strong>{destination_name}</strong> checklist is unlocked and ready "
         f"to go.</p>"
         f"{_button(checklist_url, 'View your checklist')}"
-        f"<p style='margin:0;font-size:14px;color:#57534e;font-family:{_FONT}'>Your access is open for the next "
-        f"<strong>{days_remaining} days</strong>.</p>"
+        f"<p style='margin:0;font-size:14px;color:#57534e;font-family:{_FONT}'>Your access is open until "
+        f"<strong>{access_until.strftime('%B %d, %Y')}</strong>.</p>"
         f"{referral_block}"
         f"<p style='{_MUTED_STYLE};margin-top:16px'>Questions? Just reply to this email or use the contact form "
         f"on the site.</p>"

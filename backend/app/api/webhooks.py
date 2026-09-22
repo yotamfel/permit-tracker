@@ -1,7 +1,5 @@
 import logging
-import math
 import uuid
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
@@ -120,19 +118,12 @@ def _send_purchase_confirmation(db: Session, buyer: User, purchase: Purchase) ->
     access_until = purchase_active_until(
         destination, purchase.created_at, travel_date, admin_override_until=purchase.admin_override_until
     )
-    # Round up, not down - the access window is a full CYCLE_BUFFER_DAYS from
-    # the purchase anchor, but by the time this webhook fires (even a few
-    # seconds/minutes after checkout) "now" is already slightly past that
-    # anchor, so a plain .days (floor) truncation under-reports by one (e.g.
-    # "59 days" for a purchase that genuinely has a 60-day window).
-    seconds_remaining = (access_until - datetime.now(timezone.utc)).total_seconds()
-    days_remaining = max(math.ceil(seconds_remaining / 86400), 0)
 
     send_purchase_confirmation_email(
         buyer.email,
         destination.name,
         f"{settings.frontend_url}/destinations/{destination.id}",
-        days_remaining,
+        access_until,
         referral_code=buyer.referral_code,
     )
 
