@@ -475,10 +475,10 @@ export default function AdminDestinationEdit() {
           </label>
         </div>
         <textarea
-          rows={2}
+          rows={6}
           value={form.mechanism_explanation ?? ""}
           onChange={(e) => set("mechanism_explanation", e.target.value)}
-          placeholder="How it works, in plain language"
+          placeholder="How it works, in plain language (press Enter for a new paragraph)"
           className="mt-2 block w-full rounded-lg border border-stone-300 bg-white px-2 py-1 text-sm text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300"
         />
         <label className="mt-2 block text-xs text-stone-500 dark:text-stone-400">

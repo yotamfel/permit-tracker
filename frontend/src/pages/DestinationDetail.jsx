@@ -13,6 +13,22 @@ import { guidesForMechanismType } from "../data/guides";
 // from the user before an alert can be computed (see app/services/alerts.py).
 const TRAVEL_DATE_REQUIRED = NO_RELEASE_DATE_TYPES;
 
+// Renders admin-authored prose (description, mechanism_explanation) as
+// separate <p> tags split on line breaks, instead of one dense block.
+function Paragraphs({ text, className }) {
+  return (
+    <div className={`${className} space-y-3`}>
+      {text
+        .split(/\n+/)
+        .map((para) => para.trim())
+        .filter(Boolean)
+        .map((para, i) => (
+          <p key={i}>{para}</p>
+        ))}
+    </div>
+  );
+}
+
 // schema.org's MerchantReturnPolicy requires an explicit country list (up to
 // 50, no "worldwide" value exists) - Paddle sells to essentially every major
 // market as Merchant of Record, so this lists the ~50 largest by population/
@@ -334,15 +350,7 @@ export default function DestinationDetail() {
       <p className="text-stone-500 dark:text-stone-400">{destination.country}</p>
 
       {destination.description && (
-        <div className="mt-4 max-w-prose space-y-3 text-stone-800 leading-relaxed dark:text-stone-300">
-          {destination.description
-            .split(/\n+/)
-            .map((para) => para.trim())
-            .filter(Boolean)
-            .map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
-        </div>
+        <Paragraphs text={destination.description} className="mt-4 max-w-prose text-stone-800 leading-relaxed dark:text-stone-300" />
       )}
 
       <CompetitivenessNote level={destination.competitiveness_level} />
@@ -389,7 +397,7 @@ export default function DestinationDetail() {
           </ul>
         )}
         {destination.is_owned ? (
-          <p className="mt-2 text-stone-800 dark:text-stone-300">{destination.mechanism_explanation}</p>
+          <Paragraphs text={destination.mechanism_explanation} className="mt-2 text-stone-800 dark:text-stone-300" />
         ) : (
           <div className="relative mt-2 overflow-hidden rounded-lg">
             <p className="select-none blur-sm">
