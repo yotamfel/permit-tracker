@@ -102,4 +102,4 @@ designated thread/day.
 
 ## Still to prepare
 
-- Creator outreach list + pitch text
+- **Creator outreach list + pitch text** - deferred to a future session. This session hit its WebSearch budget (200/200) before finding real creators, and deliberately did not fabricate names/channels (matches the project's "never fabricate a link" rule used throughout the destination-researcher/reviewer pipeline). Next session: search for real YouTubers/bloggers covering Yosemite/Half Dome, PCT, Patagonia/Torres del Paine, national park permits generally, then draft the pitch text once real names are in hand.
