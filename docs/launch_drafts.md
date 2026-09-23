@@ -25,6 +25,20 @@ if this sits unused for a while.
 
 **Note (2026-09-23):** the drafts below were rewritten to drop the "I almost missed the Half Dome lottery" anecdote - not a real incident, per explicit user correction - and to cut back on pricing detail to a single short clause rather than dwelling on it. Same fix as the Product Hunt first comment above.
 
+## Product Hunt forum engagement (pre-launch account warm-up)
+
+Reply drafted for an active PH forum thread - "Do solo makers need a UI/UX
+designer?" (https://www.producthunt.com/p/runevr/do-solo-makers-need-a-ui-ux-designer,
+468 upvotes/235 comments at time of writing). Purpose: genuine engagement to
+warm up the account before the 2026-09-29 launch, not self-promotion (no
+link to SlotScout in it).
+
+> built SlotScout solo, mostly with AI helping on both code and design. honestly gets you pretty far fast. but the stuff AI won't catch is the stuff you only notice by actually using your own product like a stranger would.
+>
+> had destination pages where the description was just one giant block of text. looked "fine" until I actually sat and read it instead of just glancing at it while building. splitting it into paragraphs was a 2-line fix but the page felt completely different after.
+>
+> so for me it's less "AI vs designer" and more - you still have to be the one who slows down and actually looks at your own stuff critically. AI won't do that part for you.
+
 ## Reddit #1 - r/solotravel (broad audience)
 
 **Title:** Built a tracker for permit/lottery deadlines on 141 bucket-list trips (Half Dome, Torres del Paine, Antarctica, etc.)
