@@ -27,6 +27,14 @@ if this sits unused for a while.
 
 ## Product Hunt engagement log (pre-launch account warm-up)
 
+**Forum thread - "Can a non-AI product succeed in 2026?"** (https://www.producthunt.com/p/stackness/can-a-non-ai-product-succeed-in-2026):
+
+> I think so - I'm building SlotScout (tracks permit/lottery deadlines for travel), zero AI in the actual product, just organized data and email alerts. Not once has a user asked "where's the AI." They just want to not miss their permit window. "Useful and boring" beats "AI-branded but doesn't solve anything" every time. The PH bubble Yogesh mentioned is real - this site skews heavily AI - but that's not the whole market.
+
+**Mossy** (https://www.producthunt.com/p/mossy-2/help-a-small-plant-find-new-desks, desk plant that wilts when you need a break, built by a couple):
+
+> Love this - a virtual plant that nudges you to move is such a clever, low-friction idea, way less naggy than a generic "stand up" notification. Also love that it's a nights-and-weekends project with your wife - I'm building SlotScout solo after my day job too, so I know exactly what that "20 desks in 3 weeks" number actually represents. Definitely sending this to a coworker who needs it. Good luck!
+
 **Lightmeter** (https://www.producthunt.com/products/lightmeter-2, film camera + light meter iOS app, "no AI, no account, nothing leaves your phone"):
 
 > Don't even have an iPhone so can't actually try this, but I really like the positioning - "no AI, no account, nothing leaves your phone" cuts through a lot of noise right now. I'm building in a completely different space (travel/permits) and went a similar route in spirit - keeping it simple and honest instead of bolting on AI everywhere just because it's trendy. Upvoted, good luck with the launch.
