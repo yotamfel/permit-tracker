@@ -25,6 +25,12 @@ if this sits unused for a while.
 
 **Note (2026-09-23):** the drafts below were rewritten to drop the "I almost missed the Half Dome lottery" anecdote - not a real incident, per explicit user correction - and to cut back on pricing detail to a single short clause rather than dwelling on it. Same fix as the Product Hunt first comment above.
 
+## Product Hunt engagement log (pre-launch account warm-up)
+
+**Lightmeter** (https://www.producthunt.com/products/lightmeter-2, film camera + light meter iOS app, "no AI, no account, nothing leaves your phone"):
+
+> Don't even have an iPhone so can't actually try this, but I really like the positioning - "no AI, no account, nothing leaves your phone" cuts through a lot of noise right now. I'm building in a completely different space (travel/permits) and went a similar route in spirit - keeping it simple and honest instead of bolting on AI everywhere just because it's trendy. Upvoted, good luck with the launch.
+
 ## Product Hunt forum engagement (pre-launch account warm-up)
 
 Reply drafted for an active PH forum thread - "Do solo makers need a UI/UX
