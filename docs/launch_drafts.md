@@ -19,23 +19,23 @@ if this sits unused for a while.
 
 **First comment (from the maker):**
 
-> Hey! Built this solo after almost missing the Half Dome permit lottery window - the info was scattered across a government PDF, three forum threads, and a Facebook group. SlotScout puts the whole process (documents, fees, exact dates, an alert before the window opens) on one page per destination.
->
-> It's free to browse and set alerts. You only pay when you actually want the prep checklist for a specific destination ($6.99 one-time, no subscription). Would love feedback, especially on which destinations are missing - always adding more.
+> Hey! Built SlotScout to fix a problem I kept running into: permit and lottery info for popular trips and attractions is scattered across government PDFs, forum threads, and random posts, and it's easy to miss the actual application window. SlotScout puts the whole thing - documents, fees, exact dates, and an alert before the window opens - on one page per destination, currently covering 141 destinations worldwide. Would love feedback, especially on which destinations are missing.
 
-## Reddit #1 - r/solotravel (personal story, broad audience)
+(Earlier draft claimed a specific "almost missed the Half Dome lottery" incident - dropped per explicit user correction, 2026-09-23: not a real story, don't fabricate one. Also dropped pricing/money from this comment entirely per the same correction - the listing's own price field already covers that, no need to restate it here.)
 
-**Title:** I almost missed the Half Dome permit lottery deadline, so I built a tracker for it (and 140 other permits)
+**Note (2026-09-23):** the drafts below were rewritten to drop the "I almost missed the Half Dome lottery" anecdote - not a real incident, per explicit user correction - and to cut back on pricing detail to a single short clause rather than dwelling on it. Same fix as the Product Hunt first comment above.
+
+## Reddit #1 - r/solotravel (broad audience)
+
+**Title:** Built a tracker for permit/lottery deadlines on 141 bucket-list trips (Half Dome, Torres del Paine, Antarctica, etc.)
 
 **Body:**
 
-> A couple months ago I nearly blew a Half Dome trip because I didn't realize the lottery application window had a hard closing date - found out from a random forum comment with like two days to spare.
+> Permit and lottery systems for popular trips are a mess to keep track of - different park, different portal, an application window that's easy to miss because it's buried in a government PDF or a random forum thread.
 >
-> That turned into a bit of an obsession, so I built [SlotScout](http://myslotscout.com) - it tracks the application windows, quotas, and lotteries for 141 permits/trips that sell out fast (national parks, treks, a few "sells out in minutes" events too), and sends you an email alert before the window opens.
+> Built [SlotScout](http://myslotscout.com) to put that in one place: 141 destinations worldwide, each with a plain-language explanation of how the system actually works, a prep checklist, and an optional email alert before the window opens. Free to browse and set alerts.
 >
-> Browsing and alerts are free. If you want the actual prep checklist (documents, fees, exact process) for a specific destination it's $6.99 one-time, no subscription.
->
-> Not trying to be spammy about it - genuinely built it because I got burned, figured others here have too. Happy to answer questions, and if there's a destination missing I'd love to know.
+> Happy to answer questions, and if there's a destination missing I'd love to know.
 
 ## Reddit #2 - r/Ultralight or r/CampingandHiking (permit-savvy audience)
 
@@ -45,25 +45,23 @@ if this sits unused for a while.
 
 > Permit season always sneaks up on me - different park, different portal, different exact date/time the window opens, usually buried in a PDF nobody reads until it's too late.
 >
-> Made [SlotScout](http://myslotscout.com) to fix that for myself, then kept adding destinations. It's currently tracking 141 permit systems (a lot of US/international backcountry permits, plus some non-hiking stuff like Torres del Paine and a few lotteries). Each one gets a plain-language explanation of exactly how the system works, a prep checklist, and an optional email alert before the window opens.
->
-> Free to browse/set alerts; $6.99 one-time if you want the full checklist for a specific trip.
+> Built [SlotScout](http://myslotscout.com) to fix that, then kept adding destinations - it's currently tracking 141 permit systems (a lot of US/international backcountry permits, plus some non-hiking stuff like Torres del Paine and a few lotteries). Each one gets a plain-language explanation of exactly how the system works, a prep checklist, and an optional email alert before the window opens. Free to browse and set alerts.
 >
 > Genuinely curious what permits people here fight with most that I might be missing - always looking to add more.
 
 ## Reddit #3 - r/SideProject (builder/solo-dev angle)
 
-**Title:** Launched SlotScout - a solo-built tool tracking 141 hard-to-get travel permits/lotteries, $6.99 one-time per destination
+**Title:** Launched SlotScout - a solo-built tool tracking 141 hard-to-get travel permits/lotteries
 
 **Body:**
 
-> Been building this solo for a while - [SlotScout](http://myslotscout.com) tracks application windows/quotas/lotteries for 141 travel permits (national parks, treks, a few "sells out in minutes" events) and sends an alert before the window opens.
+> [SlotScout](http://myslotscout.com) tracks application windows/quotas/lotteries for 141 travel permits (national parks, treks, a few "sells out in minutes" events) and sends an alert before the window opens - built solo.
 >
 > Stack: FastAPI + Postgres backend, React/Vite frontend, deployed on Railway + Vercel, Paddle for payments (as Merchant of Record so I don't have to deal with global VAT/sales tax myself as a solo indie).
 >
-> Model: free to browse and set alerts, $6.99 one-time (no subscription) to unlock the full prep checklist for a specific destination. No ads, no affiliate links steering people to one operator over another.
+> Free to browse and set alerts. No ads, no affiliate links steering people to one operator over another.
 >
-> Would love feedback on the product itself, and happy to answer anything about the build/stack/payment setup for anyone tackling something similar.
+> Would love feedback on the product itself, and happy to answer anything about the build/stack for anyone tackling something similar.
 
 ## Facebook groups
 
@@ -86,17 +84,17 @@ designated thread/day.
 
 **Draft #1 - hiking/permit-specific groups (e.g. Yosemite, PCT, Patagonia):**
 
-> Anyone else get caught out by a permit lottery deadline before? I nearly missed the Half Dome window because the closing date was buried in a PDF I didn't find until two days before it shut.
+> Anyone else find permit lottery deadlines a pain to keep track of? Different park, different portal, and the actual closing date is usually buried in a government PDF nobody reads until it's too late.
 >
-> Ended up building [SlotScout](http://myslotscout.com) to track this stuff - 141 permits/trips with hard windows (national parks, treks, a few lotteries), with a free email alert before each one opens. Free to browse and set alerts; $6.99 one-time if you want the full prep checklist for a specific trip.
+> Built [SlotScout](http://myslotscout.com) to track this stuff - 141 permits/trips with hard windows (national parks, treks, a few lotteries), with a free email alert before each one opens. Free to browse and set alerts.
 >
 > Figured this group would know exactly the pain I'm talking about. Happy to add a destination if it's missing, and would genuinely love feedback.
 
 **Draft #2 - general travel-planning groups:**
 
-> Sharing something I built after almost blowing a bucket-list trip - I nearly missed the application window for the Half Dome permit lottery because I found the deadline through a random forum comment, with two days to spare.
+> Sharing something I built - permit and lottery systems for popular trips are scattered across government sites and forum threads, and it's easy to miss the actual application window.
 >
-> Built [SlotScout](http://myslotscout.com) so that doesn't happen again - it tracks 141 permits/lotteries/quotas that sell out fast (national parks, treks, a few "opens for 10 minutes" events) and sends an alert before each window opens. Free to browse and set alerts; $6.99 one-time for the full checklist on a specific destination if you want it.
+> Built [SlotScout](http://myslotscout.com) to put it all in one place - it tracks 141 permits/lotteries/quotas that sell out fast (national parks, treks, a few "opens for 10 minutes" events) and sends an alert before each window opens. Free to browse and set alerts.
 >
 > Would love to know if there's a permit system that's burned you that I should add.
 
