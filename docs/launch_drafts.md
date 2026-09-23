@@ -110,21 +110,55 @@ Permits & Planning"-type groups if any exist. Check each group's rules
 before posting - some ban self-promo outright, some only allow it in a
 designated thread/day.
 
+**Note (2026-09-23):** Facebook does not render markdown - `[SlotScout](url)` would show as literal bracket text, not a clickable link. All drafts below put the bare URL on its own line instead, which Facebook auto-links. Multiple phrasings are provided per group type so the same text isn't pasted verbatim into every group (repetition risks a spam flag).
+
 **Draft #1 - hiking/permit-specific groups (e.g. Yosemite, PCT, Patagonia):**
 
 > Anyone else find permit lottery deadlines a pain to keep track of? Different park, different portal, and the actual closing date is usually buried in a government PDF nobody reads until it's too late.
 >
-> Built [SlotScout](http://myslotscout.com) to track this stuff - 141 permits/trips with hard windows (national parks, treks, a few lotteries), with a free email alert before each one opens. Free to browse and set alerts.
+> Built a tool to track this stuff - 141 permits/trips with hard windows (national parks, treks, a few lotteries), with a free email alert before each one opens. Free to browse and set alerts.
+>
+> myslotscout.com
 >
 > Figured this group would know exactly the pain I'm talking about. Happy to add a destination if it's missing, and would genuinely love feedback.
 
-**Draft #2 - general travel-planning groups:**
+**Draft #2 - general travel-planning groups, variant A:**
 
-> Sharing something I built - permit and lottery systems for popular trips are scattered across government sites and forum threads, and it's easy to miss the actual application window.
+> Permit and lottery systems for popular trips are a mess to keep track of - different government site for every park, an application window that's easy to miss because it's buried in a PDF nobody reads until it's too late.
 >
-> Built [SlotScout](http://myslotscout.com) to put it all in one place - it tracks 141 permits/lotteries/quotas that sell out fast (national parks, treks, a few "opens for 10 minutes" events) and sends an alert before each window opens. Free to browse and set alerts.
+> I put together a tool that tracks 141 of these systems worldwide and sends an alert before each window opens. Free to browse and set alerts.
+>
+> myslotscout.com
 >
 > Would love to know if there's a permit system that's burned you that I should add.
+
+**Draft #2 - general travel-planning groups, variant B:**
+
+> Ever miss an application window for a permit or lottery because the deadline was buried in some government PDF? Happens more than it should.
+>
+> Built a site that tracks these systems - national parks, treks, a few "opens for 10 minutes" events - and sends an alert before the window opens. 141 destinations so far, free to browse and set alerts.
+>
+> myslotscout.com
+>
+> Always looking for permits people here have struggled with, so let me know if I'm missing one.
+
+**Draft #2 - general travel-planning groups, variant C:**
+
+> If you've ever planned a trip around a permit or lottery system (national parks, treks, big one-time events), you know how scattered the info usually is.
+>
+> Built a site to track application windows for 141 of these worldwide, with a free alert before each one opens.
+>
+> myslotscout.com
+>
+> Happy to add more if there's a system you know that's a pain to track.
+
+**Draft #2 - general travel-planning groups, variant D (short):**
+
+> Sharing a tool I built for anyone who's ever missed a permit or lottery deadline for a trip - tracks application windows for 141 destinations worldwide and emails you before they open. Free to browse and set alerts.
+>
+> myslotscout.com
+>
+> Let me know if there's a permit system I should add.
 
 ## Still to prepare
 
