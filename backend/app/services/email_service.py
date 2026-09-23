@@ -253,3 +253,96 @@ def send_contact_reply(to_email: str, to_name: str, original_message: str, reply
             "html": _wrap_email(body),
         }
     )
+
+
+_URGENCY_DOT = {"high": "🔴", "medium": "🟡", "low": "🟢"}
+
+
+def send_admin_weekly_digest_email(
+    admin_emails: list[str],
+    pending_diffs: list[dict],
+    failing_sources: list[dict],
+    follow_ups: list[dict],
+    open_inquiries_count: int,
+) -> None:
+    """Weekly "what needs your attention" summary for admins - see
+    app/jobs/dispatch_admin_weekly_digest.py for what populates each list.
+
+    pending_diffs: [{destination_id, destination_name, unreadable: bool}]
+    failing_sources: [{destination_id, destination_name, days_failing: int|None, urgency: "high"|"medium"|"low"}]
+    follow_ups: [{destination_id, destination_name, title, notes, due_str, overdue: bool}]
+    """
+    if not admin_emails or not (pending_diffs or failing_sources or follow_ups or open_inquiries_count):
+        return
+
+    def _dest_link(destination_id) -> str:
+        return f"{settings.frontend_url}/admin/destinations/{destination_id}"
+
+    sections = []
+
+    if pending_diffs:
+        rows = "".join(
+            f"<li style='margin-bottom:8px'><a href='{_dest_link(d['destination_id'])}' "
+            f"style='color:#b45309'>{html.escape(d['destination_name'])}</a>"
+            + (
+                " <span style='color:#dc2626;font-weight:600'>- no readable diff, check the source manually</span>"
+                if d.get("unreadable")
+                else " - review the change on the Monitoring tab"
+            )
+            + "</li>"
+            for d in pending_diffs
+        )
+        sections.append(
+            f"<h3 style='margin:0 0 6px;font-size:15px;color:#1c1917;font-family:{_FONT}'>"
+            f"🔍 {len(pending_diffs)} source change{'s' if len(pending_diffs) != 1 else ''} to review</h3>"
+            f"<ul style='margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.6;"
+            f"color:#1c1917;font-family:{_FONT}'>{rows}</ul>"
+        )
+
+    if failing_sources:
+        rows = "".join(
+            f"<li style='margin-bottom:8px'>{_URGENCY_DOT.get(s['urgency'], '⚪')} "
+            f"<a href='{_dest_link(s['destination_id'])}' style='color:#b45309'>{html.escape(s['destination_name'])}</a>"
+            f" - failing for {s['days_failing']} day{'s' if s['days_failing'] != 1 else ''}"
+            f"</li>"
+            for s in failing_sources
+        )
+        sections.append(
+            f"<h3 style='margin:0 0 6px;font-size:15px;color:#1c1917;font-family:{_FONT}'>"
+            f"⚠️ {len(failing_sources)} source{'s' if len(failing_sources) != 1 else ''} our monitor can't reach</h3>"
+            f"<ul style='margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.6;"
+            f"color:#1c1917;font-family:{_FONT}'>{rows}</ul>"
+        )
+
+    if follow_ups:
+        rows = "".join(
+            f"<li style='margin-bottom:8px'>{'🔴 overdue' if f['overdue'] else '🟡 due ' + f['due_str']} - "
+            f"<a href='{_dest_link(f['destination_id'])}' style='color:#b45309'>{html.escape(f['destination_name'])}</a>"
+            f" - {html.escape(f['title'])}"
+            + (f"<br/><span style='color:#78716c;font-size:13px'>{html.escape(f['notes'])}</span>" if f.get("notes") else "")
+            + "</li>"
+            for f in follow_ups
+        )
+        sections.append(
+            f"<h3 style='margin:0 0 6px;font-size:15px;color:#1c1917;font-family:{_FONT}'>"
+            f"📅 {len(follow_ups)} follow-up{'s' if len(follow_ups) != 1 else ''} due this week</h3>"
+            f"<ul style='margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.6;"
+            f"color:#1c1917;font-family:{_FONT}'>{rows}</ul>"
+        )
+
+    if open_inquiries_count:
+        sections.append(
+            f"<p style='{_TEXT_STYLE}'>✉️ {open_inquiries_count} open contact message"
+            f"{'s' if open_inquiries_count != 1 else ''} waiting for a reply.</p>"
+        )
+
+    body = "".join(sections)
+    total = len(pending_diffs) + len(failing_sources) + len(follow_ups) + open_inquiries_count
+    resend.Emails.send(
+        {
+            "from": _FROM,
+            "to": admin_emails,
+            "subject": f"SlotScout weekly digest: {total} item{'s' if total != 1 else ''} need attention",
+            "html": _wrap_email(body),
+        }
+    )
