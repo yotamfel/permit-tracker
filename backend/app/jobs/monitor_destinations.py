@@ -40,7 +40,37 @@ REQUEST_TIMEOUT_SECONDS = 20
 # monitoring fetch only (never for anything that submits data or
 # credentials). Do not add a host here without confirming the
 # failure is genuinely a cert-chain issue (see the ConnectError branch below).
-INSECURE_FALLBACK_HOSTS = {"www.sinac.go.cr", "www.machupicchu.gob.pe", "kws.go.ke"}
+INSECURE_FALLBACK_HOSTS = {
+    "www.sinac.go.cr",
+    # Same SINAC (Costa Rica) cert misconfiguration, different subdomain - this
+    # is the online-booking portal used by Chirripo/Corcovado, confirmed
+    # 2026-10-06 to load normally in a real browser while httpx rejects the
+    # chain exactly as it does for www.sinac.go.cr.
+    "serviciosenlineasa.sinac.go.cr",
+    "www.machupicchu.gob.pe",
+    "kws.go.ke",
+}
+
+# Hosts that serve their page fine to a real browser but return 403 to any
+# self-identifying automated client (we send a PermitTrackerBot User-Agent and
+# deliberately don't disguise it as a browser). Each of these was opened
+# manually in a browser and confirmed healthy - the 403 says nothing about
+# whether the destination's content actually changed, so flagging it weekly
+# just produced recurring admin noise that cleared and came back every run.
+#
+# Effect is narrow: a 403 from one of these hosts is not treated as a fetch
+# failure at all (no source_fetch_failing flag, no admin email). Every other
+# status - a 404, a 500, a timeout, a moved page - still surfaces normally,
+# including from these same hosts, so a genuinely dead source still gets
+# caught. Only add a host here after opening it in a real browser and
+# confirming the page is live and the block is bot-detection, not breakage.
+BOT_BLOCKING_HOSTS = {
+    "www.rct.uk",
+    "www.toureiffel.paris",
+    "www.sanparks.org",
+    "www.pcta.org",
+    "www.bandhavgarh.net",
+}
 
 
 def extract_visible_text(html: str) -> str:
@@ -108,8 +138,15 @@ def run() -> None:
         db.close()
 
 
+def _is_expected_bot_block(url: str, error: str) -> bool:
+    return urlparse(url).hostname in BOT_BLOCKING_HOSTS and "403" in error
+
+
 def _check_one(db, d: Destination) -> None:
     text, error = fetch_text(d.source_url)
+    if text is None and _is_expected_bot_block(d.source_url, error or ""):
+        logger.info("Skipping %s - %s blocks automated fetches (expected 403)", d.name, d.source_url)
+        return
     if text is None:
         # Only notify on the transition into a failing state, not on every
         # weekly re-check, so a persistently-broken source doesn't spam.
